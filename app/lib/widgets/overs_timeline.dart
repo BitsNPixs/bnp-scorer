@@ -7,9 +7,11 @@ import 'over_strip.dart';
 import 'stat_widgets.dart';
 import 'surface_panel.dart';
 
-const _overColumnWidth = 64.0;
-const _runsColumnWidth = 36.0;
-const _chipSize = 30.0;
+const _overColumnWidth = 56.0;
+const _runsColumnWidth = 32.0;
+
+/// Six of these fit on one line at 360 dp.
+const _chipSize = 28.0;
 
 /// Every over of an innings, newest first: the score it ended on, who bowled to
 /// whom, and each ball.
@@ -111,8 +113,8 @@ class _OverRow extends StatelessWidget {
                 Text(overHeadline(setup, over), maxLines: 2, overflow: TextOverflow.ellipsis, style: muted),
                 const SizedBox(height: 6),
                 Wrap(
-                  spacing: 4,
-                  runSpacing: 4,
+                  spacing: 3,
+                  runSpacing: 3,
                   children: [
                     for (final ball in over.balls) BallChip(ball: ball, size: _chipSize),
                   ],

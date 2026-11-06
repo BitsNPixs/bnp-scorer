@@ -3,6 +3,7 @@ import 'package:bnp_scorer/screens/scorecard_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/ui/format.dart';
+import 'package:bnp_scorer/widgets/over_strip.dart';
 import 'package:bnp_scorer/widgets/overs_timeline.dart';
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
@@ -133,6 +134,39 @@ void main() {
       expect(find.text('Wd'), findsOneWidget);
       expect(find.text('W'), findsOneWidget);
       expect(find.text('4'), findsNWidgets(2));
+    });
+
+    testWidgets('an over of six fits on one line of small chips', (tester) async {
+      await pumpTimeline(tester, ScoringEngine.replay(_setup, _events()));
+      final chips = find.descendant(
+        of: find.ancestor(of: find.text('Ov 1'), matching: find.byType(Row)).last,
+        matching: find.byType(BallChip),
+      );
+      expect(chips, findsNWidgets(6));
+      final tops = {for (final e in chips.evaluate()) tester.getTopLeft(find.byWidget(e.widget)).dy};
+      expect(tops, hasLength(1), reason: 'all six on the same line');
+      for (final e in chips.evaluate()) {
+        expect(tester.getSize(find.byWidget(e.widget)).width, lessThan(40));
+      }
+    });
+
+    testWidgets('a wide label grows the chip only as far as it needs', (tester) async {
+      await tester.pumpWidget(MaterialApp(
+        theme: AppTheme.light(),
+        home: const Scaffold(
+          body: Wrap(
+            children: [
+              BallChip(
+                ball: BallSummary(label: 'Nb+4', kind: BallKind.extra, isLegal: false),
+                size: 28,
+              ),
+            ],
+          ),
+        ),
+      ));
+      expect(tester.getSize(find.byType(BallChip)).width, lessThan(100));
+      expect(tester.getSize(find.byType(BallChip)).height, 28);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('opens on the latest innings and can switch', (tester) async {

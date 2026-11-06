@@ -95,14 +95,17 @@ class BallChip extends StatelessWidget {
       constraints: BoxConstraints(minWidth: size),
       height: size,
       padding: const EdgeInsets.symmetric(horizontal: 8),
-      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(size / 2),
       ),
-      child: Text(
-        label,
-        style: scoreStyle(label.length > 3 ? 12 : 15, color: fg),
+      // Sized to the label, so a chip in a Wrap does not fill the whole line.
+      child: Center(
+        widthFactor: 1,
+        child: Text(
+          label,
+          style: scoreStyle(label.length > 3 ? 12 : 15, color: fg),
+        ),
       ),
     );
   }

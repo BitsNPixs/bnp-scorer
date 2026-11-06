@@ -9,6 +9,9 @@ import 'stats.dart';
 const finalFixtureId = 'final';
 const _semiFinalIds = ['sf1', 'sf2'];
 
+/// Time between the starts of matches on the same day.
+const _matchSlot = Duration(hours: 2);
+
 class Fixture {
   const Fixture({
     required this.id,
@@ -18,6 +21,7 @@ class Fixture {
     this.knockout = false,
     this.matchId,
     this.deciderOf,
+    this.scheduledAt,
   });
 
   final String id;
@@ -36,6 +40,9 @@ class Fixture {
   /// For a Super Over: the id of the tied knockout game it settles.
   final String? deciderOf;
 
+  /// When it is due to start. Null until someone schedules it.
+  final DateTime? scheduledAt;
+
   bool get isDecider => deciderOf != null;
 
   Fixture withMatch(String matchId) => Fixture(
@@ -46,6 +53,18 @@ class Fixture {
         knockout: knockout,
         matchId: matchId,
         deciderOf: deciderOf,
+        scheduledAt: scheduledAt,
+      );
+
+  Fixture withDate(DateTime? date) => Fixture(
+        id: id,
+        label: label,
+        teamAId: teamAId,
+        teamBId: teamBId,
+        knockout: knockout,
+        matchId: matchId,
+        deciderOf: deciderOf,
+        scheduledAt: date,
       );
 
   Json toJson() => {
@@ -56,6 +75,7 @@ class Fixture {
         'knockout': knockout,
         'matchId': matchId,
         'deciderOf': deciderOf,
+        'scheduledAt': scheduledAt?.toUtc().toIso8601String(),
       };
 
   factory Fixture.fromJson(Json json) => Fixture(
@@ -66,6 +86,10 @@ class Fixture {
         knockout: json['knockout'] as bool? ?? false,
         matchId: json['matchId'] as String?,
         deciderOf: json['deciderOf'] as String?,
+        scheduledAt: switch (json['scheduledAt']) {
+          final String date => DateTime.parse(date),
+          _ => null,
+        },
       );
 }
 
@@ -165,8 +189,22 @@ class Tournament {
         for (final f in fixtures) f.id == fixtureId ? f.withMatch(matchId) : f,
       ]);
 
-  /// Adds the next round, as offered by [TournamentProgress.nextRound].
-  Tournament withFixtures(List<Fixture> added) => _withFixtures([...fixtures, ...added]);
+  /// Adds the next round, as offered by [TournamentProgress.nextRound]. In a
+  /// scheduled tournament, it is dated the day after the latest game.
+  Tournament withFixtures(List<Fixture> added) {
+    final dates = fixtures.map((f) => f.scheduledAt).nonNulls;
+    if (dates.isEmpty) return _withFixtures([...fixtures, ...added]);
+    final last = dates.reduce((a, b) => a.isAfter(b) ? a : b);
+    final start = last.add(const Duration(days: 1));
+    return _withFixtures([
+      ...fixtures,
+      for (var i = 0; i < added.length; i++) added[i].withDate(start.add(_matchSlot * i)),
+    ]);
+  }
+
+  Tournament withFixtureDate(String fixtureId, DateTime? date) => _withFixtures([
+        for (final f in fixtures) f.id == fixtureId ? f.withDate(date) : f,
+      ]);
 
   /// Replaces fixtures with the same id, as offered by
   /// [TournamentProgress.outdated].
@@ -269,6 +307,19 @@ List<(String, String)> _rounds(List<String> teamIds) {
     slots.insert(1, slots.removeLast());
   }
   return pairings;
+}
+
+/// Dates [fixtures] in order from [start], [perDay] games a day on consecutive
+/// days, two hours apart.
+List<Fixture> scheduleFixtures(List<Fixture> fixtures, DateTime start, {int perDay = 2}) {
+  if (perDay < 1) throw ArgumentError('Play at least one match a day.');
+  return [
+    for (var i = 0; i < fixtures.length; i++)
+      fixtures[i].withDate(
+        DateTime(start.year, start.month, start.day + i ~/ perDay, start.hour, start.minute)
+            .add(_matchSlot * (i % perDay)),
+      ),
+  ];
 }
 
 /// A fixture with the match played for it. [match] is null before it starts,

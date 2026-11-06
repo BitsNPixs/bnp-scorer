@@ -33,7 +33,7 @@ class TournamentScreen extends ConsumerWidget {
     final book = progress.book;
     const noResults = StatsEmpty(message: 'Stats appear here once a match has finished.');
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(progress.tournament.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -45,6 +45,7 @@ class TournamentScreen extends ConsumerWidget {
               Tab(text: 'Table'),
               Tab(text: 'Batting'),
               Tab(text: 'Bowling'),
+              Tab(text: 'Boundaries'),
             ],
           ),
         ),
@@ -54,6 +55,7 @@ class TournamentScreen extends ConsumerWidget {
             _TableTab(progress: progress),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
+            if (book.isEmpty) noResults else BoundariesTab(book: book),
           ],
         ),
       ),
@@ -112,6 +114,28 @@ class _MatchesTab extends ConsumerWidget {
     if (context.mounted) ref.invalidate(tournamentsProvider);
   }
 
+  Future<void> _reschedule(BuildContext context, WidgetRef ref, Fixture fixture) async {
+    final repository = ref.read(tournamentRepositoryProvider);
+    final current = fixture.scheduledAt?.toLocal() ?? DateTime.now();
+    final day = await showDatePicker(
+      context: context,
+      initialDate: current,
+      firstDate: DateTime(current.year - 1),
+      lastDate: DateTime(current.year + 2),
+    );
+    if (day == null || !context.mounted) return;
+    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(current));
+    if (time == null || !context.mounted) return;
+    final date = DateTime(day.year, day.month, day.day, time.hour, time.minute);
+    try {
+      await repository.save(progress.tournament.withFixtureDate(fixture.id, date));
+    } on Object catch (e) {
+      if (context.mounted) showMessage(context, 'Could not save the date: $e', isError: true);
+      return;
+    }
+    if (context.mounted) ref.invalidate(tournamentsProvider);
+  }
+
   Future<void> _correct(BuildContext context, WidgetRef ref, List<Fixture> fixtures) async {
     final repository = ref.read(tournamentRepositoryProvider);
     try {
@@ -160,6 +184,7 @@ class _MatchesTab extends ConsumerWidget {
             item: item,
             tournament: tournament,
             onTap: () => _open(context, ref, item),
+            onLongPress: () => _reschedule(context, ref, item.fixture),
           ),
           const SizedBox(height: 10),
         ],
@@ -280,11 +305,19 @@ class _ChampionBanner extends StatelessWidget {
 }
 
 class _FixtureCard extends StatelessWidget {
-  const _FixtureCard({required this.item, required this.tournament, required this.onTap});
+  const _FixtureCard({
+    required this.item,
+    required this.tournament,
+    required this.onTap,
+    required this.onLongPress,
+  });
 
   final FixtureProgress item;
   final Tournament tournament;
   final VoidCallback onTap;
+
+  /// Sets the date.
+  final VoidCallback onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -294,17 +327,34 @@ class _FixtureCard extends StatelessWidget {
     final match = item.match;
     final teamA = tournament.teamById(fixture.teamAId).name;
     final teamB = tournament.teamById(fixture.teamBId).name;
+    final date = fixture.scheduledAt;
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SectionLabel(fixture.label),
+              Row(
+                children: [
+                  Expanded(child: SectionLabel(fixture.label)),
+                  if (date != null) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        fixtureDate(date),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
               const SizedBox(height: 6),
               Text(
                 '$teamA v $teamB',

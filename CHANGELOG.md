@@ -25,6 +25,9 @@
 - Teams screen: create and edit squads, with player roles, captain, vice-captain
   and wicket-keeper. Scorecards mark (c) and (wk). Renaming keeps a player's id, so
   their stats stay with them. All new fields are optional.
+- Fixture dates: a start date and matches per day schedule a tournament, later
+  rounds are dated after the latest game, and a long press moves a fixture.
+- Boundary leaderboards, overall and per tournament.
 - No result: a match can be abandoned at any point (`MatchAbandoned`). Each side
   gets a point, it stays out of net run rate, and a knockout game goes to a Super
   Over.

@@ -333,6 +333,70 @@ void main() {
     });
   });
 
+  group('scheduling', () {
+    final start = DateTime(2026, 12, 5, 9);
+
+    test('fills each day, then moves to the next', () {
+      final fixtures = _tournament(['a', 'b', 'c', 'd']).fixtures;
+      final dated = scheduleFixtures(fixtures, start, perDay: 2);
+      expect(dated[0].scheduledAt, DateTime(2026, 12, 5, 9));
+      expect(dated[1].scheduledAt, DateTime(2026, 12, 5, 11));
+      expect(dated[2].scheduledAt, DateTime(2026, 12, 6, 9));
+      expect(dated[5].scheduledAt, DateTime(2026, 12, 7, 11));
+    });
+
+    test('runs across the end of a month', () {
+      final fixtures = _tournament(['a', 'b', 'c']).fixtures;
+      final dated = scheduleFixtures(fixtures, DateTime(2026, 12, 31, 9), perDay: 1);
+      expect(dated.last.scheduledAt, DateTime(2027, 1, 2, 9));
+    });
+
+    test('needs at least one match a day', () {
+      expect(() => scheduleFixtures(const [], start, perDay: 0), throwsArgumentError);
+    });
+
+    test('a later round is dated after the latest game', () {
+      final base = _tournament(['a', 'b', 'c'], hasFinal: true);
+      final dated = base.withCorrected(scheduleFixtures(base.fixtures, start, perDay: 1));
+      final added = dated.withFixtures(const [
+        Fixture(id: 'final', label: 'Final', teamAId: 'a', teamBId: 'b', knockout: true),
+      ]);
+      expect(added.finalFixture!.scheduledAt, DateTime(2026, 12, 8, 9));
+    });
+
+    test('semi-finals on one day start two hours apart', () {
+      final base = _tournament(['a', 'b', 'c', 'd'], hasFinal: true, hasSemiFinals: true);
+      final dated = base.withCorrected(scheduleFixtures(base.fixtures, start, perDay: 3));
+      final added = dated.withFixtures(const [
+        Fixture(id: 'sf1', label: 'S1', teamAId: 'a', teamBId: 'b', knockout: true),
+        Fixture(id: 'sf2', label: 'S2', teamAId: 'c', teamBId: 'd', knockout: true),
+      ]);
+      final gap = added.fixtures.last.scheduledAt!.difference(added.fixtures[6].scheduledAt!);
+      expect(gap, const Duration(hours: 2));
+    });
+
+    test('an unscheduled tournament stays unscheduled', () {
+      final added = _tournament(['a', 'b', 'c'], hasFinal: true).withFixtures(const [
+        Fixture(id: 'final', label: 'Final', teamAId: 'a', teamBId: 'b', knockout: true),
+      ]);
+      expect(added.finalFixture!.scheduledAt, isNull);
+    });
+
+    test('one game can move, and linking a match keeps its date', () {
+      final base = _tournament(['a', 'b', 'c']);
+      final moved = base.withFixtureDate('f1', start).withMatch('f1', 'm1');
+      expect(moved.fixtures.first.scheduledAt, start);
+      expect(moved.fixtures.first.matchId, 'm1');
+      expect(moved.fixtures[1].scheduledAt, isNull);
+    });
+
+    test('a date survives a JSON round trip', () {
+      final t = _tournament(['a', 'b']).withFixtureDate('f1', DateTime.utc(2026, 12, 5, 3, 30));
+      final back = Tournament.fromJson(t.toJson());
+      expect(back.fixtures.single.scheduledAt, DateTime.utc(2026, 12, 5, 3, 30));
+    });
+  });
+
   group('abandoned games', () {
     MatchState abandoned(Team first, Team second) {
       final at = DateTime.utc(2026);

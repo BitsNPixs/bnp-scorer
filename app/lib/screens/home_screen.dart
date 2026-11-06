@@ -14,8 +14,6 @@ import 'stats_screen.dart';
 import 'teams_screen.dart';
 import 'tournaments_screen.dart';
 
-const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
 const _allMatches = 'all';
 const _friendlies = 'friendlies';
 
@@ -456,7 +454,7 @@ class _MatchCard extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       [
-                        '${date.day} ${_months[date.month - 1]}',
+                        shortDate(date),
                         '${setup.rules.oversPerInnings} ov',
                         ?setup.venue,
                       ].join(' · '),

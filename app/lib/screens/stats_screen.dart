@@ -16,12 +16,19 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(statsProvider);
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Stats'),
           bottom: const TabBar(
-            tabs: [Tab(text: 'Teams'), Tab(text: 'Batting'), Tab(text: 'Bowling')],
+            isScrollable: true,
+            tabAlignment: TabAlignment.start,
+            tabs: [
+              Tab(text: 'Teams'),
+              Tab(text: 'Batting'),
+              Tab(text: 'Bowling'),
+              Tab(text: 'Boundaries'),
+            ],
           ),
         ),
         body: stats.when(
@@ -34,6 +41,7 @@ class StatsScreen extends ConsumerWidget {
                     TeamsTab(teams: book.teams),
                     BattingTab(book: book),
                     BowlingTab(book: book),
+                    BoundariesTab(book: book),
                   ],
                 ),
         ),
@@ -122,6 +130,33 @@ class BattingTab extends StatelessWidget {
     return _RankedList(
       rows: [
         for (var i = 0; i < batters.length; i++) battingRow(context, i + 1, batters[i]),
+      ],
+    );
+  }
+}
+
+class BoundariesTab extends StatelessWidget {
+  const BoundariesTab({super.key, required this.book});
+
+  final StatsBook book;
+
+  @override
+  Widget build(BuildContext context) {
+    final hitters = book.boundaryHitters;
+    if (hitters.isEmpty) return const StatsEmpty(message: 'No boundaries hit yet.');
+    return _RankedList(
+      rows: [
+        for (var i = 0; i < hitters.length; i++)
+          LeaderRow(
+            rank: i + 1,
+            leading: PlayerAvatar(name: hitters[i].name),
+            title: hitters[i].name,
+            subtitle: '${hitters[i].teamName} · 4s ${hitters[i].batting.fours} · '
+                '6s ${hitters[i].batting.sixes}',
+            value: '${hitters[i].batting.fours + hitters[i].batting.sixes}',
+            valueLabel: 'hits',
+            onTap: () => openPlayer(context, hitters[i].playerId),
+          ),
       ],
     );
   }

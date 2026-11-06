@@ -31,6 +31,8 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
   int _overs = 10;
   bool _wantsTwoGroups = false;
   bool _homeAndAway = false;
+  DateTime? _startsAt;
+  int _perDay = 2;
   _Knockout _wanted = _Knockout.finalOnly;
   bool _saving = false;
 
@@ -67,9 +69,25 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
 
   List<Fixture> _fixturesOf(List<Team> teams) {
     final groups = _groupsOf(teams);
-    return groups == null
+    final fixtures = groups == null
         ? roundRobinFixtures(teams, legs: _legs)
         : leagueFixtures(groups, legs: _legs);
+    final start = _startsAt;
+    return start == null ? fixtures : scheduleFixtures(fixtures, start, perDay: _perDay);
+  }
+
+  Future<void> _pickStart() async {
+    final now = DateTime.now();
+    final day = await showDatePicker(
+      context: context,
+      initialDate: _startsAt ?? now,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 2),
+    );
+    if (day == null || !mounted) return;
+    final time = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+    if (time == null || !mounted) return;
+    setState(() => _startsAt = DateTime(day.year, day.month, day.day, time.hour, time.minute));
   }
 
   String? get _blocker {
@@ -186,6 +204,52 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
           ),
           const SizedBox(height: 12),
           OversPicker(overs: _overs, onChanged: (o) => setState(() => _overs = o)),
+          const SizedBox(height: 12),
+          SurfacePanel(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.event_rounded),
+                  title: const Text('First match'),
+                  subtitle: Text(
+                    _startsAt == null ? 'Optional. Dates every fixture.' : fixtureDate(_startsAt!),
+                  ),
+                  trailing: _startsAt == null
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear date',
+                          onPressed: () => setState(() => _startsAt = null),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
+                  onTap: _pickStart,
+                ),
+                if (_startsAt != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionLabel('Matches a day'),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: SegmentedButton<int>(
+                            showSelectedIcon: false,
+                            segments: [
+                              for (final n in const [1, 2, 3, 4])
+                                ButtonSegment(value: n, label: Text('$n')),
+                            ],
+                            selected: {_perDay},
+                            onSelectionChanged: (s) => setState(() => _perDay = s.first),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
           const SizedBox(height: 12),
           SurfacePanel(
             padding: const EdgeInsets.symmetric(vertical: 4),

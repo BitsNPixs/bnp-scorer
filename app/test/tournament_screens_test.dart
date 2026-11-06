@@ -454,6 +454,36 @@ void main() {
       expect(find.text('Update Final'), findsNothing);
     });
 
+    testWidgets('a scheduled fixture shows its date, and a long press moves it', (tester) async {
+      final t = threeTeams();
+      await tournaments.save(t.withFixtureDate('f1', DateTime(2026, 12, 5, 9)));
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+
+      expect(find.text('Sat 5 Dec, 9:00 AM'), findsOneWidget);
+
+      await tester.longPress(find.text('MATCH 2'));
+      await settle(tester);
+      await tester.tap(find.text('OK'));
+      await settle(tester);
+      await tester.tap(find.text('OK'));
+      await settle(tester);
+
+      expect(tournaments.tournaments['t']!.fixtures[1].scheduledAt, isNotNull);
+    });
+
+    testWidgets('tournament leaderboards include boundaries', (tester) async {
+      final t = threeTeams();
+      await tournaments.save(t);
+      await playFixture(t, 'f1', t.fixtures.first.teamAId);
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await tester.ensureVisible(find.text('Boundaries'));
+      await settle(tester);
+      await tester.tap(find.text('Boundaries'));
+      await settle(tester);
+      expect(find.text('No boundaries hit yet.'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('a tournament can be deleted, keeping its matches', (tester) async {
       final t = threeTeams();
       await tournaments.save(t);

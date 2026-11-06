@@ -98,6 +98,24 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the boundaries tab ranks hitters', (tester) async {
+    await pump(tester, const StatsScreen());
+    await tester.ensureVisible(find.text('Boundaries'));
+    await settle(tester);
+    await tester.tap(find.text('Boundaries'));
+    await settle(tester);
+    expect(find.text('hits'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  test('dates read naturally', () {
+    expect(shortDate(DateTime(2026, 11, 6)), '6 Nov');
+    expect(fixtureDate(DateTime(2026, 12, 5, 9)), 'Sat 5 Dec, 9:00 AM');
+    expect(fixtureDate(DateTime(2026, 12, 5, 14, 5)), 'Sat 5 Dec, 2:05 PM');
+    expect(fixtureDate(DateTime(2026, 12, 5)), 'Sat 5 Dec, 12:00 AM');
+    expect(fixtureDate(DateTime(2026, 12, 5, 12)), 'Sat 5 Dec, 12:00 PM');
+  });
+
   test('stat text helpers', () {
     expect(decimal(null), '—');
     expect(decimal(12.345, 1), '12.3');

@@ -1,5 +1,20 @@
 import 'package:cricket_engine/cricket_engine.dart';
 
+const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/// "6 Nov".
+String shortDate(DateTime date) => '${date.day} ${_months[date.month - 1]}';
+
+/// "Sat 5 Dec, 9:00 AM", in the device's time zone.
+String fixtureDate(DateTime date) {
+  final local = date.toLocal();
+  final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
+  final minute = local.minute.toString().padLeft(2, '0');
+  return '${_days[local.weekday - 1]} ${shortDate(local)}, $hour:$minute '
+      '${local.hour < 12 ? 'AM' : 'PM'}';
+}
+
 String plural(int count, String word) {
   final ending = word.endsWith('ch') ? 'es' : 's';
   return '$count $word${count == 1 ? '' : ending}';

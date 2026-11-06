@@ -381,6 +381,12 @@ void main() {
       expect(book.batters, isEmpty);
     });
 
+    test('lists boundary hitters by fours and sixes together', () {
+      final hitters = computeStats([_aBeatsB()]).boundaryHitters;
+      expect(hitters.map((p) => p.playerId), ['a1']);
+      expect(computeStats(const []).boundaryHitters, isEmpty);
+    });
+
     test('lists batters by runs and bowlers by wickets', () {
       final book = computeStats([_aBeatsB()]);
       expect(book.batters.first.playerId, 'a1');

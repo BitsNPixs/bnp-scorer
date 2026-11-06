@@ -210,6 +210,19 @@ class StatsBook {
       });
   }
 
+  /// Players who hit a boundary: most fours and sixes first, then most sixes.
+  List<PlayerStats> get boundaryHitters {
+    int boundaries(PlayerStats p) => p.batting.fours + p.batting.sixes;
+    final list = players.where((p) => boundaries(p) > 0).toList();
+    return list
+      ..sort((a, b) {
+        final total = boundaries(b).compareTo(boundaries(a));
+        if (total != 0) return total;
+        final sixes = b.batting.sixes.compareTo(a.batting.sixes);
+        return sixes != 0 ? sixes : a.name.compareTo(b.name);
+      });
+  }
+
   /// Players who bowled: most wickets first, then the cheaper bowler.
   List<PlayerStats> get bowlers {
     final list = [

@@ -29,8 +29,9 @@ Offline-first: scoring works with no network and every match is stored on the de
   the squad the rest sit out, and one tap swaps a player in.
 - **Tournaments:** pick saved teams and get a full fixture list. Choose one league
   or two groups, once or home and away, with no knockouts, a final, or semi-finals
-  and a final. Tied knockout games go to a Super Over. Each tournament has its own
-  points tables, batting and bowling leaderboards, and champion.
+  and a final. Tied knockout games go to a Super Over. Pick a start date to date
+  every fixture, and long-press a fixture to move it. Each tournament has its own
+  points tables, batting, bowling and boundary leaderboards, and champion.
 - **Home filter:** chips narrow the match list to a tournament or to friendlies.
 - **Stats:** team table with points, net run rate and form, batting and bowling
   leaderboards, and a full profile for each team and player. Worked out from

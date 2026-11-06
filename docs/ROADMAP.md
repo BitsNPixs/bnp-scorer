@@ -39,8 +39,8 @@
 **Phase 1: accounts, teams, players**
 - Firebase project, `flutterfire configure` (creates `lib/firebase_options.dart`,
   which is gitignored), and phone OTP sign-in.
-- Saved teams and players are done on the device (`TeamRepository`). Still to
-  do: sync them to the account, a screen to edit a squad, and a player profile
+- Saved teams, squad editing and player roles are done on the device
+  (`TeamRepository`). Still to do: sync them to the account, and a player profile
   with photo (Storage).
 
 **Phase 2: cloud sync for scoring**

@@ -22,6 +22,8 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Match setup** in one screen: team names, players (type names or "Fill to 11"),
   overs (presets or stepper), toss, venue, and house rules (wide/no-ball run,
   free hit, last man stands, max overs per bowler).
+- **Teams:** edit a squad from Home's More menu: rename players, set roles, and
+  mark the captain, vice-captain and wicket-keeper. Scorecards show (c) and (wk).
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.

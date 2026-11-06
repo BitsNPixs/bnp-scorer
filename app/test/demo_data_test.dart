@@ -210,6 +210,24 @@ void main() {
       expect(repo.teams[played.id]!.players.map((p) => p.id), containsAll(played.players.map((p) => p.id)));
     });
 
+    test('the sheet\'s captain and vice-captain are set', () async {
+      final repo = InMemoryTeamRepository();
+      await seedDemoTeams(repo);
+      final team = repo.teams['team-a']!;
+      expect(team.playerById(team.captainId!)!.name, 'M Monish Savio');
+      expect(team.playerById(team.viceCaptainId!)!.name, 'Livin D');
+      expect(team.players.every((p) => p.role != null), isTrue);
+    });
+
+    test('an untouched older squad gains its captain', () async {
+      final repo = InMemoryTeamRepository();
+      await seedDemoTeams(repo);
+      final team = repo.teams['team-a']!;
+      await repo.save(Team(id: team.id, name: team.name, players: team.players));
+      await seedDemoTeams(repo);
+      expect(repo.teams['team-a']!.captainId, isNotNull);
+    });
+
     test('a restart does not overwrite an edited squad', () async {
       final repo = InMemoryTeamRepository();
       await seedDemoTeams(repo);

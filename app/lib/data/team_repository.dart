@@ -30,5 +30,12 @@ Team? mergeIntoSquad(List<Team> saved, Team played) {
     if (!_placeholderName.hasMatch(player.name) && !inSquad(player)) squad.add(player);
   }
   if (squad.length < 2) return null;
-  return Team(id: existing?.id ?? played.id, name: played.name, players: squad);
+  return Team(
+    id: existing?.id ?? played.id,
+    name: played.name,
+    players: squad,
+    captainId: existing?.captainId ?? played.captainId,
+    viceCaptainId: existing?.viceCaptainId ?? played.viceCaptainId,
+    keeperId: existing?.keeperId ?? played.keeperId,
+  );
 }

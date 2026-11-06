@@ -388,16 +388,18 @@ class _TeamDraft {
 
   /// Set when the team came from the saved list. Reusing its ids keeps a team
   /// and its players the same across matches.
-  String? savedTeamId;
-  var _savedPlayerIds = <String, String>{};
+  Team? _saved;
+  var _savedPlayers = <String, Player>{};
+
+  String? get savedTeamId => _saved?.id;
 
   String get displayName => name.text.trim().isEmpty ? _hint : name.text.trim();
 
-  bool isSaved(String player) => _savedPlayerIds.containsKey(player);
+  bool isSaved(String player) => _savedPlayers.containsKey(player);
 
   void _useIdsOf(Team team) {
-    savedTeamId = team.id;
-    _savedPlayerIds = {for (final p in team.players) p.name: p.id};
+    _saved = team;
+    _savedPlayers = {for (final p in team.players) p.name: p};
   }
 
   /// Treats a typed name as the saved team of that name. [other] may already
@@ -423,11 +425,14 @@ class _TeamDraft {
 
   Team build() {
     // Taken out as used, so a repeated name still gets its own id.
-    final ids = {..._savedPlayerIds};
+    final known = {..._savedPlayers};
     return Team(
       id: savedTeamId ?? newId(),
       name: name.text.trim(),
-      players: [for (final p in players) Player(id: ids.remove(p) ?? newId(), name: p)],
+      players: [for (final p in players) known.remove(p) ?? Player(id: newId(), name: p)],
+      captainId: _saved?.captainId,
+      viceCaptainId: _saved?.viceCaptainId,
+      keeperId: _saved?.keeperId,
     );
   }
 

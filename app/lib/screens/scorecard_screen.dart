@@ -85,7 +85,7 @@ class _InningsCard extends StatelessWidget {
               const _TableHeader(first: 'Batter', columns: ['R', 'B', '4s', '6s', 'SR']),
               for (final b in inn.batters)
                 _TableRow(
-                  first: playerName(setup, b.playerId),
+                  first: taggedPlayerName(setup, b.playerId),
                   subtitle: dismissalText(setup, b),
                   highlight: b.playerId == inn.strikerId || b.playerId == inn.nonStrikerId,
                   columns: [

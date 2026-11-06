@@ -26,8 +26,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Git is initialised. Commit each finished, verified piece of work.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
-- Saved teams work offline. A squad can gain players but there is no screen yet
-  to remove one or to rename a player: delete the team and re-enter it.
+- Saved teams work offline and are edited on the Teams screen (Home, More menu).
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.
@@ -89,7 +88,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (10 screens). Add go_router only with deep
+- **Navigation:** plain `Navigator` (12 screens). Add go_router only with deep
   links (shared scorecards).
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.

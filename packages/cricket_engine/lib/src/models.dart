@@ -48,21 +48,46 @@ enum DismissalType {
       };
 }
 
+enum PlayerRole {
+  batter('Batter'),
+  bowler('Bowler'),
+  allRounder('All-rounder');
+
+  const PlayerRole(this.label);
+
+  final String label;
+}
+
 class Player {
-  const Player({required this.id, required this.name});
+  const Player({required this.id, required this.name, this.role});
 
   final String id;
   final String name;
 
-  Json toJson() => {'id': id, 'name': name};
+  /// Null until someone sets it.
+  final PlayerRole? role;
 
-  factory Player.fromJson(Json json) =>
-      Player(id: json['id']! as String, name: json['name']! as String);
+  Json toJson() => {'id': id, 'name': name, 'role': role?.name};
+
+  factory Player.fromJson(Json json) => Player(
+        id: json['id']! as String,
+        name: json['name']! as String,
+        role: switch (json['role']) {
+          final String role => PlayerRole.values.byName(role),
+          _ => null,
+        },
+      );
 }
 
 class Team {
-  Team({required this.id, required this.name, required List<Player> players})
-      : players = List.unmodifiable(players) {
+  Team({
+    required this.id,
+    required this.name,
+    required List<Player> players,
+    this.captainId,
+    this.viceCaptainId,
+    this.keeperId,
+  }) : players = List.unmodifiable(players) {
     if (players.length < 2) {
       throw ArgumentError('A team needs at least 2 players.');
     }
@@ -75,6 +100,9 @@ class Team {
   final String id;
   final String name;
   final List<Player> players;
+  final String? captainId;
+  final String? viceCaptainId;
+  final String? keeperId;
 
   bool hasPlayer(String playerId) => players.any((p) => p.id == playerId);
 
@@ -89,6 +117,9 @@ class Team {
         'id': id,
         'name': name,
         'players': [for (final p in players) p.toJson()],
+        'captainId': captainId,
+        'viceCaptainId': viceCaptainId,
+        'keeperId': keeperId,
       };
 
   factory Team.fromJson(Json json) => Team(
@@ -98,6 +129,9 @@ class Team {
           for (final p in json['players']! as List<Object?>)
             Player.fromJson(p! as Json),
         ],
+        captainId: json['captainId'] as String?,
+        viceCaptainId: json['viceCaptainId'] as String?,
+        keeperId: json['keeperId'] as String?,
       );
 }
 

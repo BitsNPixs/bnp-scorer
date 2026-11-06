@@ -22,6 +22,9 @@
 - Super Overs for tied knockout games, played as a one-over match with an innings
   ending at two wickets (`MatchRules.superOver`). A tied Super Over leads to
   another. They are left out of career stats.
+- Teams screen: create and edit squads, with player roles, captain, vice-captain
+  and wicket-keeper. Scorecards mark (c) and (wk). Renaming keeps a player's id, so
+  their stats stay with them. All new fields are optional.
 - No result: a match can be abandoned at any point (`MatchAbandoned`). Each side
   gets a point, it stays out of net run rate, and a knockout game goes to a Super
   Over.

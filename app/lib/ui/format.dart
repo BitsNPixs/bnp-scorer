@@ -10,6 +10,17 @@ String playerName(MatchSetup setup, String? playerId) {
   return setup.playerById(playerId)?.name ?? 'Unknown';
 }
 
+/// The name with its scorecard marks: "Asha (c)", "Kiran (wk)", "Asha (c & wk)".
+String taggedPlayerName(MatchSetup setup, String playerId) {
+  final name = playerName(setup, playerId);
+  final team = setup.teamA.hasPlayer(playerId) ? setup.teamA : setup.teamB;
+  final tags = [
+    if (team.captainId == playerId) 'c',
+    if (team.keeperId == playerId) 'wk',
+  ];
+  return tags.isEmpty ? name : '$name (${tags.join(' & ')})';
+}
+
 String initials(String name) {
   final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
   if (parts.isEmpty) return '?';

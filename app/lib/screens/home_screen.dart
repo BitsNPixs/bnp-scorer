@@ -11,6 +11,7 @@ import '../widgets/score_header.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
 import 'stats_screen.dart';
+import 'teams_screen.dart';
 import 'tournaments_screen.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -176,8 +177,19 @@ class _MatchList extends StatelessWidget {
   }
 }
 
+enum _MoreAction { teams }
+
 class _BrandHeader extends StatelessWidget {
   const _BrandHeader();
+
+  void _onMore(BuildContext context, _MoreAction action) {
+    switch (action) {
+      case _MoreAction.teams:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const TeamsScreen()),
+        );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,10 +235,28 @@ class _BrandHeader extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Score every ball. Own every game.',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Score every ball. Own every game.',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant),
+                ),
+              ),
+              PopupMenuButton<_MoreAction>(
+                tooltip: 'More',
+                icon: const Icon(Icons.more_horiz_rounded),
+                onSelected: (action) => _onMore(context, action),
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: _MoreAction.teams,
+                    child: ListTile(leading: Icon(Icons.groups_rounded), title: Text('Teams')),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

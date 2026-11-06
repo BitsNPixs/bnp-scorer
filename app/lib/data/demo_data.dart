@@ -53,14 +53,25 @@ const _squads = {
   ],
 };
 
+PlayerRole _roleAt(int index) => switch (index) {
+      < _firstBowler => PlayerRole.batter,
+      < _firstTailender => PlayerRole.allRounder,
+      _ => PlayerRole.bowler,
+    };
+
+/// The team sheet lists the captain first and the vice-captain second.
 Team _squad(String key) {
   final names = _squads[key]!;
   return Team(
     id: 'team-$key',
     name: 'Team ${key.toUpperCase()}',
     players: [
-      for (var i = 0; i < names.length; i++) Player(id: '$key${i + 1}', name: names[i]),
+      for (var i = 0; i < names.length; i++)
+        Player(id: '$key${i + 1}', name: names[i], role: _roleAt(i)),
     ],
+    captainId: '${key}1',
+    viceCaptainId: '${key}2',
+    keeperId: '${key}3',
   );
 }
 
@@ -77,6 +88,9 @@ Team _team(String key, int number) {
       for (var i = 0; i < squad.players.length; i++)
         if (i != firstRested && i != firstRested + 1) squad.players[i],
     ],
+    captainId: squad.captainId,
+    viceCaptainId: squad.viceCaptainId,
+    keeperId: squad.keeperId,
   );
 }
 
@@ -563,12 +577,17 @@ Future<void> seedDemoMatches(MatchRepository repository, {DateTime? now}) async 
 }
 
 /// Adds any of the four squads the repository does not have, under the same
-/// ids as in the demo matches. Existing teams are left alone.
+/// ids as in the demo matches. Teams someone has edited are left alone. An
+/// untouched squad from before captains existed gets its captain.
 Future<void> seedDemoTeams(TeamRepository repository) async {
-  final existing = {for (final team in await repository.loadAll()) team.id};
+  final existing = {for (final team in await repository.loadAll()) team.id: team};
   for (final key in _squads.keys) {
     final team = _squad(key);
-    if (!existing.contains(team.id)) await repository.save(team);
+    final stored = existing[team.id];
+    final untouched = stored != null &&
+        stored.captainId == null &&
+        stored.players.map((p) => p.name).join() == team.players.map((p) => p.name).join();
+    if (stored == null || untouched) await repository.save(team);
   }
 }
 

@@ -6,6 +6,7 @@ import 'app.dart';
 import 'data/demo_data.dart';
 import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
+import 'data/tournament_repository.dart';
 import 'state/providers.dart';
 
 Future<void> main() async {
@@ -13,15 +14,18 @@ Future<void> main() async {
   final prefs = await SharedPreferences.getInstance();
   final repository = LocalMatchRepository(prefs);
   final teams = LocalTeamRepository(prefs);
+  final tournaments = LocalTournamentRepository(prefs);
   if (demoMode) {
     await seedDemoMatches(repository);
     await seedDemoTeams(teams);
+    await seedDemoTournaments(tournaments);
   }
   runApp(
     ProviderScope(
       overrides: [
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
+        tournamentRepositoryProvider.overrideWithValue(tournaments),
       ],
       child: const BnpScorerApp(),
     ),

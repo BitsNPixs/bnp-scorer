@@ -11,6 +11,7 @@ import '../widgets/score_header.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
 import 'stats_screen.dart';
+import 'tournaments_screen.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -105,6 +106,13 @@ class _BrandHeader extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: scoreStyle(28, color: scheme.onSurface, weight: FontWeight.w800),
                 ),
+              ),
+              IconButton.filledTonal(
+                tooltip: 'Tournaments',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const TournamentsScreen()),
+                ),
+                icon: const Icon(Icons.emoji_events_rounded),
               ),
               IconButton.filledTonal(
                 tooltip: 'Stats',

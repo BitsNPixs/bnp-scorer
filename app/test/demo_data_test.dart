@@ -20,13 +20,13 @@ void main() {
   setUpAll(() => AppFonts.useGoogleFonts = false);
 
   final demo = demoMatches(_now);
-  final cup = demo.take(5).toList();
-  final live = demo.last;
+  final cup = demo.where((m) => m.id.startsWith('demo-match-')).toList();
+  final live = demo.firstWhere((m) => m.id == 'demo-live');
 
   group('demo matches', () {
-    test('five finished cup matches and one live friendly', () {
-      expect(demo, hasLength(6));
-      for (final record in cup) {
+    test('every match is finished except the live friendly', () {
+      expect(cup, hasLength(5));
+      for (final record in demo.where((m) => m.id != live.id)) {
         expect(_replay(record).isCompleted, isTrue, reason: record.id);
       }
       final state = _replay(live);
@@ -111,7 +111,7 @@ void main() {
       await repo.save(own);
       await seedDemoMatches(repo, now: _now);
       expect(repo.records['mine'], same(own));
-      expect(repo.records, hasLength(7));
+      expect(repo.records, hasLength(demo.length + 1));
     });
 
     test('a restart does not overwrite a match scored during the demo', () async {
@@ -129,7 +129,52 @@ void main() {
       await repo.delete(cup.first.id);
       await seedDemoMatches(repo, now: _now);
       expect(repo.records, contains(cup.first.id));
-      expect(repo.records, hasLength(6));
+      expect(repo.records, hasLength(demo.length));
+    });
+  });
+
+  group('tournaments', () {
+    final tournaments = demoTournaments(_now);
+    final byId = {for (final m in demo) m.id: _replay(m)};
+
+    test('there is a current cup and three past ones', () {
+      expect(tournaments.map((t) => t.name),
+          ['Winter Bash', 'Summer Shield', 'Monsoon League', 'BNP Cup']);
+    });
+
+    test('each is finished, and every fixture has its match', () {
+      for (final tournament in tournaments) {
+        final progress = progressOf(tournament, byId);
+        expect(progress.isFinished, isTrue, reason: tournament.name);
+        expect(progress.championId, isNotNull, reason: tournament.name);
+      }
+    });
+
+    test('finals are between the top two of the real table', () {
+      for (final tournament in tournaments.where((t) => t.hasFinal)) {
+        final table = progressOf(tournament, byId).table;
+        final finalFixture = tournament.finalFixture!;
+        expect(
+          {finalFixture.teamAId, finalFixture.teamBId},
+          {table[0].teamId, table[1].teamId},
+          reason: tournament.name,
+        );
+      }
+    });
+
+    test('champions are the scripted ones', () {
+      final winners = [for (final t in tournaments) progressOf(t, byId).championId];
+      expect(winners, ['team-b', 'team-b', 'team-c', 'team-d']);
+    });
+
+    test('seeding adds them once and keeps edits', () async {
+      final repo = InMemoryTournamentRepository();
+      await seedDemoTournaments(repo, now: _now);
+      expect(repo.tournaments, hasLength(4));
+      final edited = repo.tournaments['demo-cup-bnp']!.withMatch('f1', 'other');
+      await repo.save(edited);
+      await seedDemoTournaments(repo, now: _now);
+      expect(repo.tournaments['demo-cup-bnp'], same(edited));
     });
   });
 

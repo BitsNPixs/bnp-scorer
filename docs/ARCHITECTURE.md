@@ -127,6 +127,13 @@ with target = first innings runs + 1), then `completed` (result set).
 - Net run rate: runs per over scored minus conceded. A side bowled out is charged
   its full overs. A chase that ends early uses the overs actually faced.
 
+### Tournaments (`tournament.dart`)
+A `Tournament` holds teams and `Fixture`s, and each fixture may name the match
+played for it. `progressOf` joins them with the matches to derive the league
+table (league games only, including teams yet to play), a `StatsBook` of every
+game, the finalists once the league is done, and the champion. A deleted match
+reopens its fixture.
+
 ### Adding a rule or event (checklist)
 1. Write the failing test in `engine_test.dart` using the `Scorer` helper
    (`start()`, `runs()`, `wide()`, `out()`, `rejects()`).

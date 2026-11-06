@@ -25,6 +25,9 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.
+- **Tournaments:** pick saved teams and get a full fixture list, with an optional
+  final between the top two. Each tournament has its own points table, batting
+  and bowling leaderboards, and champion.
 - **Stats:** team table with points, net run rate and form, batting and bowling
   leaderboards, and a full profile for each team and player. Worked out from
   finished matches, so they always agree with the scorecards.
@@ -68,9 +71,9 @@ docs/                      Architecture and roadmap
 
 ## Demo data
 
-Build with `--dart-define=BNP_DEMO=true` to fill the app with sample matches: a
-five-match BNP Cup between four teams (four league games and a final) and a
-friendly left in progress, so scoring can be shown straight away. The four full
+Build with `--dart-define=BNP_DEMO=true` to fill the app with sample data: four
+finished tournaments (BNP Cup, Monsoon League, Summer Shield and Winter Bash) and
+a friendly left in progress, so scoring can be shown straight away. The four full
 squads are added to Saved teams too.
 
 ```sh
@@ -81,7 +84,8 @@ adb install -r build/app/outputs/flutter-apk/app-debug.apk
 
 Use `adb install -r` to keep what is already saved on the phone. Demo matches
 are added at launch only if missing, so a match scored in a demo is kept and a
-deleted one comes back on the next launch. Saved teams work the same way. Normal
+deleted one comes back on the next launch. Teams and tournaments work the same
+way. Normal
 builds contain no demo data, but anything already stored on a phone stays there.
 
 ## Verify

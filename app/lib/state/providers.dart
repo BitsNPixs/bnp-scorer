@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
 import '../data/team_repository.dart';
+import '../data/tournament_repository.dart';
 
 /// Overridden in `main()` with the real implementation.
 final matchRepositoryProvider = Provider<MatchRepository>(
@@ -19,6 +20,19 @@ final teamRepositoryProvider = Provider<TeamRepository>(
 final savedTeamsProvider = FutureProvider.autoDispose<List<Team>>(
   (ref) => ref.watch(teamRepositoryProvider).loadAll(),
 );
+
+/// Overridden in `main()` with the real implementation.
+final tournamentRepositoryProvider = Provider<TournamentRepository>(
+  (ref) => throw UnimplementedError('tournamentRepositoryProvider must be overridden'),
+);
+
+/// Every tournament with its derived table, stats and champion.
+final tournamentsProvider = FutureProvider.autoDispose<List<TournamentProgress>>((ref) async {
+  final tournaments = await ref.watch(tournamentRepositoryProvider).loadAll();
+  final matches = await ref.watch(matchListProvider.future);
+  final byId = {for (final m in matches) m.record.id: m.state};
+  return [for (final t in tournaments) progressOf(t, byId)];
+});
 
 /// A stored match with its replayed state, for lists.
 typedef MatchSummary = ({MatchRecord record, MatchState state});

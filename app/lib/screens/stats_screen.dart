@@ -31,9 +31,9 @@ class StatsScreen extends ConsumerWidget {
               ? const StatsEmpty(message: 'Stats appear here once a match has finished.')
               : TabBarView(
                   children: [
-                    _TeamsTab(book: book),
-                    _BattingTab(book: book),
-                    _BowlingTab(book: book),
+                    TeamsTab(teams: book.teams),
+                    BattingTab(book: book),
+                    BowlingTab(book: book),
                   ],
                 ),
         ),
@@ -60,16 +60,15 @@ void openPlayer(BuildContext context, String playerId) => Navigator.of(context).
       MaterialPageRoute<void>(builder: (_) => PlayerStatsScreen(playerId: playerId)),
     );
 
-class _TeamsTab extends StatelessWidget {
-  const _TeamsTab({required this.book});
+class TeamsTab extends StatelessWidget {
+  const TeamsTab({super.key, required this.teams});
 
-  final StatsBook book;
+  final List<TeamStats> teams;
 
   @override
   Widget build(BuildContext context) => _RankedList(
         rows: [
-          for (var i = 0; i < book.teams.length; i++)
-            _teamRow(context, i + 1, book.teams[i]),
+          for (var i = 0; i < teams.length; i++) _teamRow(context, i + 1, teams[i]),
         ],
       );
 
@@ -111,8 +110,8 @@ LeaderRow bowlingRow(BuildContext context, int rank, PlayerStats player) => Lead
       onTap: () => openPlayer(context, player.playerId),
     );
 
-class _BattingTab extends StatelessWidget {
-  const _BattingTab({required this.book});
+class BattingTab extends StatelessWidget {
+  const BattingTab({super.key, required this.book});
 
   final StatsBook book;
 
@@ -127,8 +126,8 @@ class _BattingTab extends StatelessWidget {
   }
 }
 
-class _BowlingTab extends StatelessWidget {
-  const _BowlingTab({required this.book});
+class BowlingTab extends StatelessWidget {
+  const BowlingTab({super.key, required this.book});
 
   final StatsBook book;
 

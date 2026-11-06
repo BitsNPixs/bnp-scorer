@@ -28,9 +28,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline. A squad can gain players but there is no screen yet
   to remove one or to rename a player: delete the team and re-enter it.
-- Stats (`computeStats`, `StatsScreen`) cover finished matches only and are
-  grouped by team and player id, across all matches. There is no filter by
-  tournament or season yet.
+- Stats (`computeStats`) cover finished matches only, grouped by team and player
+  id. `StatsScreen` covers every match, and `TournamentScreen` covers one
+  tournament. Tournaments are round robin with an optional final, with no groups,
+  semi-finals or home-and-away.
 - Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
   (README "Demo data"). There is no tournament feature yet: the cup is only a
   set of ordinary matches, labelled through `venue`.
@@ -72,7 +73,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   reach the log.
 - **Event JSON is a storage format.** Existing type names and field names must
   stay readable. Add fields as optional with defaults. Never rename them.
-- **Storage goes through `MatchRepository` and `TeamRepository`.** A match keeps
+- **Storage goes through `MatchRepository`, `TeamRepository` and
+  `TournamentRepository`.** A tournament stores only fixtures and the match played
+  for each: tables and champions are derived. A match keeps
   its own copy of its teams, so editing a saved squad never changes a past
   scorecard. Firebase / Drift become new
   implementations, not rewrites of the notifier.
@@ -80,7 +83,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (7 screens). Add go_router only with deep
+- **Navigation:** plain `Navigator` (10 screens). Add go_router only with deep
   links (shared scorecards).
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.
@@ -102,6 +105,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | New ids | `newId()` (`data/ids.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
+| JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
+| Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
+| Tournament logic | `roundRobinFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas
@@ -119,8 +125,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Dart 3.8 features in use:** null-aware collection elements (`{?x}`) and
   wildcard `_` parameters. Don't lower the SDK constraint.
 - Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
-  `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`. Changing them loses users'
-  matches and teams.
+  `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds` and
+  `bnp_scorer.tournament.<id>`. Changing them loses users' data.
 - Name clash: "Crease" is another cricket app. The product name is BNP Scorer.
   The words crease / `CreasePanel` refer to the cricket crease, not the old name.
 

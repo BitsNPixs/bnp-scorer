@@ -12,6 +12,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'match_record.dart';
 import 'match_repository.dart';
 import 'team_repository.dart';
+import 'tournament_repository.dart';
 
 const demoMode = bool.fromEnvironment('BNP_DEMO');
 
@@ -82,6 +83,7 @@ Team _team(String key, int number) {
 class _Fixture {
   const _Fixture({
     required this.number,
+    required this.id,
     required this.title,
     required this.home,
     required this.away,
@@ -92,7 +94,9 @@ class _Fixture {
     this.stopAtBall,
   });
 
+  /// Unique across all matches. Seeds the simulation and rotates the squads.
   final int number;
+  final String id;
   final String title;
   final String home;
   final String away;
@@ -109,19 +113,145 @@ class _Fixture {
 
   /// Stop here in the second innings, leaving the match live.
   final int? stopAtBall;
-
-  String get id => stopAtBall == null ? 'demo-match-$number' : 'demo-live';
 }
 
-/// A four-team cup: four league games, then the top two meet in the final.
-/// Team A and Team D each win both league games, so no tie-break is needed.
-const _fixtures = [
-  _Fixture(number: 1, title: 'BNP Cup Match 1', home: 'a', away: 'b', daysAgo: 9, winner: 'a'),
-  _Fixture(number: 2, title: 'BNP Cup Match 2', home: 'c', away: 'd', daysAgo: 9, winner: 'd', chase: true),
-  _Fixture(number: 3, title: 'BNP Cup Match 3', home: 'a', away: 'c', daysAgo: 8, winner: 'a'),
-  _Fixture(number: 4, title: 'BNP Cup Match 4', home: 'b', away: 'd', daysAgo: 8, winner: 'd', chase: true),
-  _Fixture(number: 5, title: 'BNP Cup Final', home: 'a', away: 'd', daysAgo: 2, winner: 'd', close: true),
-  _Fixture(number: 6, title: 'Friendly', home: 'b', away: 'c', daysAgo: 0, stopAtBall: 40),
+/// A finished tournament: scripted league results, then the top two in a final.
+class _Cup {
+  const _Cup({
+    required this.id,
+    required this.name,
+    required this.firstNumber,
+    required this.daysAgo,
+    required this.teams,
+    required this.league,
+    this.finalTeams,
+    this.champion,
+  });
+
+  final String id;
+  final String name;
+  final int firstNumber;
+
+  /// When the first match was played. Finals come a week later.
+  final int daysAgo;
+  final List<String> teams;
+
+  /// (home, away, winner).
+  final List<(String, String, String)> league;
+
+  /// Must be the top two of [league], which each script keeps clear of ties.
+  final (String, String)? finalTeams;
+  final String? champion;
+
+  bool get hasFinal => finalTeams != null;
+
+  String matchId(int index) =>
+      id == _bnpCupId ? 'demo-match-${index + 1}' : '$id-${index + 1}';
+
+  List<_Fixture> get fixtures => [
+        for (var i = 0; i < league.length; i++)
+          _Fixture(
+            number: firstNumber + i,
+            id: matchId(i),
+            title: '$name Match ${i + 1}',
+            home: league[i].$1,
+            away: league[i].$2,
+            daysAgo: daysAgo - i ~/ 2,
+            winner: league[i].$3,
+            chase: i.isOdd,
+          ),
+        if (finalTeams case (final home, final away))
+          _Fixture(
+            number: firstNumber + league.length,
+            id: matchId(league.length),
+            title: '$name Final',
+            home: home,
+            away: away,
+            daysAgo: daysAgo - 7,
+            winner: champion,
+            close: true,
+          ),
+      ];
+}
+
+const _bnpCupId = 'demo-cup-bnp';
+
+const _cups = [
+  _Cup(
+    id: 'demo-cup-winter',
+    name: 'Winter Bash',
+    firstNumber: 10,
+    daysAgo: 300,
+    teams: ['a', 'b', 'c', 'd'],
+    league: [
+      ('a', 'b', 'a'),
+      ('c', 'd', 'c'),
+      ('a', 'c', 'a'),
+      ('b', 'd', 'b'),
+      ('a', 'd', 'a'),
+      ('b', 'c', 'b'),
+    ],
+    finalTeams: ('a', 'b'),
+    champion: 'b',
+  ),
+  _Cup(
+    id: 'demo-cup-summer',
+    name: 'Summer Shield',
+    firstNumber: 20,
+    daysAgo: 180,
+    teams: ['b', 'c', 'd'],
+    league: [
+      ('b', 'c', 'b'),
+      ('c', 'd', 'c'),
+      ('d', 'b', 'b'),
+    ],
+  ),
+  _Cup(
+    id: 'demo-cup-monsoon',
+    name: 'Monsoon League',
+    firstNumber: 30,
+    daysAgo: 90,
+    teams: ['a', 'b', 'c', 'd'],
+    league: [
+      ('d', 'a', 'd'),
+      ('b', 'c', 'c'),
+      ('d', 'b', 'd'),
+      ('a', 'c', 'c'),
+      ('d', 'c', 'd'),
+      ('a', 'b', 'a'),
+    ],
+    finalTeams: ('d', 'c'),
+    champion: 'c',
+  ),
+  // Team A and Team D each win both their games, so the final picks itself.
+  _Cup(
+    id: _bnpCupId,
+    name: 'BNP Cup',
+    firstNumber: 1,
+    daysAgo: 9,
+    teams: ['a', 'b', 'c', 'd'],
+    league: [
+      ('a', 'b', 'a'),
+      ('c', 'd', 'd'),
+      ('a', 'c', 'a'),
+      ('b', 'd', 'd'),
+    ],
+    finalTeams: ('a', 'd'),
+    champion: 'd',
+  ),
+];
+
+final _fixtures = [
+  for (final cup in _cups) ...cup.fixtures,
+  const _Fixture(
+    number: 6,
+    id: 'demo-live',
+    title: 'Friendly',
+    home: 'b',
+    away: 'c',
+    daysAgo: 0,
+    stopAtBall: 40,
+  ),
 ];
 
 /// Plays one fixture with a seeded [Random], so the same match comes out every
@@ -155,10 +285,8 @@ class _Simulation {
   /// Scorers take about half a minute per event.
   DateTime _nextEventTime() => startedAt.add(Duration(seconds: 35 * events.length));
 
-  void _add(MatchEvent event) {
-    ScoringEngine.apply(setup, events, event);
-    events.add(event);
-  }
+  /// The next replay in [run] validates this, so an illegal event still throws.
+  void _add(MatchEvent event) => events.add(event);
 
   MatchState run() {
     while (true) {
@@ -319,8 +447,9 @@ MatchRecord _play(_Fixture fixture, DateTime now) {
   }
 }
 
-/// The five cup matches plus one friendly left in progress to score live.
-List<MatchRecord> demoMatches(DateTime now) => [for (final f in _fixtures) _play(f, now)];
+/// Every tournament match plus one friendly left in progress, oldest first.
+List<MatchRecord> demoMatches(DateTime now) =>
+    [for (final f in _fixtures) _play(f, now)]..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
 /// Adds any demo match the repository does not have. Existing records are left
 /// alone, so a match scored during a demo survives a restart.
@@ -339,5 +468,42 @@ Future<void> seedDemoTeams(TeamRepository repository) async {
   for (final key in _squads.keys) {
     final team = _squad(key);
     if (!existing.contains(team.id)) await repository.save(team);
+  }
+}
+
+Tournament _tournament(_Cup cup, DateTime now) {
+  final teams = [for (final key in cup.teams) _squad(key)];
+  final fixtures = cup.fixtures;
+  final knockout = cup.hasFinal ? fixtures.length - 1 : -1;
+  return Tournament(
+    id: cup.id,
+    name: cup.name,
+    oversPerInnings: _overs,
+    hasFinal: cup.hasFinal,
+    venue: _venue,
+    createdAt: now.subtract(Duration(days: cup.daysAgo + 1)),
+    teams: teams,
+    fixtures: [
+      for (var i = 0; i < fixtures.length; i++)
+        Fixture(
+          id: i == knockout ? 'final' : 'f${i + 1}',
+          label: i == knockout ? 'Final' : 'Match ${i + 1}',
+          teamAId: 'team-${fixtures[i].home}',
+          teamBId: 'team-${fixtures[i].away}',
+          knockout: i == knockout,
+          matchId: fixtures[i].id,
+        ),
+    ],
+  );
+}
+
+/// The past tournaments, newest last, with the matches in [demoMatches].
+List<Tournament> demoTournaments(DateTime now) => [for (final cup in _cups) _tournament(cup, now)];
+
+/// Adds any demo tournament the repository does not have.
+Future<void> seedDemoTournaments(TournamentRepository repository, {DateTime? now}) async {
+  final existing = {for (final t in await repository.loadAll()) t.id};
+  for (final tournament in demoTournaments(now ?? DateTime.now())) {
+    if (!existing.contains(tournament.id)) await repository.save(tournament);
   }
 }

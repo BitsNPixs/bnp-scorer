@@ -48,12 +48,14 @@ void main() {
     expect(find.text('Stats appear here once a match has finished.'), findsOneWidget);
   });
 
-  testWidgets('the table ranks the cup: Team D first, unbeaten', (tester) async {
+  testWidgets('the table ranks teams by the engine', (tester) async {
     await pump(tester, const StatsScreen());
-    expect(find.text('6'), findsOneWidget, reason: 'three wins');
-    final first = tester.getTopLeft(find.text('Team D')).dy;
-    final second = tester.getTopLeft(find.text('Team A')).dy;
-    expect(first, lessThan(second));
+    final book = computeStats(
+      demoMatches(DateTime.utc(2026, 11, 6)).map((m) => ScoringEngine.replay(m.setup, m.events)),
+    );
+    final y = [for (final t in book.teams) tester.getTopLeft(find.text(t.name)).dy];
+    expect(y, orderedEquals([...y]..sort()));
+    expect(find.text('${book.teams.first.points}'), findsWidgets);
     expect(tester.takeException(), isNull);
   });
 

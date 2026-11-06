@@ -13,6 +13,10 @@
   team from the list, extra players sit out, and teams are remembered when a
   match starts. Team and player ids stay the same across matches.
 
+- Tournaments: round-robin fixtures, an optional final between the top two, a
+  points table of league games, leaderboards per tournament and a champion. Stored
+  as `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`. Results stay in
+  the matches, so all of it is derived. The demo build adds three past tournaments.
 - Stats: `computeStats` in `cricket_engine` derives player and team numbers from
   finished matches. Home has a Stats button leading to a team table, batting and
   bowling leaderboards, and team and player profiles.

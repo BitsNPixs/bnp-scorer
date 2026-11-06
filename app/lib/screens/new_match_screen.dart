@@ -12,15 +12,33 @@ import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/inputs.dart';
 import '../widgets/avatars.dart';
+import '../widgets/overs_picker.dart';
 import '../widgets/saved_teams_sheet.dart';
 import '../widgets/surface_panel.dart';
 import 'scoring_screen.dart';
 
-const _overPresets = [5, 6, 8, 10, 12, 15, 20];
 const _quickFillSize = 11;
 
+/// A tournament fixture to start, with the squads to fill in.
+class FixtureMatch {
+  const FixtureMatch({
+    required this.tournament,
+    required this.fixture,
+    required this.home,
+    required this.away,
+  });
+
+  final Tournament tournament;
+  final Fixture fixture;
+  final Team home;
+  final Team away;
+}
+
 class NewMatchScreen extends ConsumerStatefulWidget {
-  const NewMatchScreen({super.key});
+  const NewMatchScreen({super.key, this.fixture});
+
+  /// When set, the teams, overs and title come from the tournament.
+  final FixtureMatch? fixture;
 
   @override
   ConsumerState<NewMatchScreen> createState() => _NewMatchScreenState();
@@ -45,6 +63,13 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     super.initState();
     for (final draft in [_teamA, _teamB]) {
       draft.name.addListener(_refresh);
+    }
+    final fixture = widget.fixture;
+    if (fixture != null) {
+      _teamA.load(fixture.home);
+      _teamB.load(fixture.away);
+      _overs = fixture.tournament.oversPerInnings;
+      _venue.text = fixture.tournament.titleOf(fixture.fixture);
     }
   }
 
@@ -82,6 +107,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     if (_blocker != null || _saving) return;
     setState(() => _saving = true);
     final savedTeams = ref.read(teamRepositoryProvider);
+    final tournaments = widget.fixture == null ? null : ref.read(tournamentRepositoryProvider);
     await _linkTypedTeams(savedTeams);
     if (!mounted) return;
     final now = DateTime.now();
@@ -116,9 +142,20 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       return;
     }
     await _rememberTeams(savedTeams, [teamA, teamB]);
+    final fixture = widget.fixture;
+    String? linkError;
+    if (fixture != null && tournaments != null) {
+      try {
+        await tournaments.save(fixture.tournament.withMatch(fixture.fixture.id, setup.id));
+      } on Object catch (e) {
+        linkError = 'Match saved, but not added to the tournament: $e';
+      }
+    }
     if (!mounted) return;
     ref.invalidate(matchListProvider);
     ref.invalidate(savedTeamsProvider);
+    if (fixture != null) ref.invalidate(tournamentsProvider);
+    if (linkError != null) showMessage(context, linkError, isError: true);
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: setup.id)),
     );
@@ -164,7 +201,9 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     final blocker = _blocker;
     final saved = ref.watch(savedTeamsProvider).value ?? const <Team>[];
     VoidCallback? pickFor(_TeamDraft draft, _TeamDraft other) =>
-        saved.any((t) => t.id != other.savedTeamId) ? () => _useSavedTeam(draft, other) : null;
+        widget.fixture == null && saved.any((t) => t.id != other.savedTeamId)
+            ? () => _useSavedTeam(draft, other)
+            : null;
     final teamNames = [_teamA.displayName, _teamB.displayName];
 
     return Scaffold(
@@ -181,6 +220,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
             label: 'Home',
             onChanged: _refresh,
             onUseSaved: pickFor(_teamA, _teamB),
+            locked: widget.fixture != null,
           ),
           const SizedBox(height: 12),
           _TeamEditor(
@@ -188,49 +228,10 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
             label: 'Away',
             onChanged: _refresh,
             onUseSaved: pickFor(_teamB, _teamA),
+            locked: widget.fixture != null,
           ),
           const SizedBox(height: 12),
-          SurfacePanel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SectionLabel('Overs per innings'),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    IconButton.filledTonal(
-                      onPressed: _overs > 1 ? () => setState(() => _overs--) : null,
-                      icon: const Icon(Icons.remove_rounded),
-                    ),
-                    Expanded(
-                      child: Text(
-                        '$_overs',
-                        textAlign: TextAlign.center,
-                        style: scoreStyle(40, color: Theme.of(context).colorScheme.onSurface),
-                      ),
-                    ),
-                    IconButton.filledTonal(
-                      onPressed: _overs < 50 ? () => setState(() => _overs++) : null,
-                      icon: const Icon(Icons.add_rounded),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final o in _overPresets)
-                      ChoiceChip(
-                        label: Text('$o'),
-                        selected: _overs == o,
-                        onSelected: (_) => setState(() => _overs = o),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+          OversPicker(overs: _overs, onChanged: (o) => setState(() => _overs = o)),
           const SizedBox(height: 12),
           SurfacePanel(
             child: Column(
@@ -436,6 +437,7 @@ class _TeamEditor extends StatefulWidget {
     required this.label,
     required this.onChanged,
     this.onUseSaved,
+    this.locked = false,
   });
 
   final _TeamDraft draft;
@@ -444,6 +446,9 @@ class _TeamEditor extends StatefulWidget {
 
   /// Null when there is no saved team to choose.
   final VoidCallback? onUseSaved;
+
+  /// A tournament fixture fixes the team, so its name cannot change here.
+  final bool locked;
 
   @override
   State<_TeamEditor> createState() => _TeamEditorState();
@@ -515,6 +520,7 @@ class _TeamEditorState extends State<_TeamEditor> {
               Expanded(
                 child: TextField(
                   controller: _draft.name,
+                  readOnly: widget.locked,
                   textCapitalization: TextCapitalization.words,
                   style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                   decoration: fieldDecoration(context, '${widget.label} team name'),

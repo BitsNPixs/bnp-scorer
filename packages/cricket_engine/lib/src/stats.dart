@@ -223,10 +223,13 @@ class StatsBook {
 }
 
 /// Builds the book from [matches], oldest first. Unfinished matches are left
-/// out, so a live match joins the numbers once it has a result.
-StatsBook computeStats(Iterable<MatchState> matches) {
+/// out, so a live match joins the numbers once it has a result. [entrants] are
+/// listed even if they have not played yet.
+StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = const []}) {
   final players = <String, _PlayerBuilder>{};
-  final teams = <String, _TeamBuilder>{};
+  final teams = <String, _TeamBuilder>{
+    for (final team in entrants) team.id: _TeamBuilder()..name = team.name,
+  };
   var counted = 0;
 
   for (final match in matches) {

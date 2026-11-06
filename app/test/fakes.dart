@@ -2,6 +2,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
+import 'package:bnp_scorer/data/tournament_repository.dart';
 
 class InMemoryMatchRepository implements MatchRepository {
   final records = <String, MatchRecord>{};
@@ -25,6 +26,28 @@ class InMemoryMatchRepository implements MatchRepository {
   @override
   Future<void> delete(String id) async {
     records.remove(id);
+  }
+}
+
+class InMemoryTournamentRepository implements TournamentRepository {
+  final tournaments = <String, Tournament>{};
+
+  /// When true, [save] throws, simulating a storage failure.
+  bool failSaves = false;
+
+  @override
+  Future<List<Tournament>> loadAll() async =>
+      tournaments.values.toList()..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+  @override
+  Future<void> save(Tournament tournament) async {
+    if (failSaves) throw StateError('Storage is full');
+    tournaments[tournament.id] = tournament;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    tournaments.remove(id);
   }
 }
 

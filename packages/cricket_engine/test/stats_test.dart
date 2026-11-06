@@ -353,6 +353,39 @@ void main() {
     });
   });
 
+  group('overs', () {
+    test('sum each over, extras and wickets included', () {
+      final at = DateTime.utc(2026);
+      final state = ScoringEngine.replay(_setup(overs: 2), [
+        OpenersSelected(id: 'e1', at: at, strikerId: 'a1', nonStrikerId: 'a2'),
+        BowlerChanged(id: 'e2', at: at, bowlerId: 'b1'),
+        BallBowled(id: 'e3', at: at, runsOffBat: 4, boundary: true),
+        BallBowled(id: 'e4', at: at, extra: ExtraType.wide),
+        BallBowled(
+          id: 'e5',
+          at: at,
+          wicket: const Wicket(type: DismissalType.bowled, batterOutId: 'a1'),
+        ),
+        NewBatter(id: 'e6', at: at, batterId: 'a3'),
+        BallBowled(id: 'e7', at: at, runsOffBat: 1),
+        BallBowled(id: 'e8', at: at),
+        BallBowled(id: 'e9', at: at),
+        BallBowled(id: 'e10', at: at),
+        BowlerChanged(id: 'e11', at: at, bowlerId: 'b2'),
+        BallBowled(id: 'e12', at: at, runsOffBat: 6, boundary: true),
+      ]);
+      final overs = state.current.overs;
+      expect(overs, hasLength(2));
+      expect(overs[0].runs, 6);
+      expect(overs[0].wickets, 1);
+      expect(overs[1].runs, 6, reason: 'the over in progress counts');
+    });
+
+    test('an innings yet to start has none', () {
+      expect(ScoringEngine.replay(_setup(), const []).current.overs, isEmpty);
+    });
+  });
+
   group('MVP', () {
     test('adds runs, boundaries, wickets and catches', () {
       // a1: 10 runs + a four + a six; 1 wicket bowling, and took no catch.

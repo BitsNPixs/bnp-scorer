@@ -89,11 +89,32 @@ enum BallKind { dot, runs, four, six, extra, wicket }
 
 /// Compact description of a delivery for the "this over" strip.
 class BallSummary {
-  const BallSummary({required this.label, required this.kind, required this.isLegal});
+  const BallSummary({
+    required this.label,
+    required this.kind,
+    required this.isLegal,
+    this.runs = 0,
+  });
 
   final String label;
   final BallKind kind;
   final bool isLegal;
+
+  /// Everything this ball added to the total, extras included.
+  final int runs;
+}
+
+/// What one over added to an innings, for charts.
+class OverSummary {
+  const OverSummary({required this.runs, required this.wickets});
+
+  final int runs;
+  final int wickets;
+
+  factory OverSummary.of(List<BallSummary> balls) => OverSummary(
+        runs: balls.fold(0, (total, ball) => total + ball.runs),
+        wickets: balls.where((ball) => ball.kind == BallKind.wicket).length,
+      );
 }
 
 class FallOfWicket {
@@ -192,6 +213,12 @@ class InningsState {
 
   /// Bowling-side players allowed to bowl right now.
   final List<String> eligibleBowlerIds;
+
+  /// Over by over, including the one in progress.
+  List<OverSummary> get overs => [
+        for (final over in completedOvers) OverSummary.of(over),
+        if (currentOver.isNotEmpty) OverSummary.of(currentOver),
+      ];
 
   String get oversText => formatOvers(legalBalls, ballsPerOver);
   String get maxOversText => formatOvers(maxBalls, ballsPerOver);

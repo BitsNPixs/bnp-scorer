@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../state/live_match.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
+import '../widgets/match_charts.dart';
 import '../widgets/surface_panel.dart';
 
 class ScorecardScreen extends ConsumerWidget {
@@ -22,14 +23,17 @@ class ScorecardScreen extends ConsumerWidget {
         final state = live.state;
         final setup = state.setup;
         return DefaultTabController(
-          length: state.innings.length,
+          length: state.innings.length + 1,
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Scorecard'),
               bottom: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
                 tabs: [
                   for (final inn in state.innings)
                     Tab(text: '${setup.teamById(inn.battingTeamId).name} ${scoreLine(inn)}'),
+                  const Tab(text: 'Charts'),
                 ],
               ),
             ),
@@ -58,6 +62,7 @@ class ScorecardScreen extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       for (final inn in state.innings) _InningsCard(setup: setup, innings: inn),
+                      MatchCharts(state: state),
                     ],
                   ),
                 ),

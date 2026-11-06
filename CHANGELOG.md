@@ -28,6 +28,8 @@
 - Fixture dates: a start date and matches per day schedule a tournament, later
   rounds are dated after the latest game, and a long press moves a fixture.
 - Boundary leaderboards, overall and per tournament.
+- Charts: Manhattan and worm on a new scorecard tab, drawn from the ball data with
+  no new dependency.
 - Awards: Player of the Match, MVP rankings and Player of the Tournament, all
   derived from the matches by `matchPoints`.
 - No result: a match can be abandoned at any point (`MatchAbandoned`). Each side

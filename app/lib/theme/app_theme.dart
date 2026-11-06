@@ -18,6 +18,12 @@ abstract final class AppColors {
   static const dot = Color(0xFF9AA3B5);
   static const live = Color(0xFFFF3B5C);
 
+  /// Chart series in fixed order: first innings, then second. Checked for
+  /// contrast and colour-blind separation against each theme's card surface.
+  static List<Color> chartSeries(Brightness brightness) => brightness == Brightness.light
+      ? const [Color(0xFF3446FF), Color(0xFFE85D04)]
+      : const [Color(0xFF6F80F5), Color(0xFFDE6A20)];
+
   static const heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,

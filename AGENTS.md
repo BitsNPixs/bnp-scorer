@@ -113,6 +113,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
+| Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas

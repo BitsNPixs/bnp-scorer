@@ -683,6 +683,7 @@ class _InningsBuilder {
       label: label,
       kind: kind,
       isLegal: e.extra != ExtraType.wide && e.extra != ExtraType.noBall,
+      runs: total,
     );
   }
 

@@ -8,7 +8,14 @@
   a five-match cup and a live friendly for four real squads. Matches are
   simulated through `ScoringEngine`, and normal builds are unaffected.
 
+- Saved teams: squads are stored separately from matches (`TeamRepository`,
+  keys `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`). New match can fill a
+  team from the list, extra players sit out, and teams are remembered when a
+  match starts. Team and player ids stay the same across matches.
+
 ### Fixed
+- New match: the "Players · N" label no longer overflows next to "Fill to 11"
+  on narrow screens.
 - Android build: set `kotlin.incremental=false`, because compiling
   `shared_preferences_android` failed on Kotlin's incremental caches. The pub
   cache and project were on different drives, which is the suspected cause.

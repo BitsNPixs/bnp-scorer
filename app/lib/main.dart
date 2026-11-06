@@ -5,17 +5,23 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'data/demo_data.dart';
 import 'data/local_match_repository.dart';
+import 'data/local_team_repository.dart';
 import 'state/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final repository = LocalMatchRepository(prefs);
-  if (demoMode) await seedDemoMatches(repository);
+  final teams = LocalTeamRepository(prefs);
+  if (demoMode) {
+    await seedDemoMatches(repository);
+    await seedDemoTeams(teams);
+  }
   runApp(
     ProviderScope(
       overrides: [
         matchRepositoryProvider.overrideWithValue(repository),
+        teamRepositoryProvider.overrideWithValue(teams),
       ],
       child: const BnpScorerApp(),
     ),

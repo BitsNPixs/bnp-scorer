@@ -141,9 +141,15 @@ with target = first innings runs + 1), then `completed` (result set).
   - fine for hundreds of matches; move to Drift/SQLite before tournaments
     and stats.
 
+- `TeamRepository`: `loadAll()` (by name), `save(team)`, `delete(id)`.
+  `LocalTeamRepository` stores `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`.
+  `mergeIntoSquad` decides what to store when a match starts: the saved squad
+  stays whole, newcomers are added, and "Fill to 11" placeholders are dropped.
+
 ### State (Riverpod 3)
 - `matchRepositoryProvider`: overridden in `main()` and in tests. It throws if
   not overridden.
+- `teamRepositoryProvider`, the same way, and `savedTeamsProvider` for the list.
 - `matchListProvider`: `FutureProvider.autoDispose` of
   `({MatchRecord record, MatchState state})` for the home list.
 - `liveMatchProvider(matchId)`: `LiveMatchNotifier` (`AsyncNotifier`) holding

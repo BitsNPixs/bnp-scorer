@@ -26,6 +26,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Git is initialised. Commit each finished, verified piece of work.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
+- Saved teams work offline. A squad can gain players but there is no screen yet
+  to remove one or to rename a player: delete the team and re-enter it.
 - Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
   (README "Demo data"). There is no tournament feature yet: the cup is only a
   set of ordinary matches, labelled through `venue`.
@@ -67,7 +69,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   reach the log.
 - **Event JSON is a storage format.** Existing type names and field names must
   stay readable. Add fields as optional with defaults. Never rename them.
-- **Storage goes through `MatchRepository`.** Firebase / Drift become new
+- **Storage goes through `MatchRepository` and `TeamRepository`.** A match keeps
+  its own copy of its teams, so editing a saved squad never changes a past
+  scorecard. Firebase / Drift become new
   implementations, not rewrites of the notifier.
 - **State:** Riverpod 3 without code generation. One `AsyncNotifier` per live
   match (`liveMatchProvider(matchId)`). Notifier actions return
@@ -92,6 +96,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Colours, fonts, numbers | `AppColors`, `AppTheme`, `scoreStyle()` (`theme/app_theme.dart`) |
 | New ids | `newId()` (`data/ids.dart`) |
+| Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas
 - **Overflow:** any `Text` in a `Row` must be `Expanded`/`Flexible` with
@@ -107,8 +112,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `context.mounted` (lint `use_build_context_synchronously`).
 - **Dart 3.8 features in use:** null-aware collection elements (`{?x}`) and
   wildcard `_` parameters. Don't lower the SDK constraint.
-- Storage keys are `bnp_scorer.matchIds` and `bnp_scorer.match.<id>`. Changing
-  them loses users' matches.
+- Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
+  `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`. Changing them loses users'
+  matches and teams.
 - Name clash: "Crease" is another cricket app. The product name is BNP Scorer.
   The words crease / `CreasePanel` refer to the cricket crease, not the old name.
 

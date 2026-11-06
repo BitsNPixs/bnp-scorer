@@ -133,6 +133,31 @@ void main() {
     });
   });
 
+  group('team seeding', () {
+    test('adds the four full squads with the ids the matches use', () async {
+      final repo = InMemoryTeamRepository();
+      await seedDemoTeams(repo);
+      expect(repo.teams, hasLength(4));
+      for (final team in repo.teams.values) {
+        expect(team.players, hasLength(13), reason: team.name);
+      }
+      final played = cup.first.setup.teamA;
+      expect(repo.teams[played.id]!.players.map((p) => p.id), containsAll(played.players.map((p) => p.id)));
+    });
+
+    test('a restart does not overwrite an edited squad', () async {
+      final repo = InMemoryTeamRepository();
+      await seedDemoTeams(repo);
+      final edited = Team(id: 'team-a', name: 'Renamed', players: const [
+        Player(id: 'x', name: 'X'),
+        Player(id: 'y', name: 'Y'),
+      ]);
+      await repo.save(edited);
+      await seedDemoTeams(repo);
+      expect(repo.teams['team-a'], same(edited));
+    });
+  });
+
   group('demo screens at 360 dp with real names', () {
     Future<InMemoryMatchRepository> pump(WidgetTester tester, Widget home) async {
       tester.view

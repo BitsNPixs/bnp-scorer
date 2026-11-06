@@ -4,10 +4,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
+import '../data/team_repository.dart';
 
 /// Overridden in `main()` with the real implementation.
 final matchRepositoryProvider = Provider<MatchRepository>(
   (ref) => throw UnimplementedError('matchRepositoryProvider must be overridden'),
+);
+
+/// Overridden in `main()` with the real implementation.
+final teamRepositoryProvider = Provider<TeamRepository>(
+  (ref) => throw UnimplementedError('teamRepositoryProvider must be overridden'),
+);
+
+final savedTeamsProvider = FutureProvider.autoDispose<List<Team>>(
+  (ref) => ref.watch(teamRepositoryProvider).loadAll(),
 );
 
 /// A stored match with its replayed state, for lists.

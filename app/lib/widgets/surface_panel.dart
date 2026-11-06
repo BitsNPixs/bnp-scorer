@@ -34,6 +34,8 @@ class SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Text(
         text.toUpperCase(),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
               letterSpacing: 1.4,
               color: Theme.of(context).colorScheme.onSurfaceVariant,

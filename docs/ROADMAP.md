@@ -39,8 +39,9 @@
 **Phase 1: accounts, teams, players**
 - Firebase project, `flutterfire configure` (creates `lib/firebase_options.dart`,
   which is gitignored), and phone OTP sign-in.
-- Persistent teams and players: reuse them across matches instead of typing
-  names each time. Player profile with photo (Storage).
+- Saved teams and players are done on the device (`TeamRepository`). Still to
+  do: sync them to the account, a screen to edit a squad, and a player profile
+  with photo (Storage).
 
 **Phase 2: cloud sync for scoring**
 - `FirestoreMatchRepository implements MatchRepository`, or better, keep local
@@ -92,9 +93,8 @@ From the independent review and known limitations, in priority order:
 5. **Run-out strike.** After a run out, strike follows the runs completed. If
    the batters crossed, the scorer must tap "swap strike". Consider asking
    "who's on strike?" in the wicket sheet.
-6. **Large text / long names.** Check the "Players · N" label next to "Fill to
-   11" (`new_match_screen.dart`, `_TeamEditor` header row) at 200% text size,
-   and wrap it in `Expanded` if it overflows.
+6. **Large text / long names.** The "Players · N" label is fixed. Other rows
+   have not been checked at 200% text size.
 7. **Fonts are fetched at runtime.** Bundle Inter and Space Grotesk (`.ttf` in
    `assets/google_fonts/`, listed in pubspec) and set
    `GoogleFonts.config.allowRuntimeFetching = false`, so the first launch

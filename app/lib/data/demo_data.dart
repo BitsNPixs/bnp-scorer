@@ -11,6 +11,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 
 import 'match_record.dart';
 import 'match_repository.dart';
+import 'team_repository.dart';
 
 const demoMode = bool.fromEnvironment('BNP_DEMO');
 
@@ -51,19 +52,29 @@ const _squads = {
   ],
 };
 
-/// The playing XI for match [number]. Squads have 13 players, so two sit out,
-/// a different pair each match. The captain, vice-captain and keeper always
-/// play. Player ids stay the same across matches.
-Team _team(String key, int number) {
-  final squad = _squads[key]!;
-  final firstRested = 3 + (number * 2) % 10;
+Team _squad(String key) {
+  final names = _squads[key]!;
   return Team(
     id: 'team-$key',
     name: 'Team ${key.toUpperCase()}',
     players: [
-      for (var i = 0; i < squad.length; i++)
-        if (i != firstRested && i != firstRested + 1)
-          Player(id: '$key${i + 1}', name: squad[i]),
+      for (var i = 0; i < names.length; i++) Player(id: '$key${i + 1}', name: names[i]),
+    ],
+  );
+}
+
+/// The playing XI for match [number]. Squads have 13 players, so two sit out,
+/// a different pair each match. The captain, vice-captain and keeper always
+/// play. Player ids stay the same across matches.
+Team _team(String key, int number) {
+  final squad = _squad(key);
+  final firstRested = 3 + (number * 2) % 10;
+  return Team(
+    id: squad.id,
+    name: squad.name,
+    players: [
+      for (var i = 0; i < squad.players.length; i++)
+        if (i != firstRested && i != firstRested + 1) squad.players[i],
     ],
   );
 }
@@ -318,5 +329,15 @@ Future<void> seedDemoMatches(MatchRepository repository, {DateTime? now}) async 
   if (_fixtures.every((f) => existing.contains(f.id))) return;
   for (final record in demoMatches(now ?? DateTime.now())) {
     if (!existing.contains(record.id)) await repository.save(record);
+  }
+}
+
+/// Adds any of the four squads the repository does not have, under the same
+/// ids as in the demo matches. Existing teams are left alone.
+Future<void> seedDemoTeams(TeamRepository repository) async {
+  final existing = {for (final team in await repository.loadAll()) team.id};
+  for (final key in _squads.keys) {
+    final team = _squad(key);
+    if (!existing.contains(team.id)) await repository.save(team);
   }
 }

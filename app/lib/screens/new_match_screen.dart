@@ -6,11 +6,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/ids.dart';
 import '../data/match_record.dart';
+import '../data/team_repository.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/inputs.dart';
 import '../widgets/avatars.dart';
+import '../widgets/saved_teams_sheet.dart';
 import '../widgets/surface_panel.dart';
 import 'scoring_screen.dart';
 
@@ -79,6 +81,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
   Future<void> _start() async {
     if (_blocker != null || _saving) return;
     setState(() => _saving = true);
+    final savedTeams = ref.read(teamRepositoryProvider);
     final now = DateTime.now();
     final teamA = _teamA.build();
     final teamB = _teamB.build();
@@ -110,17 +113,42 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       }
       return;
     }
+    await _rememberTeams(savedTeams, [teamA, teamB]);
     if (!mounted) return;
     ref.invalidate(matchListProvider);
+    ref.invalidate(savedTeamsProvider);
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: setup.id)),
     );
+  }
+
+  /// The match is already saved, so a failure here must not stop it starting.
+  Future<void> _rememberTeams(TeamRepository repository, List<Team> played) async {
+    try {
+      final saved = await repository.loadAll();
+      for (final team in played) {
+        final squad = mergeIntoSquad(saved, team);
+        if (squad != null) await repository.save(squad);
+      }
+    } on Object catch (e) {
+      debugPrint('Saving teams failed: $e');
+    }
+  }
+
+  Future<void> _useSavedTeam(_TeamDraft draft, _TeamDraft other) async {
+    final team = await showSavedTeamsSheet(context, excludeTeamId: other.savedTeamId);
+    if (team == null || !mounted) return;
+    draft.load(team);
+    _refresh();
   }
 
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final blocker = _blocker;
+    final saved = ref.watch(savedTeamsProvider).value ?? const <Team>[];
+    VoidCallback? pickFor(_TeamDraft draft, _TeamDraft other) =>
+        saved.any((t) => t.id != other.savedTeamId) ? () => _useSavedTeam(draft, other) : null;
     final teamNames = [_teamA.displayName, _teamB.displayName];
 
     return Scaffold(
@@ -132,9 +160,19 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         children: [
-          _TeamEditor(draft: _teamA, label: 'Home', onChanged: _refresh),
+          _TeamEditor(
+            draft: _teamA,
+            label: 'Home',
+            onChanged: _refresh,
+            onUseSaved: pickFor(_teamA, _teamB),
+          ),
           const SizedBox(height: 12),
-          _TeamEditor(draft: _teamB, label: 'Away', onChanged: _refresh),
+          _TeamEditor(
+            draft: _teamB,
+            label: 'Away',
+            onChanged: _refresh,
+            onUseSaved: pickFor(_teamB, _teamA),
+          ),
           const SizedBox(height: 12),
           SurfacePanel(
             child: Column(
@@ -320,15 +358,42 @@ class _TeamDraft {
   final TextEditingController name;
   final String _hint;
   final players = <String>[];
+
+  /// Saved squad members left out of this match.
+  final sittingOut = <String>[];
   final playerInput = TextEditingController();
+
+  /// Set when the team came from the saved list. Reusing its ids keeps a team
+  /// and its players the same across matches.
+  String? savedTeamId;
+  var _savedPlayerIds = <String, String>{};
 
   String get displayName => name.text.trim().isEmpty ? _hint : name.text.trim();
 
-  Team build() => Team(
-        id: newId(),
-        name: name.text.trim(),
-        players: [for (final p in players) Player(id: newId(), name: p)],
-      );
+  bool isSaved(String player) => _savedPlayerIds.containsKey(player);
+
+  void load(Team team) {
+    final names = [for (final p in team.players) p.name];
+    savedTeamId = team.id;
+    _savedPlayerIds = {for (final p in team.players) p.name: p.id};
+    players
+      ..clear()
+      ..addAll(names.take(_quickFillSize));
+    sittingOut
+      ..clear()
+      ..addAll(names.skip(_quickFillSize));
+    name.text = team.name;
+  }
+
+  Team build() {
+    // Taken out as used, so a repeated name still gets its own id.
+    final ids = {..._savedPlayerIds};
+    return Team(
+      id: savedTeamId ?? newId(),
+      name: name.text.trim(),
+      players: [for (final p in players) Player(id: ids.remove(p) ?? newId(), name: p)],
+    );
+  }
 
   void dispose() {
     name.dispose();
@@ -337,11 +402,19 @@ class _TeamDraft {
 }
 
 class _TeamEditor extends StatefulWidget {
-  const _TeamEditor({required this.draft, required this.label, required this.onChanged});
+  const _TeamEditor({
+    required this.draft,
+    required this.label,
+    required this.onChanged,
+    this.onUseSaved,
+  });
 
   final _TeamDraft draft;
   final String label;
   final VoidCallback onChanged;
+
+  /// Null when there is no saved team to choose.
+  final VoidCallback? onUseSaved;
 
   @override
   State<_TeamEditor> createState() => _TeamEditorState();
@@ -361,9 +434,29 @@ class _TeamEditorState extends State<_TeamEditor> {
   void _addPlayer() {
     final name = _draft.playerInput.text.trim();
     if (name.isEmpty) return;
-    setState(() => _draft.players.add(name));
+    setState(() {
+      _draft.sittingOut.remove(name);
+      _draft.players.add(name);
+    });
     _draft.playerInput.clear();
     _playerFocus.requestFocus(); // keep typing the next name
+    widget.onChanged();
+  }
+
+  /// A saved player only sits out: they stay in the squad for next time.
+  void _removePlayer(int index) {
+    setState(() {
+      final player = _draft.players.removeAt(index);
+      if (_draft.isSaved(player)) _draft.sittingOut.add(player);
+    });
+    widget.onChanged();
+  }
+
+  void _bringIn(String player) {
+    setState(() {
+      _draft.sittingOut.remove(player);
+      _draft.players.add(player);
+    });
     widget.onChanged();
   }
 
@@ -371,7 +464,7 @@ class _TeamEditorState extends State<_TeamEditor> {
     setState(() {
       var n = 1;
       while (_draft.players.length < _quickFillSize) {
-        final candidate = 'Player $n';
+        final candidate = placeholderPlayerName(n);
         if (!_draft.players.contains(candidate)) _draft.players.add(candidate);
         n++;
       }
@@ -400,12 +493,19 @@ class _TeamEditorState extends State<_TeamEditor> {
               ),
             ],
           ),
+          if (widget.onUseSaved != null) ...[
+            const SizedBox(height: 6),
+            TextButton.icon(
+              onPressed: widget.onUseSaved,
+              icon: const Icon(Icons.groups_rounded, size: 18),
+              label: const Text('Saved teams'),
+            ),
+          ],
           const SizedBox(height: 14),
           Row(
             children: [
-              SectionLabel('Players · ${_draft.players.length}'),
-              const Spacer(),
-              if (_draft.players.length < _quickFillSize)
+              Expanded(child: SectionLabel('Players · ${_draft.players.length}')),
+              if (_draft.players.length < _quickFillSize && _draft.sittingOut.isEmpty)
                 TextButton.icon(
                   onPressed: _quickFill,
                   icon: const Icon(Icons.bolt_rounded, size: 18),
@@ -423,10 +523,24 @@ class _TeamEditorState extends State<_TeamEditor> {
                   InputChip(
                     avatar: PlayerAvatar(name: _draft.players[i], radius: 12),
                     label: Text(_draft.players[i]),
-                    onDeleted: () {
-                      setState(() => _draft.players.removeAt(i));
-                      widget.onChanged();
-                    },
+                    onDeleted: () => _removePlayer(i),
+                  ),
+              ],
+            ),
+          ],
+          if (_draft.sittingOut.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            SectionLabel('Sitting out · ${_draft.sittingOut.length}'),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                for (final player in _draft.sittingOut)
+                  ActionChip(
+                    avatar: const Icon(Icons.add_rounded, size: 18),
+                    label: Text(player),
+                    onPressed: () => _bringIn(player),
                   ),
               ],
             ),

@@ -37,6 +37,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   the team list and cannot be arranged by hand. League ties share a point and only
   knockout games go to a Super Over. Knockout rounds are offered by
   `TournamentProgress.nextRound`, and the scorer confirms them with one tap.
+- Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
+  change old readers cannot handle, and keep old files readable. Restore adds
+  missing records and never overwrites.
 - Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
   (README "Demo data"). There is no tournament feature yet: the cup is only a
   set of ordinary matches, labelled through `venue`.
@@ -88,7 +91,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (12 screens). Add go_router only with deep
+- **Navigation:** plain `Navigator` (13 screens). Add go_router only with deep
   links (shared scorecards).
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.
@@ -114,6 +117,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
+| Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas

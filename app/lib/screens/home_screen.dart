@@ -8,6 +8,7 @@ import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../widgets/avatars.dart';
 import '../widgets/score_header.dart';
+import 'backup_screen.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
 import 'stats_screen.dart';
@@ -175,7 +176,7 @@ class _MatchList extends StatelessWidget {
   }
 }
 
-enum _MoreAction { teams }
+enum _MoreAction { teams, backup }
 
 class _BrandHeader extends StatelessWidget {
   const _BrandHeader();
@@ -185,6 +186,10 @@ class _BrandHeader extends StatelessWidget {
       case _MoreAction.teams:
         Navigator.of(context).push(
           MaterialPageRoute<void>(builder: (_) => const TeamsScreen()),
+        );
+      case _MoreAction.backup:
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => const BackupScreen()),
         );
     }
   }
@@ -251,6 +256,10 @@ class _BrandHeader extends StatelessWidget {
                   PopupMenuItem(
                     value: _MoreAction.teams,
                     child: ListTile(leading: Icon(Icons.groups_rounded), title: Text('Teams')),
+                  ),
+                  PopupMenuItem(
+                    value: _MoreAction.backup,
+                    child: ListTile(leading: Icon(Icons.backup_rounded), title: Text('Backup')),
                   ),
                 ],
               ),

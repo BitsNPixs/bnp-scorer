@@ -6,6 +6,7 @@ import '../state/live_match.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import '../widgets/match_charts.dart';
+import '../widgets/share_scorecard_sheet.dart';
 import '../widgets/surface_panel.dart';
 
 class ScorecardScreen extends ConsumerWidget {
@@ -27,6 +28,13 @@ class ScorecardScreen extends ConsumerWidget {
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Scorecard'),
+              actions: [
+                IconButton(
+                  tooltip: 'Share',
+                  onPressed: () => showShareScorecardSheet(context, state),
+                  icon: const Icon(Icons.share_rounded),
+                ),
+              ],
               bottom: TabBar(
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,

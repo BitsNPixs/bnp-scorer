@@ -32,6 +32,10 @@
   no new dependency.
 - Wagon wheel: an optional house rule records where scoring shots go, with a chart
   by innings and batter and a table of runs per zone.
+- Backup and restore to a single file. A file is checked in full before anything
+  is written, and restoring only adds what is missing. Adds `file_picker`.
+- Share a scorecard as a branded image with a caption, through the phone's share
+  sheet. Adds `share_plus`, behind `DeviceFiles`.
 - Awards: Player of the Match, MVP rankings and Player of the Tournament, all
   derived from the matches by `matchPoints`.
 - No result: a match can be abandoned at any point (`MatchAbandoned`). Each side

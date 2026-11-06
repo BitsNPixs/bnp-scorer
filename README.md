@@ -36,6 +36,10 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Charts:** every scorecard has runs per over (Manhattan) and the run race (worm),
   with wickets marked. Tap or drag to read an over. Turn on "Record shot direction"
   in the house rules to add a wagon wheel, by innings or batter.
+- **Backup:** save everything to one file from Home's More menu, and restore it on
+  this or another phone. Restoring only adds what is missing.
+- **Share:** send any scorecard to WhatsApp or anywhere else as a branded picture
+  with a caption.
 - **Awards:** Player of the Match on every result, MVP rankings, and Player of the
   Tournament for each champion.
 - **Stats:** team table with points, net run rate and form, batting and bowling

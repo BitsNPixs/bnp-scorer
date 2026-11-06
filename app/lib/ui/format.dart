@@ -15,6 +15,10 @@ String fixtureDate(DateTime date) {
       '${local.hour < 12 ? 'AM' : 'PM'}';
 }
 
+/// "2026-03-09", which sorts by date in a file list.
+String isoDate(DateTime date) =>
+    '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
 String plural(int count, String word) {
   final ending = word.endsWith('ch') ? 'es' : 's';
   return '$count $word${count == 1 ? '' : ending}';
@@ -90,6 +94,36 @@ String highScoreText(HighScore? high) =>
 /// Wickets then runs, e.g. "3/16".
 String bestBowlingText(BestBowling? best) =>
     best == null ? '—' : '${best.wickets}/${best.runs}';
+
+/// The top scorer and best bowler of an innings, or empty before a ball.
+/// "Livin D 34 (19) · Subash Ambrose 3/16".
+String inningsHighlights(MatchSetup setup, InningsState innings) {
+  if (innings.batters.isEmpty || innings.legalBalls == 0) return '';
+  final top = innings.batters.reduce((a, b) => b.runs > a.runs ? b : a);
+  final parts = ['${playerName(setup, top.playerId)} ${top.runs} (${top.balls})'];
+  if (innings.bowlers.isNotEmpty) {
+    final best = innings.bowlers.reduce((a, b) {
+      final better = b.wickets > a.wickets || (b.wickets == a.wickets && b.runs < a.runs);
+      return better ? b : a;
+    });
+    parts.add('${playerName(setup, best.playerId)} ${best.wickets}/${best.runs}');
+  }
+  return parts.join(' · ');
+}
+
+/// The message that goes with a shared scorecard.
+String shareText(MatchState state) {
+  final setup = state.setup;
+  final best = playerOfTheMatch(state);
+  return [
+    ?setup.venue,
+    for (final innings in state.innings)
+      '${setup.teamById(innings.battingTeamId).name} ${scoreLine(innings)} (${innings.oversText} ov)',
+    matchStatus(state),
+    if (best != null) 'Player of the Match: ${playerName(setup, best)}',
+    'Scored with BNP Scorer',
+  ].join('\n');
+}
 
 String inningsLabel(int number) => number == 1 ? '1st innings' : '2nd innings';
 

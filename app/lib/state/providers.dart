@@ -2,6 +2,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/device_files.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
 import '../data/team_repository.dart';
@@ -11,6 +12,9 @@ import '../data/tournament_repository.dart';
 final matchRepositoryProvider = Provider<MatchRepository>(
   (ref) => throw UnimplementedError('matchRepositoryProvider must be overridden'),
 );
+
+/// The share sheet and file picker. Tests override this.
+final deviceFilesProvider = Provider<DeviceFiles>((ref) => const PlatformDeviceFiles());
 
 /// Overridden in `main()` with the real implementation.
 final teamRepositoryProvider = Provider<TeamRepository>(

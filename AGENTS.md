@@ -121,6 +121,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
+| Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas

@@ -6,6 +6,7 @@ import '../state/live_match.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import '../widgets/match_charts.dart';
+import '../widgets/overs_timeline.dart';
 import '../widgets/share_scorecard_sheet.dart';
 import '../widgets/surface_panel.dart';
 
@@ -24,7 +25,7 @@ class ScorecardScreen extends ConsumerWidget {
         final state = live.state;
         final setup = state.setup;
         return DefaultTabController(
-          length: state.innings.length + 1,
+          length: state.innings.length + 2,
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Scorecard'),
@@ -41,6 +42,7 @@ class ScorecardScreen extends ConsumerWidget {
                 tabs: [
                   for (final inn in state.innings)
                     Tab(text: '${setup.teamById(inn.battingTeamId).name} ${scoreLine(inn)}'),
+                  const Tab(text: 'Overs'),
                   const Tab(text: 'Charts'),
                 ],
               ),
@@ -70,6 +72,7 @@ class ScorecardScreen extends ConsumerWidget {
                   child: TabBarView(
                     children: [
                       for (final inn in state.innings) _InningsCard(setup: setup, innings: inn),
+                      OversTimeline(state: state),
                       MatchCharts(state: state),
                     ],
                   ),

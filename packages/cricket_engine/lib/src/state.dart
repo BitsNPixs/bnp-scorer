@@ -96,7 +96,10 @@ class BallSummary {
     this.runs = 0,
     this.runsOffBat = 0,
     this.batterId,
+    this.bowlerId,
     this.shotZone,
+    this.scoreAfter = 0,
+    this.wicketsAfter = 0,
   });
 
   final String label;
@@ -109,20 +112,31 @@ class BallSummary {
 
   /// Who was on strike.
   final String? batterId;
+  final String? bowlerId;
   final ShotZone? shotZone;
+
+  /// The innings score once this ball was done.
+  final int scoreAfter;
+  final int wicketsAfter;
 }
 
 /// What one over added to an innings, for charts.
 class OverSummary {
-  const OverSummary({required this.runs, required this.wickets});
+  const OverSummary({required this.balls});
 
-  final int runs;
-  final int wickets;
+  /// Every delivery of the over, wides and no-balls included.
+  final List<BallSummary> balls;
 
-  factory OverSummary.of(List<BallSummary> balls) => OverSummary(
-        runs: balls.fold(0, (total, ball) => total + ball.runs),
-        wickets: balls.where((ball) => ball.kind == BallKind.wicket).length,
-      );
+  int get runs => balls.fold(0, (total, ball) => total + ball.runs);
+  int get wickets => balls.where((ball) => ball.kind == BallKind.wicket).length;
+
+  /// In the order they appeared. More than one after a change mid-over.
+  List<String> get bowlerIds => balls.map((b) => b.bowlerId).nonNulls.toSet().toList();
+  List<String> get batterIds => balls.map((b) => b.batterId).nonNulls.toSet().toList();
+
+  /// The innings score at the end of the over.
+  int get scoreAfter => balls.last.scoreAfter;
+  int get wicketsAfter => balls.last.wicketsAfter;
 }
 
 class FallOfWicket {
@@ -231,8 +245,8 @@ class InningsState {
 
   /// Over by over, including the one in progress.
   List<OverSummary> get overs => [
-        for (final over in completedOvers) OverSummary.of(over),
-        if (currentOver.isNotEmpty) OverSummary.of(currentOver),
+        for (final over in completedOvers) OverSummary(balls: over),
+        if (currentOver.isNotEmpty) OverSummary(balls: currentOver),
       ];
 
   String get oversText => formatOvers(legalBalls, ballsPerOver);

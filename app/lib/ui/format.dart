@@ -95,6 +95,12 @@ String highScoreText(HighScore? high) =>
 String bestBowlingText(BestBowling? best) =>
     best == null ? '—' : '${best.wickets}/${best.runs}';
 
+/// "Asha to Bilal & Chitra", with both bowlers after a change mid-over.
+String overHeadline(MatchSetup setup, OverSummary over) {
+  String names(List<String> ids) => ids.map((id) => playerName(setup, id)).join(' & ');
+  return '${names(over.bowlerIds)} to ${names(over.batterIds)}';
+}
+
 /// The top scorer and best bowler of an innings, or empty before a ball.
 /// "Livin D 34 (19) · Subash Ambrose 3/16".
 String inningsHighlights(MatchSetup setup, InningsState innings) {

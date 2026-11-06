@@ -689,7 +689,11 @@ class _InningsBuilder {
       runs: total,
       runsOffBat: e.runsOffBat,
       batterId: strikerId,
+      bowlerId: bowlerId,
       shotZone: e.shotZone,
+      scoreAfter: runs,
+      // The wicket on this ball is recorded just after this summary is made.
+      wicketsAfter: wickets + (e.wicket?.type.countsAsWicket ?? false ? 1 : 0),
     );
   }
 

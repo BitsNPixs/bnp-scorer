@@ -30,6 +30,7 @@
 - Boundary leaderboards, overall and per tournament.
 - Charts: Manhattan and worm on a new scorecard tab, drawn from the ball data with
   no new dependency.
+- Overs tab on the scorecard, listing every over ball by ball.
 - Wagon wheel: an optional house rule records where scoring shots go, with a chart
   by innings and batter and a table of runs per zone.
 - Backup and restore to a single file. A file is checked in full before anything

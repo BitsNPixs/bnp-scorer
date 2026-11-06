@@ -38,8 +38,8 @@ void main() {
     await pumpCharts(tester, replay(finished));
     expect(find.text('RUNS PER OVER'), findsOneWidget);
     expect(find.text('RUN RACE'), findsOneWidget);
-    expect(find.text('Team A'), findsNWidgets(2));
-    expect(find.text('Team B'), findsNWidgets(2));
+    expect(find.text('Team A'), findsAtLeastNWidgets(2));
+    expect(find.text('Team B'), findsAtLeastNWidgets(2));
     expect(tester.takeException(), isNull);
   });
 

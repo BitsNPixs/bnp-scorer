@@ -51,6 +51,26 @@ enum DismissalType {
       };
 }
 
+/// Where a shot went, clockwise from straight past the bowler, as seen for a
+/// right-handed batter.
+enum ShotZone {
+  midOff('Mid-off'),
+  cover('Cover'),
+  point('Point'),
+  thirdMan('Third man'),
+  fineLeg('Fine leg'),
+  squareLeg('Square leg'),
+  midwicket('Midwicket'),
+  midOn('Mid-on');
+
+  const ShotZone(this.label);
+
+  final String label;
+
+  /// Clockwise from the bowler, at the middle of the zone.
+  double get angleDegrees => index * 45 + 22.5;
+}
+
 enum PlayerRole {
   batter('Batter'),
   bowler('Bowler'),
@@ -151,6 +171,7 @@ class MatchRules {
     this.lastManStands = false,
     this.maxOversPerBowler,
     this.superOver = false,
+    this.trackShots = false,
   }) {
     if (oversPerInnings < 1) throw ArgumentError('Overs must be at least 1.');
     if (ballsPerOver < 1) throw ArgumentError('Balls per over must be >= 1.');
@@ -177,6 +198,9 @@ class MatchRules {
   /// game and does not count towards career stats.
   final bool superOver;
 
+  /// The scorer records where each scoring shot went.
+  final bool trackShots;
+
   int get ballsPerInnings => oversPerInnings * ballsPerOver;
 
   /// Wickets that end an innings for a side of [teamSize] players.
@@ -194,6 +218,7 @@ class MatchRules {
         'lastManStands': lastManStands,
         'maxOversPerBowler': maxOversPerBowler,
         'superOver': superOver,
+        'trackShots': trackShots,
       };
 
   factory MatchRules.fromJson(Json json) => MatchRules(
@@ -205,6 +230,7 @@ class MatchRules {
         lastManStands: json['lastManStands']! as bool,
         maxOversPerBowler: json['maxOversPerBowler'] as int?,
         superOver: json['superOver'] as bool? ?? false,
+        trackShots: json['trackShots'] as bool? ?? false,
       );
 }
 

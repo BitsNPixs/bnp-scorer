@@ -69,8 +69,7 @@
   formats. Still to do: more than two groups, arranging groups by hand, quarter-
   finals, and precomputing shared stats in Functions. Never let clients write
   aggregates.
-- Charts: Manhattan, worm, wagon wheel (needs shot direction added to
-  `BallBowled` as an optional field).
+- Manhattan, worm and wagon wheel charts are done.
 
 **Phase 5: growth**
 - Share the scorecard as an image to WhatsApp (the main growth loop for local

@@ -356,6 +356,15 @@ const _cups = [
 final _fixtures = [
   for (final cup in _cups) ...cup.fixtures,
   const _Fixture(
+    number: 7,
+    id: 'demo-exhibition',
+    title: 'Exhibition',
+    home: 'a',
+    away: 'c',
+    daysAgo: 1,
+    winner: 'c',
+  ),
+  const _Fixture(
     number: 6,
     id: 'demo-live',
     title: 'Friendly',
@@ -370,12 +379,15 @@ final _fixtures = [
 /// time. Asks the engine what is legal and never decides that itself.
 class _Simulation {
   _Simulation(this.fixture, this.random, this.startedAt)
-      : setup = _setup(fixture, random);
+      : setup = _setup(fixture, random),
+        // Separate from [random], so adding directions changed no scores.
+        zones = Random(fixture.number);
 
   final _Fixture fixture;
   final Random random;
   final DateTime startedAt;
   final MatchSetup setup;
+  final Random zones;
   final events = <MatchEvent>[];
 
   static MatchSetup _setup(_Fixture fixture, Random random) {
@@ -387,7 +399,7 @@ class _Simulation {
       teamB: away,
       rules: fixture.superOver
           ? MatchRules(oversPerInnings: 1, superOver: true)
-          : MatchRules(oversPerInnings: _overs, maxOversPerBowler: _maxOversPerBowler),
+          : MatchRules(oversPerInnings: _overs, maxOversPerBowler: _maxOversPerBowler, trackShots: true),
       tossWinnerId: fixture.homeBats || random.nextBool() ? home.id : away.id,
       tossDecision: fixture.homeBats || random.nextBool() ? TossDecision.bat : TossDecision.bowl,
       venue: '${fixture.title} · $_venue',
@@ -470,6 +482,9 @@ class _Simulation {
           extraRuns: extraRuns,
           boundary: runsOffBat == 4 || runsOffBat == 6,
           wicket: wicket,
+          shotZone: runsOffBat > 0 && setup.rules.trackShots
+              ? ShotZone.values[zones.nextInt(ShotZone.values.length)]
+              : null,
         );
 
     final batting = setup.teamById(innings.battingTeamId).players;

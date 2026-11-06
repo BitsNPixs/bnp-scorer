@@ -94,6 +94,9 @@ class BallSummary {
     required this.kind,
     required this.isLegal,
     this.runs = 0,
+    this.runsOffBat = 0,
+    this.batterId,
+    this.shotZone,
   });
 
   final String label;
@@ -102,6 +105,11 @@ class BallSummary {
 
   /// Everything this ball added to the total, extras included.
   final int runs;
+  final int runsOffBat;
+
+  /// Who was on strike.
+  final String? batterId;
+  final ShotZone? shotZone;
 }
 
 /// What one over added to an innings, for charts.
@@ -213,6 +221,13 @@ class InningsState {
 
   /// Bowling-side players allowed to bowl right now.
   final List<String> eligibleBowlerIds;
+
+  /// Scoring shots with a recorded direction, oldest first.
+  List<BallSummary> get shots => [
+        for (final over in [...completedOvers, currentOver])
+          for (final ball in over)
+            if (ball.shotZone != null) ball,
+      ];
 
   /// Over by over, including the one in progress.
   List<OverSummary> get overs => [

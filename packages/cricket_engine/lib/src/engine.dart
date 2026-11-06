@@ -507,6 +507,9 @@ class _InningsBuilder {
     if (e.boundary && e.runsOffBat != 4 && e.runsOffBat != 6) {
       throw const ScoringException('A boundary must be a 4 or a 6.');
     }
+    if (e.shotZone != null && e.runsOffBat == 0) {
+      throw const ScoringException('Only runs off the bat have a direction.');
+    }
 
     final w = e.wicket;
     if (w == null) return;
@@ -684,6 +687,9 @@ class _InningsBuilder {
       kind: kind,
       isLegal: e.extra != ExtraType.wide && e.extra != ExtraType.noBall,
       runs: total,
+      runsOffBat: e.runsOffBat,
+      batterId: strikerId,
+      shotZone: e.shotZone,
     );
   }
 

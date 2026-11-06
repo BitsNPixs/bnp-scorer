@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import 'surface_panel.dart';
+import 'wagon_wheel.dart';
 
 const _chartHeight = 180.0;
 const _axisLeft = 26.0;
@@ -144,6 +145,10 @@ class _MatchChartsState extends State<MatchCharts> {
             ],
           ),
         ),
+        if (_innings.any((i) => i.shots.isNotEmpty)) ...[
+          const SizedBox(height: 12),
+          WagonWheel(state: widget.state),
+        ],
       ],
     );
   }

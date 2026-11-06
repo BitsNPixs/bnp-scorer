@@ -22,6 +22,51 @@ final _at = DateTime.utc(2026);
 final _abandon = MatchAbandoned(id: 'x', at: _at, reason: 'Rain');
 
 void main() {
+  group('shot direction', () {
+    final start = [
+      OpenersSelected(id: 'e1', at: _at, strikerId: 'a1', nonStrikerId: 'a2'),
+      BowlerChanged(id: 'e2', at: _at, bowlerId: 'b1'),
+    ];
+
+    test('is kept with the ball and its batter', () {
+      final state = ScoringEngine.replay(_setup, [
+        ...start,
+        BallBowled(id: 'b', at: _at, runsOffBat: 4, boundary: true, shotZone: ShotZone.cover),
+      ]);
+      final shot = state.current.shots.single;
+      expect(shot.shotZone, ShotZone.cover);
+      expect(shot.batterId, 'a1');
+      expect(shot.runsOffBat, 4);
+    });
+
+    test('a dot ball cannot have one', () {
+      expect(
+        () => ScoringEngine.replay(_setup, [
+          ...start,
+          BallBowled(id: 'b', at: _at, shotZone: ShotZone.cover),
+        ]),
+        throwsA(isA<ScoringException>()),
+      );
+    });
+
+    test('survives a JSON round trip, and old balls read without one', () {
+      final ball = BallBowled(id: 'b', at: _at, runsOffBat: 1, shotZone: ShotZone.point);
+      expect((MatchEvent.fromJson(ball.toJson()) as BallBowled).shotZone, ShotZone.point);
+      final old = ball.toJson()..remove('shotZone');
+      expect((MatchEvent.fromJson(old) as BallBowled).shotZone, isNull);
+    });
+
+    test('zones go round the field in eighths', () {
+      expect(ShotZone.midOff.angleDegrees, 22.5);
+      expect(ShotZone.midOn.angleDegrees, 337.5);
+    });
+
+    test('rules saved before tracking existed read as off', () {
+      final json = MatchRules(oversPerInnings: 5).toJson()..remove('trackShots');
+      expect(MatchRules.fromJson(json).trackShots, isFalse);
+    });
+  });
+
   test('a match can be abandoned before a ball is bowled', () {
     final state = ScoringEngine.replay(_setup, [_abandon]);
     expect(state.isCompleted, isTrue);

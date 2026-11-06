@@ -187,8 +187,7 @@ class _ScoringView extends ConsumerWidget {
                 MatchPhase.inPlay => ScorePad(
                     canUndo: live.canUndo,
                     onUndo: () => _undo(context, ref),
-                    onRuns: (r, {required boundary}) =>
-                        act(_notifier(ref).ball(runsOffBat: r, boundary: boundary)),
+                    onRuns: (r, {required boundary}) => _scoreRuns(context, ref, r, boundary: boundary),
                     onMoreRuns: () => _moreRuns(context, ref),
                     onWide: () => _wide(context, ref),
                     onNoBall: () => _noBall(context, ref),
@@ -224,7 +223,20 @@ class _ScoringView extends ConsumerWidget {
       color: AppColors.inkRaised,
     );
     if (runs == null || !context.mounted) return;
-    reportResult(context, _notifier(ref).ball(runsOffBat: runs));
+    await _scoreRuns(context, ref, runs, boundary: false);
+  }
+
+  /// With shot tracking on, asks where it went. Skipping still scores the ball.
+  Future<void> _scoreRuns(BuildContext context, WidgetRef ref, int runs, {required bool boundary}) async {
+    ShotZone? zone;
+    if (live.setup.rules.trackShots && runs > 0) {
+      zone = await showShotSheet(context);
+      if (!context.mounted) return;
+    }
+    reportResult(
+      context,
+      _notifier(ref).ball(runsOffBat: runs, boundary: boundary, shotZone: zone),
+    );
   }
 
   Future<void> _wide(BuildContext context, WidgetRef ref) async {

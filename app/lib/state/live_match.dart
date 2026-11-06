@@ -58,6 +58,7 @@ class LiveMatchNotifier extends AsyncNotifier<LiveMatch> {
     int extraRuns = 0,
     bool boundary = false,
     Wicket? wicket,
+    ShotZone? shotZone,
   }) =>
       _add(BallBowled(
         id: newId(),
@@ -67,6 +68,7 @@ class LiveMatchNotifier extends AsyncNotifier<LiveMatch> {
         extraRuns: extraRuns,
         boundary: boundary,
         wicket: wicket,
+        shotZone: shotZone,
       ));
 
   String? newBatter(String batterId) =>

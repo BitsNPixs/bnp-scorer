@@ -44,6 +44,10 @@ sealed class MatchEvent {
           wicket: json['wicket'] == null
               ? null
               : Wicket.fromJson(json['wicket']! as Json),
+          shotZone: switch (json['shotZone']) {
+            final String zone => ShotZone.values.byName(zone),
+            _ => null,
+          },
         ),
       NewBatter.typeName =>
         NewBatter(id: id, at: at, batterId: json['batterId']! as String),
@@ -137,6 +141,7 @@ final class BallBowled extends MatchEvent {
     this.extraRuns = 0,
     this.boundary = false,
     this.wicket,
+    this.shotZone,
   });
 
   static const typeName = 'ballBowled';
@@ -145,6 +150,9 @@ final class BallBowled extends MatchEvent {
   final int extraRuns;
   final bool boundary;
   final Wicket? wicket;
+
+  /// Where [runsOffBat] went, when the scorer records it.
+  final ShotZone? shotZone;
 
   @override
   String get type => typeName;
@@ -156,6 +164,7 @@ final class BallBowled extends MatchEvent {
         'extraRuns': extraRuns,
         'boundary': boundary,
         'wicket': wicket?.toJson(),
+        'shotZone': shotZone?.name,
       };
 }
 

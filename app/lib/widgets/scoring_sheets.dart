@@ -1,3 +1,4 @@
+import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
@@ -30,6 +31,42 @@ Future<int?> showRunsSheet(
           ],
         ),
       ),
+    );
+
+/// Asks where a shot went. Returns null when skipped or dismissed.
+Future<ShotZone?> showShotSheet(BuildContext context) => showModalBottomSheet<ShotZone>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (sheetContext) {
+        Widget option(ShotZone zone) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(4),
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(sheetContext).pop(zone),
+                  child: Text(zone.label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                ),
+              ),
+            );
+        Widget row(ShotZone offSide, ShotZone legSide) =>
+            Row(children: [option(offSide), option(legSide)]);
+        return SheetBody(
+          title: 'Where did it go?',
+          subtitle: 'Off side on the left, leg side on the right.',
+          child: Column(
+            children: [
+              row(ShotZone.thirdMan, ShotZone.fineLeg),
+              row(ShotZone.point, ShotZone.squareLeg),
+              row(ShotZone.cover, ShotZone.midwicket),
+              row(ShotZone.midOff, ShotZone.midOn),
+              TextButton(
+                onPressed: () => Navigator.of(sheetContext).pop(),
+                child: const Text('Skip'),
+              ),
+            ],
+          ),
+        );
+      },
     );
 
 typedef NoBallInput = ({int runs, bool byes});

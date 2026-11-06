@@ -34,7 +34,8 @@ Offline-first: scoring works with no network and every match is stored on the de
   points tables, batting, bowling and boundary leaderboards, and champion.
 - **Home filter:** chips narrow the match list to a tournament or to friendlies.
 - **Charts:** every scorecard has runs per over (Manhattan) and the run race (worm),
-  with wickets marked. Tap or drag to read an over.
+  with wickets marked. Tap or drag to read an over. Turn on "Record shot direction"
+  in the house rules to add a wagon wheel, by innings or batter.
 - **Awards:** Player of the Match on every result, MVP rankings, and Player of the
   Tournament for each champion.
 - **Stats:** team table with points, net run rate and form, batting and bowling

@@ -56,6 +56,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
   bool _freeHit = true;
   bool _lastManStands = false;
   bool _limitBowlerOvers = false;
+  bool _trackShots = false;
   bool _saving = false;
 
   @override
@@ -129,6 +130,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
         lastManStands: _lastManStands,
         maxOversPerBowler: _limitBowlerOvers ? _maxBowlerOvers : null,
         superOver: _isSuperOver,
+        trackShots: _trackShots,
       ),
       tossWinnerId: _tossWinner == 0 ? teamA.id : teamB.id,
       tossDecision: _decision,
@@ -321,6 +323,12 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
                     value: _limitBowlerOvers,
                     onChanged: (v) => setState(() => _limitBowlerOvers = v),
                   ),
+                  SwitchListTile(
+                    title: const Text('Record shot direction'),
+                    subtitle: const Text('One more tap per scoring shot, for a wagon wheel'),
+                    value: _trackShots,
+                    onChanged: (v) => setState(() => _trackShots = v),
+                  ),
                 ],
               ),
             ),
@@ -368,6 +376,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       if (!_freeHit) 'no free hit',
       if (_lastManStands) 'last man stands',
       if (_limitBowlerOvers) 'max $_maxBowlerOvers ov/bowler',
+      if (_trackShots) 'shot direction',
     ];
     return parts.isEmpty ? 'Standard rules' : parts.join(' · ');
   }

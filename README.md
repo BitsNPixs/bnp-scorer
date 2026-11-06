@@ -60,6 +60,22 @@ docs/                      Architecture and roadmap
    that file.
 3. Run on a device or emulator: `flutter run`.
 
+## Demo data
+
+Build with `--dart-define=BNP_DEMO=true` to fill the app with sample matches: a
+five-match BNP Cup between four teams (four league games and a final) and a
+friendly left in progress, so scoring can be shown straight away.
+
+```sh
+cd app
+flutter build apk --debug --dart-define=BNP_DEMO=true
+adb install -r build/app/outputs/flutter-apk/app-debug.apk
+```
+
+Use `adb install -r` to keep what is already saved on the phone. Demo matches
+are added at launch only if missing, so a match scored in a demo is kept and a
+deleted one comes back on the next launch. Normal builds contain no demo data.
+
 ## Verify
 
 Run these in order and fix anything that fails before committing:

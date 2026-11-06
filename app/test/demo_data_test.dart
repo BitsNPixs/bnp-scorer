@@ -1,0 +1,172 @@
+import 'package:bnp_scorer/data/demo_data.dart';
+import 'package:bnp_scorer/data/match_record.dart';
+import 'package:bnp_scorer/screens/home_screen.dart';
+import 'package:bnp_scorer/screens/scorecard_screen.dart';
+import 'package:bnp_scorer/screens/scoring_screen.dart';
+import 'package:bnp_scorer/state/providers.dart';
+import 'package:bnp_scorer/theme/app_theme.dart';
+import 'package:cricket_engine/cricket_engine.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+import 'fakes.dart';
+
+final _now = DateTime.utc(2026, 11, 6, 12);
+
+MatchState _replay(MatchRecord record) => ScoringEngine.replay(record.setup, record.events);
+
+void main() {
+  setUpAll(() => AppFonts.useGoogleFonts = false);
+
+  final demo = demoMatches(_now);
+  final cup = demo.take(5).toList();
+  final live = demo.last;
+
+  group('demo matches', () {
+    test('five finished cup matches and one live friendly', () {
+      expect(demo, hasLength(6));
+      for (final record in cup) {
+        expect(_replay(record).isCompleted, isTrue, reason: record.id);
+      }
+      final state = _replay(live);
+      expect(state.isCompleted, isFalse);
+      expect(state.phase, MatchPhase.inPlay);
+      expect(state.current.number, 2);
+    });
+
+    test('the league leads to a final between its two unbeaten teams', () {
+      final winners = [for (final r in cup) _replay(r).result!.winnerTeamId];
+      expect(winners, ['team-a', 'team-d', 'team-a', 'team-d', 'team-d']);
+      final finalSetup = cup.last.setup;
+      expect(finalSetup.venue, contains('Final'));
+      expect({finalSetup.teamA.id, finalSetup.teamB.id}, {'team-a', 'team-d'});
+    });
+
+    test('results include wins batting first and chasing', () {
+      final kinds = {for (final r in cup) _replay(r).result!.kind};
+      expect(kinds, {ResultKind.runs, ResultKind.wickets});
+    });
+
+    test('every side is a clean eleven from the team sheet', () {
+      for (final record in demo) {
+        for (final team in [record.setup.teamA, record.setup.teamB]) {
+          expect(team.players, hasLength(11), reason: record.id);
+          for (final player in team.players) {
+            expect(player.name, isNot(matches(RegExp(r'©|\(VC\)|^\s|\s$'))));
+          }
+        }
+      }
+    });
+
+    test('players keep their id from match to match', () {
+      final captain = cup.first.setup.teamA.players.first;
+      expect(cup[2].setup.teamA.players.first.id, captain.id);
+      expect(cup[2].setup.teamA.players.first.name, captain.name);
+    });
+
+    test('squads rotate, so each match can field a different eleven', () {
+      List<String> ids(MatchRecord r) => [for (final p in r.setup.teamA.players) p.id];
+      expect(ids(cup[0]), isNot(ids(cup[2])));
+    });
+
+    test('matches are ordered oldest first with past dates', () {
+      for (var i = 1; i < demo.length; i++) {
+        expect(demo[i - 1].createdAt.isAfter(demo[i].createdAt), isFalse);
+      }
+      for (final record in demo) {
+        expect(record.updatedAt.isAfter(_now), isFalse, reason: record.id);
+      }
+    });
+
+    test('the same date gives the same matches', () {
+      final again = demoMatches(_now);
+      for (var i = 0; i < demo.length; i++) {
+        expect(again[i].toJson(), demo[i].toJson());
+      }
+    });
+
+    test('records survive the storage JSON round trip', () {
+      for (final record in demo) {
+        final restored = MatchRecord.fromJson(record.toJson());
+        final before = _replay(record).innings.last;
+        final after = _replay(restored).innings.last;
+        expect(after.runs, before.runs);
+        expect(after.wickets, before.wickets);
+        expect(after.legalBalls, before.legalBalls);
+      }
+    });
+  });
+
+  group('seeding', () {
+    test('adds every demo match to an empty repository', () async {
+      final repo = InMemoryMatchRepository();
+      await seedDemoMatches(repo, now: _now);
+      expect(repo.records.keys, containsAll(demo.map((m) => m.id)));
+    });
+
+    test('leaves the scorer\'s own matches alone', () async {
+      final repo = InMemoryMatchRepository();
+      final own = sampleRecord(id: 'mine');
+      await repo.save(own);
+      await seedDemoMatches(repo, now: _now);
+      expect(repo.records['mine'], same(own));
+      expect(repo.records, hasLength(7));
+    });
+
+    test('a restart does not overwrite a match scored during the demo', () async {
+      final repo = InMemoryMatchRepository();
+      await seedDemoMatches(repo, now: _now);
+      final scored = repo.records[live.id]!.withEvents(const []);
+      await repo.save(scored);
+      await seedDemoMatches(repo, now: _now.add(const Duration(days: 1)));
+      expect(repo.records[live.id], same(scored));
+    });
+
+    test('a deleted demo match comes back on the next launch', () async {
+      final repo = InMemoryMatchRepository();
+      await seedDemoMatches(repo, now: _now);
+      await repo.delete(cup.first.id);
+      await seedDemoMatches(repo, now: _now);
+      expect(repo.records, contains(cup.first.id));
+      expect(repo.records, hasLength(6));
+    });
+  });
+
+  group('demo screens at 360 dp with real names', () {
+    Future<InMemoryMatchRepository> pump(WidgetTester tester, Widget home) async {
+      tester.view
+        ..physicalSize = const Size(1080, 2400)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final repo = InMemoryMatchRepository();
+      await seedDemoMatches(repo, now: _now);
+      await tester.pumpWidget(ProviderScope(
+        overrides: [matchRepositoryProvider.overrideWithValue(repo)],
+        child: MaterialApp(theme: AppTheme.light(), home: home),
+      ));
+      await tester.pump(const Duration(milliseconds: 400));
+      return repo;
+    }
+
+    testWidgets('home lists the matches', (tester) async {
+      await pump(tester, const HomeScreen());
+      expect(find.textContaining('won by'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the live friendly opens ready to score', (tester) async {
+      await pump(tester, ScoringScreen(matchId: live.id));
+      expect(find.text('FOUR'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('every cup scorecard renders', (tester) async {
+      for (final record in cup) {
+        await pump(tester, ScorecardScreen(matchId: record.id));
+        expect(find.textContaining('won by'), findsWidgets, reason: record.id);
+        expect(tester.takeException(), isNull, reason: record.id);
+      }
+    });
+  });
+}

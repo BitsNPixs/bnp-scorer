@@ -4,6 +4,9 @@
 
 ### Added
 - Generated the Android platform folder (`app/android`), label "BNP Scorer".
+- Demo data behind `--dart-define=BNP_DEMO=true` (`app/lib/data/demo_data.dart`):
+  a five-match cup and a live friendly for four real squads. Matches are
+  simulated through `ScoringEngine`, and normal builds are unaffected.
 
 ### Fixed
 - Android build: set `kotlin.incremental=false`, because compiling

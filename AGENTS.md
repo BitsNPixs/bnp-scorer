@@ -26,6 +26,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Git is initialised. Commit each finished, verified piece of work.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
+- Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
+  (README "Demo data"). There is no tournament feature yet: the cup is only a
+  set of ordinary matches, labelled through `venue`.
 - `kotlin.incremental=false` in `app/android/gradle.properties` works around a
   Kotlin cache failure when the pub cache and project are on different drives.
 

@@ -68,23 +68,24 @@ class TeamsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _RankedList(
         rows: [
-          for (var i = 0; i < teams.length; i++) _teamRow(context, i + 1, teams[i]),
+          for (var i = 0; i < teams.length; i++) teamRow(context, i + 1, teams[i]),
         ],
       );
-
-  Widget _teamRow(BuildContext context, int rank, TeamStats team) => LeaderRow(
-        rank: rank,
-        leading: TeamBadge(name: team.name, size: 36),
-        title: team.name,
-        subtitle: 'P ${team.played} · W ${team.won} · L ${team.lost} · '
-            'NRR ${signedDecimal(team.netRunRate)}',
-        value: '${team.points}',
-        valueLabel: 'pts',
-        onTap: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => TeamStatsScreen(teamId: team.teamId)),
-        ),
-      );
 }
+
+/// The ranked table line, shared with tournament tables.
+LeaderRow teamRow(BuildContext context, int rank, TeamStats team) => LeaderRow(
+      rank: rank,
+      leading: TeamBadge(name: team.name, size: 36),
+      title: team.name,
+      subtitle: 'P ${team.played} · W ${team.won} · L ${team.lost} · '
+          'NRR ${signedDecimal(team.netRunRate)}',
+      value: '${team.points}',
+      valueLabel: 'pts',
+      onTap: () => Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => TeamStatsScreen(teamId: team.teamId)),
+      ),
+    );
 
 /// The ranked batting line, shared with the team screen.
 LeaderRow battingRow(BuildContext context, int rank, PlayerStats player) => LeaderRow(

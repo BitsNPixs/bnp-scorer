@@ -88,9 +88,16 @@ class _Fixture {
     required this.home,
     required this.away,
     required this.daysAgo,
+    this.fixtureId = '',
+    this.label = '',
+    this.knockout = false,
+    this.deciderOf,
     this.winner,
     this.close = false,
     this.chase = false,
+    this.tied = false,
+    this.superOver = false,
+    this.homeBats = false,
     this.stopAtBall,
   });
 
@@ -102,7 +109,13 @@ class _Fixture {
   final String away;
   final int daysAgo;
 
-  /// Team key that must win. Null only for the unfinished match.
+  /// The tournament fixture this match was played for, if any.
+  final String fixtureId;
+  final String label;
+  final bool knockout;
+  final String? deciderOf;
+
+  /// Team key that must win. Null for a tie and for the unfinished match.
   final String? winner;
 
   /// The result must be a tight one.
@@ -111,11 +124,19 @@ class _Fixture {
   /// The winner must bat second, for a "won by N wickets" result.
   final bool chase;
 
+  /// The match must end level.
+  final bool tied;
+  final bool superOver;
+
+  /// The home side bats first, whatever the seed would give.
+  final bool homeBats;
+
   /// Stop here in the second innings, leaving the match live.
   final int? stopAtBall;
 }
 
-/// A finished tournament: scripted league results, then the top two in a final.
+/// A finished tournament with scripted results. The script keeps every table
+/// free of ties, so the engine picks the same knockout teams it names here.
 class _Cup {
   const _Cup({
     required this.id,
@@ -124,8 +145,12 @@ class _Cup {
     required this.daysAgo,
     required this.teams,
     required this.league,
+    this.groups,
+    this.legs = 1,
+    this.semis = const [],
     this.finalTeams,
     this.champion,
+    this.tiedFinal = false,
   });
 
   final String id;
@@ -138,40 +163,86 @@ class _Cup {
 
   /// (home, away, winner).
   final List<(String, String, String)> league;
-
-  /// Must be the top two of [league], which each script keeps clear of ties.
+  final List<List<String>>? groups;
+  final int legs;
+  final List<(String, String, String)> semis;
   final (String, String)? finalTeams;
+
+  /// Wins the final, or its Super Over when [tiedFinal] is set.
   final String? champion;
+  final bool tiedFinal;
 
   bool get hasFinal => finalTeams != null;
 
   String matchId(int index) =>
       id == _bnpCupId ? 'demo-match-${index + 1}' : '$id-${index + 1}';
 
-  List<_Fixture> get fixtures => [
-        for (var i = 0; i < league.length; i++)
-          _Fixture(
-            number: firstNumber + i,
-            id: matchId(i),
-            title: '$name Match ${i + 1}',
-            home: league[i].$1,
-            away: league[i].$2,
-            daysAgo: daysAgo - i ~/ 2,
-            winner: league[i].$3,
-            chase: i.isOdd,
-          ),
-        if (finalTeams case (final home, final away))
-          _Fixture(
-            number: firstNumber + league.length,
-            id: matchId(league.length),
-            title: '$name Final',
-            home: home,
-            away: away,
-            daysAgo: daysAgo - 7,
-            winner: champion,
-            close: true,
-          ),
-      ];
+  String _leagueLabel(int index) {
+    final allGroups = groups;
+    final match = 'Match ${index + 1}';
+    if (allGroups == null) return match;
+    final group = allGroups.indexWhere((g) => g.contains(league[index].$1));
+    return 'Group ${String.fromCharCode(65 + group)} $match';
+  }
+
+  List<_Fixture> get fixtures {
+    final list = <_Fixture>[];
+    void add(
+      String fixtureId,
+      String label,
+      (String, String) teams,
+      int days, {
+      String? winner,
+      bool knockout = true,
+      bool chase = false,
+      bool close = false,
+      bool tied = false,
+      bool superOver = false,
+      bool homeBats = false,
+      String? deciderOf,
+    }) {
+      final i = list.length;
+      list.add(_Fixture(
+        number: firstNumber + i,
+        id: matchId(i),
+        title: '$name $label',
+        fixtureId: fixtureId,
+        label: label,
+        home: teams.$1,
+        away: teams.$2,
+        daysAgo: days,
+        winner: winner,
+        knockout: knockout,
+        chase: chase,
+        close: close,
+        tied: tied,
+        superOver: superOver,
+        homeBats: homeBats,
+        deciderOf: deciderOf,
+      ));
+    }
+
+    for (var i = 0; i < league.length; i++) {
+      final (home, away, winner) = league[i];
+      add('f${i + 1}', _leagueLabel(i), (home, away), daysAgo - i ~/ 2,
+          winner: winner, knockout: false, chase: i.isOdd);
+    }
+    for (var i = 0; i < semis.length; i++) {
+      final (home, away, winner) = semis[i];
+      add('sf${i + 1}', 'Semi-final ${i + 1}', (home, away), daysAgo - 6, winner: winner);
+    }
+    if (finalTeams case (final home, final away)) {
+      if (tiedFinal) {
+        add('final', 'Final', (home, away), daysAgo - 7, tied: true, homeBats: true);
+        // The side that batted second in the final bats first here.
+        add('final-so1', 'Final Super Over', (away, home), daysAgo - 7,
+            winner: champion, superOver: true, homeBats: true, deciderOf: 'final');
+      } else {
+        add('final', 'Final', (home, away), daysAgo - 7, winner: champion, close: true);
+      }
+    }
+    return list;
+  }
 }
 
 const _bnpCupId = 'demo-cup-bnp';
@@ -223,6 +294,33 @@ const _cups = [
     finalTeams: ('d', 'c'),
     champion: 'c',
   ),
+  // Every format at once: two groups, home and away, semi-finals, and a tied
+  // final settled by a Super Over.
+  _Cup(
+    id: 'demo-cup-pongal',
+    name: 'Pongal Trophy',
+    firstNumber: 40,
+    daysAgo: 60,
+    teams: ['a', 'b', 'c', 'd'],
+    groups: [
+      ['a', 'b'],
+      ['c', 'd'],
+    ],
+    legs: 2,
+    league: [
+      ('a', 'b', 'a'),
+      ('b', 'a', 'a'),
+      ('c', 'd', 'c'),
+      ('d', 'c', 'c'),
+    ],
+    semis: [
+      ('a', 'd', 'a'),
+      ('c', 'b', 'c'),
+    ],
+    finalTeams: ('a', 'c'),
+    champion: 'c',
+    tiedFinal: true,
+  ),
   // Team A and Team D each win both their games, so the final picks itself.
   _Cup(
     id: _bnpCupId,
@@ -273,9 +371,11 @@ class _Simulation {
       id: fixture.id,
       teamA: home,
       teamB: away,
-      rules: MatchRules(oversPerInnings: _overs, maxOversPerBowler: _maxOversPerBowler),
-      tossWinnerId: random.nextBool() ? home.id : away.id,
-      tossDecision: random.nextBool() ? TossDecision.bat : TossDecision.bowl,
+      rules: fixture.superOver
+          ? MatchRules(oversPerInnings: 1, superOver: true)
+          : MatchRules(oversPerInnings: _overs, maxOversPerBowler: _maxOversPerBowler),
+      tossWinnerId: fixture.homeBats || random.nextBool() ? home.id : away.id,
+      tossDecision: fixture.homeBats || random.nextBool() ? TossDecision.bat : TossDecision.bowl,
       venue: '${fixture.title} · $_venue',
     );
   }
@@ -424,6 +524,7 @@ bool _matchesScript(_Fixture fixture, MatchState state) {
     return !state.isCompleted && runsNeeded != null && runsNeeded >= 20 && runsNeeded <= 35;
   }
   final result = state.result!;
+  if (fixture.tied) return result.kind == ResultKind.tie;
   if (result.winnerTeamId != 'team-${fixture.winner}') return false;
   if (fixture.chase && result.kind != ResultKind.wickets) return false;
   if (!fixture.close) return true;
@@ -473,25 +574,29 @@ Future<void> seedDemoTeams(TeamRepository repository) async {
 
 Tournament _tournament(_Cup cup, DateTime now) {
   final teams = [for (final key in cup.teams) _squad(key)];
-  final fixtures = cup.fixtures;
-  final knockout = cup.hasFinal ? fixtures.length - 1 : -1;
   return Tournament(
     id: cup.id,
     name: cup.name,
     oversPerInnings: _overs,
     hasFinal: cup.hasFinal,
+    hasSemiFinals: cup.semis.isNotEmpty,
+    legs: cup.legs,
+    groups: [
+      for (final group in cup.groups ?? [cup.teams]) [for (final key in group) 'team-$key'],
+    ],
     venue: _venue,
     createdAt: now.subtract(Duration(days: cup.daysAgo + 1)),
     teams: teams,
     fixtures: [
-      for (var i = 0; i < fixtures.length; i++)
+      for (final f in cup.fixtures)
         Fixture(
-          id: i == knockout ? 'final' : 'f${i + 1}',
-          label: i == knockout ? 'Final' : 'Match ${i + 1}',
-          teamAId: 'team-${fixtures[i].home}',
-          teamBId: 'team-${fixtures[i].away}',
-          knockout: i == knockout,
-          matchId: fixtures[i].id,
+          id: f.fixtureId,
+          label: f.label,
+          teamAId: 'team-${f.home}',
+          teamBId: 'team-${f.away}',
+          knockout: f.knockout,
+          deciderOf: f.deciderOf,
+          matchId: f.id,
         ),
     ],
   );

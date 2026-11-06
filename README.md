@@ -25,9 +25,11 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.
-- **Tournaments:** pick saved teams and get a full fixture list, with an optional
-  final between the top two. Each tournament has its own points table, batting
-  and bowling leaderboards, and champion.
+- **Tournaments:** pick saved teams and get a full fixture list. Choose one league
+  or two groups, once or home and away, with no knockouts, a final, or semi-finals
+  and a final. Tied knockout games go to a Super Over. Each tournament has its own
+  points tables, batting and bowling leaderboards, and champion.
+- **Home filter:** chips narrow the match list to a tournament or to friendlies.
 - **Stats:** team table with points, net run rate and form, batting and bowling
   leaderboards, and a full profile for each team and player. Worked out from
   finished matches, so they always agree with the scorecards.
@@ -71,9 +73,9 @@ docs/                      Architecture and roadmap
 
 ## Demo data
 
-Build with `--dart-define=BNP_DEMO=true` to fill the app with sample data: four
-finished tournaments (BNP Cup, Monsoon League, Summer Shield and Winter Bash) and
-a friendly left in progress, so scoring can be shown straight away. The four full
+Build with `--dart-define=BNP_DEMO=true` to fill the app with sample data: five
+finished tournaments (BNP Cup, Pongal Trophy, Monsoon League, Summer Shield and
+Winter Bash) and a friendly left in progress, so scoring can be shown straight away. The four full
 squads are added to Saved teams too.
 
 ```sh

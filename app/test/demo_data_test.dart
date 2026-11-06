@@ -137,9 +137,9 @@ void main() {
     final tournaments = demoTournaments(_now);
     final byId = {for (final m in demo) m.id: _replay(m)};
 
-    test('there is a current cup and three past ones', () {
+    test('there is a current cup and four past ones', () {
       expect(tournaments.map((t) => t.name),
-          ['Winter Bash', 'Summer Shield', 'Monsoon League', 'BNP Cup']);
+          ['Winter Bash', 'Summer Shield', 'Monsoon League', 'Pongal Trophy', 'BNP Cup']);
     });
 
     test('each is finished, and every fixture has its match', () {
@@ -147,30 +147,50 @@ void main() {
         final progress = progressOf(tournament, byId);
         expect(progress.isFinished, isTrue, reason: tournament.name);
         expect(progress.championId, isNotNull, reason: tournament.name);
+        expect(progress.outdated, isEmpty, reason: tournament.name);
       }
     });
 
-    test('finals are between the top two of the real table', () {
-      for (final tournament in tournaments.where((t) => t.hasFinal)) {
-        final table = progressOf(tournament, byId).table;
-        final finalFixture = tournament.finalFixture!;
+    test('knockout teams are the ones the real tables produce', () {
+      for (final tournament in tournaments) {
+        final leagueOnly = Tournament.fromJson({
+          ...tournament.toJson(),
+          'fixtures': [for (final f in tournament.leagueFixtures) f.toJson()],
+        });
+        final next = progressOf(leagueOnly, byId).nextRound;
+        final played = tournament.fixtures.where((f) => f.knockout).take(next.length);
         expect(
-          {finalFixture.teamAId, finalFixture.teamBId},
-          {table[0].teamId, table[1].teamId},
+          [for (final f in played) (f.id, ([f.teamAId, f.teamBId]..sort()).join(' v '))],
+          [for (final f in next) (f.id, ([f.teamAId, f.teamBId]..sort()).join(' v '))],
           reason: tournament.name,
         );
       }
     });
 
+    test('the Pongal final ties, and its Super Over decides the title', () {
+      final pongal = tournaments.firstWhere((t) => t.name == 'Pongal Trophy');
+      final finalMatch = byId[pongal.finalFixture!.matchId]!;
+      expect(finalMatch.result!.kind, ResultKind.tie);
+
+      final superOver = pongal.fixtures.firstWhere((f) => f.isDecider);
+      expect(byId[superOver.matchId]!.setup.rules.superOver, isTrue);
+      expect(byId[superOver.matchId]!.result!.winnerTeamId, 'team-c');
+      expect(superOver.teamAId, finalMatch.innings.last.battingTeamId);
+
+      expect(pongal.groups, hasLength(2));
+      expect(pongal.legs, 2);
+      expect(pongal.hasSemiFinals, isTrue);
+    });
+
     test('champions are the scripted ones', () {
       final winners = [for (final t in tournaments) progressOf(t, byId).championId];
-      expect(winners, ['team-b', 'team-b', 'team-c', 'team-d']);
+      expect(winners, ['team-b', 'team-b', 'team-c', 'team-c', 'team-d']);
     });
 
     test('seeding adds them once and keeps edits', () async {
       final repo = InMemoryTournamentRepository();
       await seedDemoTournaments(repo, now: _now);
-      expect(repo.tournaments, hasLength(4));
+      expect(repo.tournaments, hasLength(5));
       final edited = repo.tournaments['demo-cup-bnp']!.withMatch('f1', 'other');
       await repo.save(edited);
       await seedDemoTournaments(repo, now: _now);
@@ -212,7 +232,10 @@ void main() {
       final repo = InMemoryMatchRepository();
       await seedDemoMatches(repo, now: _now);
       await tester.pumpWidget(ProviderScope(
-        overrides: [matchRepositoryProvider.overrideWithValue(repo)],
+        overrides: [
+          matchRepositoryProvider.overrideWithValue(repo),
+          tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
+        ],
         child: MaterialApp(theme: AppTheme.light(), home: home),
       ));
       await tester.pump(const Duration(milliseconds: 400));

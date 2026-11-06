@@ -65,9 +65,10 @@
 
 **Phase 4: tournaments and stats**
 - Tournaments, fixtures, points tables, NRR, career stats and leaderboards work
-  on the device from local matches. Still to do: groups, semi-finals and
-  home-and-away formats, and precomputing shared stats in Functions. Never let
-  clients write aggregates.
+  on the device from local matches, with groups, semi-finals and home-and-away
+  formats. Still to do: more than two groups, arranging groups by hand, quarter-
+  finals, and precomputing shared stats in Functions. Never let clients write
+  aggregates.
 - Charts: Manhattan, worm, wagon wheel (needs shot direction added to
   `BallBowled` as an optional field).
 

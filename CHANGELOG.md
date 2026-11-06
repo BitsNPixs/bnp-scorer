@@ -17,6 +17,15 @@
   points table of league games, leaderboards per tournament and a champion. Stored
   as `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`. Results stay in
   the matches, so all of it is derived. The demo build adds three past tournaments.
+- Tournament formats: two groups, home and away, and semi-finals. New fields are
+  optional, so tournaments saved earlier still load.
+- Super Overs for tied knockout games, played as a one-over match with an innings
+  ending at two wickets (`MatchRules.superOver`). A tied Super Over leads to
+  another. They are left out of career stats.
+- Home filter chips for each tournament and for friendlies.
+- A changed result now flags any knockout game it affects: unplayed games can be
+  corrected in one tap, and played ones are explained rather than silently left
+  wrong. Deleting a tournament match warns that its table will change.
 - Stats: `computeStats` in `cricket_engine` derives player and team numbers from
   finished matches. Home has a Stats button leading to a team table, batting and
   bowling leaderboards, and team and player profiles.

@@ -30,7 +30,10 @@ void main() {
     final repo = InMemoryMatchRepository();
     if (seeded) await seedDemoMatches(repo, now: DateTime.utc(2026, 11, 6));
     await tester.pumpWidget(ProviderScope(
-      overrides: [matchRepositoryProvider.overrideWithValue(repo)],
+      overrides: [
+        matchRepositoryProvider.overrideWithValue(repo),
+        tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
+      ],
       child: MaterialApp(theme: AppTheme.light(), home: home),
     ));
     await settle(tester);
@@ -64,7 +67,7 @@ void main() {
     await tester.tap(find.text('Team D'));
     await settle(tester);
 
-    expect(find.text('RECORD'), findsOneWidget);
+    expect(find.text('ALL MATCHES'), findsOneWidget);
     expect(find.text('Net run rate'), findsOneWidget);
     expect(tester.takeException(), isNull);
 

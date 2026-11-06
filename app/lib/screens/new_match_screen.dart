@@ -68,7 +68,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     if (fixture != null) {
       _teamA.load(fixture.home);
       _teamB.load(fixture.away);
-      _overs = fixture.tournament.oversPerInnings;
+      _overs = fixture.fixture.isDecider ? 1 : fixture.tournament.oversPerInnings;
       _venue.text = fixture.tournament.titleOf(fixture.fixture);
     }
   }
@@ -103,6 +103,9 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
 
   int get _maxBowlerOvers => (_overs / 5).ceil();
 
+  /// One over, and the fixture already says who bats first.
+  bool get _isSuperOver => widget.fixture?.fixture.isDecider ?? false;
+
   Future<void> _start() async {
     if (_blocker != null || _saving) return;
     setState(() => _saving = true);
@@ -125,6 +128,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
         freeHitOnNoBall: _freeHit,
         lastManStands: _lastManStands,
         maxOversPerBowler: _limitBowlerOvers ? _maxBowlerOvers : null,
+        superOver: _isSuperOver,
       ),
       tossWinnerId: _tossWinner == 0 ? teamA.id : teamB.id,
       tossDecision: _decision,
@@ -231,6 +235,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
             locked: widget.fixture != null,
           ),
           const SizedBox(height: 12),
+          if (!_isSuperOver) ...[
           OversPicker(overs: _overs, onChanged: (o) => setState(() => _overs = o)),
           const SizedBox(height: 12),
           SurfacePanel(
@@ -279,6 +284,7 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
             ),
           ),
           const SizedBox(height: 12),
+          ],
           SurfacePanel(
             padding: const EdgeInsets.symmetric(vertical: 4),
             child: Theme(

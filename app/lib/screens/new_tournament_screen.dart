@@ -12,6 +12,11 @@ import '../widgets/overs_picker.dart';
 import '../widgets/surface_panel.dart';
 import 'tournament_screen.dart';
 
+enum _Knockout { none, finalOnly, semiFinals }
+
+const _minTeamsForFinal = 3;
+const _minTeamsForGroupsOrSemis = 4;
+
 class NewTournamentScreen extends ConsumerStatefulWidget {
   const NewTournamentScreen({super.key});
 
@@ -24,7 +29,9 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
   final _venue = TextEditingController();
   final _teamIds = <String>{};
   int _overs = 10;
-  bool _wantsFinal = true;
+  bool _wantsTwoGroups = false;
+  bool _homeAndAway = false;
+  _Knockout _wanted = _Knockout.finalOnly;
   bool _saving = false;
 
   @override
@@ -40,8 +47,30 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
     super.dispose();
   }
 
-  /// A final needs a league of at least three teams.
-  bool get _hasFinal => _wantsFinal && _teamIds.length >= 3;
+  bool get _twoGroups => _wantsTwoGroups && _teamIds.length >= _minTeamsForGroupsOrSemis;
+
+  /// What was asked for, within what this many teams allows. Two groups always
+  /// need a knockout game, or they would never meet.
+  _Knockout get _knockout {
+    final teams = _teamIds.length;
+    if (teams < _minTeamsForFinal) return _Knockout.none;
+    if (_wanted == _Knockout.semiFinals && teams < _minTeamsForGroupsOrSemis) {
+      return _Knockout.finalOnly;
+    }
+    if (_wanted == _Knockout.none && _twoGroups) return _Knockout.finalOnly;
+    return _wanted;
+  }
+
+  int get _legs => _homeAndAway ? 2 : 1;
+
+  List<List<String>>? _groupsOf(List<Team> teams) => _twoGroups ? splitIntoTwoGroups(teams) : null;
+
+  List<Fixture> _fixturesOf(List<Team> teams) {
+    final groups = _groupsOf(teams);
+    return groups == null
+        ? roundRobinFixtures(teams, legs: _legs)
+        : leagueFixtures(groups, legs: _legs);
+  }
 
   String? get _blocker {
     if (_name.text.trim().isEmpty) return 'Give the tournament a name';
@@ -54,13 +83,17 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
     setState(() => _saving = true);
     final teams = saved.where((t) => _teamIds.contains(t.id)).toList();
     final venue = _venue.text.trim();
+    final knockout = _knockout;
     final tournament = Tournament(
       id: newId(),
       name: _name.text.trim(),
       oversPerInnings: _overs,
-      hasFinal: _hasFinal,
+      hasFinal: knockout != _Knockout.none,
+      hasSemiFinals: knockout == _Knockout.semiFinals,
+      legs: _legs,
+      groups: _groupsOf(teams),
       teams: teams,
-      fixtures: roundRobinFixtures(teams),
+      fixtures: _fixturesOf(teams),
       createdAt: DateTime.now(),
       venue: venue.isEmpty ? null : venue,
     );
@@ -86,11 +119,17 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
     final text = Theme.of(context).textTheme;
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     final blocker = _blocker;
-    final leagueGames = _teamIds.length * (_teamIds.length - 1) ~/ 2;
+    final selected = saved.where((t) => _teamIds.contains(t.id)).toList();
+    final knockout = _knockout;
+    final teamCount = _teamIds.length;
     final summary = [
-      plural(leagueGames, 'match'),
-      if (_hasFinal) 'final',
+      plural(_fixturesOf(selected).length, 'match'),
+      if (knockout == _Knockout.semiFinals) 'semi-finals',
+      if (knockout != _Knockout.none) 'final',
     ].join(' + ');
+    String groupText(List<String> ids) =>
+        ids.map((id) => selected.firstWhere((t) => t.id == id).name).join(', ');
+    final groups = _groupsOf(selected);
 
     return Scaffold(
       appBar: AppBar(
@@ -150,11 +189,62 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
           const SizedBox(height: 12),
           SurfacePanel(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: SwitchListTile(
-              title: const Text('Final between the top two'),
-              subtitle: const Text('Needs at least 3 teams'),
-              value: _hasFinal,
-              onChanged: _teamIds.length >= 3 ? (v) => setState(() => _wantsFinal = v) : null,
+            child: Column(
+              children: [
+                SwitchListTile(
+                  title: const Text('Two groups'),
+                  subtitle: Text(
+                    groups == null
+                        ? 'Needs at least 4 teams'
+                        : 'A: ${groupText(groups[0])}\nB: ${groupText(groups[1])}',
+                  ),
+                  value: _twoGroups,
+                  onChanged: teamCount >= _minTeamsForGroupsOrSemis
+                      ? (v) => setState(() => _wantsTwoGroups = v)
+                      : null,
+                ),
+                SwitchListTile(
+                  title: const Text('Home and away'),
+                  subtitle: const Text('Teams meet twice'),
+                  value: _homeAndAway,
+                  onChanged: (v) => setState(() => _homeAndAway = v),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SectionLabel('Knockouts'),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<_Knockout>(
+                          showSelectedIcon: false,
+                          segments: [
+                            ButtonSegment(
+                              value: _Knockout.none,
+                              enabled: !_twoGroups,
+                              label: const Text('None'),
+                            ),
+                            ButtonSegment(
+                              value: _Knockout.finalOnly,
+                              enabled: teamCount >= _minTeamsForFinal,
+                              label: const Text('Final'),
+                            ),
+                            ButtonSegment(
+                              value: _Knockout.semiFinals,
+                              enabled: teamCount >= _minTeamsForGroupsOrSemis,
+                              label: const Text('Semis'),
+                            ),
+                          ],
+                          selected: {knockout},
+                          onSelectionChanged: (s) => setState(() => _wanted = s.first),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
         ],

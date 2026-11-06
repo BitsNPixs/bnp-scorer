@@ -51,7 +51,7 @@ class TournamentScreen extends ConsumerWidget {
         body: TabBarView(
           children: [
             _MatchesTab(progress: progress),
-            TeamsTab(teams: progress.table),
+            _TableTab(progress: progress),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
           ],
@@ -101,28 +101,58 @@ class _MatchesTab extends ConsumerWidget {
     );
   }
 
-  Future<void> _scheduleFinal(BuildContext context, WidgetRef ref) async {
-    final (first, second) = progress.finalists!;
+  Future<void> _scheduleNextRound(BuildContext context, WidgetRef ref) async {
     final repository = ref.read(tournamentRepositoryProvider);
     try {
-      await repository.save(progress.tournament.withFinal(first.teamId, second.teamId));
+      await repository.save(progress.tournament.withFixtures(progress.nextRound));
     } on Object catch (e) {
-      if (context.mounted) showMessage(context, 'Could not add the final: $e', isError: true);
+      if (context.mounted) showMessage(context, 'Could not add the next round: $e', isError: true);
       return;
     }
     if (context.mounted) ref.invalidate(tournamentsProvider);
+  }
+
+  Future<void> _correct(BuildContext context, WidgetRef ref, List<Fixture> fixtures) async {
+    final repository = ref.read(tournamentRepositoryProvider);
+    try {
+      await repository.save(progress.tournament.withCorrected(fixtures));
+    } on Object catch (e) {
+      if (context.mounted) showMessage(context, 'Could not update it: $e', isError: true);
+      return;
+    }
+    if (context.mounted) ref.invalidate(tournamentsProvider);
+  }
+
+  String _nextRoundLabel() {
+    final next = progress.nextRound;
+    final first = next.first;
+    if (next.length > 1) return 'Set up the semi-finals';
+    final tournament = progress.tournament;
+    final teams = '${tournament.teamById(first.teamAId).name} v '
+        '${tournament.teamById(first.teamBId).name}';
+    return first.isDecider ? 'Tied: set up the Super Over, $teams' : 'Set up the final: $teams';
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tournament = progress.tournament;
     final champion = progress.championId;
-    final finalists = progress.finalists;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
         if (champion != null) ...[
           _ChampionBanner(name: tournament.teamById(champion).name),
+          const SizedBox(height: 12),
+        ],
+        for (final fixture in progress.outdated) ...[
+          _OutdatedFixture(
+            fixture: fixture,
+            tournament: tournament,
+            started: progress.fixtures.any(
+              (f) => f.fixture.id == fixture.id && f.match != null,
+            ),
+            onUpdate: () => _correct(context, ref, [fixture]),
+          ),
           const SizedBox(height: 12),
         ],
         for (final item in progress.fixtures) ...[
@@ -133,15 +163,85 @@ class _MatchesTab extends ConsumerWidget {
           ),
           const SizedBox(height: 10),
         ],
-        if (finalists != null)
+        if (progress.nextRound.isNotEmpty)
           FilledButton.icon(
-            onPressed: () => _scheduleFinal(context, ref),
+            onPressed: () => _scheduleNextRound(context, ref),
             icon: const Icon(Icons.emoji_events_rounded),
-            label: Text('Set up the final: ${finalists.$1.name} v ${finalists.$2.name}'),
+            label: Text(
+              _nextRoundLabel(),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
       ],
     );
   }
+}
+
+/// A knockout game whose teams no longer follow from the results. Until it
+/// starts it can be corrected. Once played, only its scorer can decide.
+class _OutdatedFixture extends StatelessWidget {
+  const _OutdatedFixture({
+    required this.fixture,
+    required this.tournament,
+    required this.started,
+    required this.onUpdate,
+  });
+
+  final Fixture fixture;
+  final Tournament tournament;
+  final bool started;
+  final VoidCallback onUpdate;
+
+  @override
+  Widget build(BuildContext context) {
+    final teams = '${tournament.teamById(fixture.teamAId).name} v '
+        '${tournament.teamById(fixture.teamBId).name}';
+    return SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionLabel('Results changed'),
+          const SizedBox(height: 6),
+          Text(
+            started
+                ? '${fixture.label} was played by different teams. It should now be '
+                    '$teams. Delete that match from Home to replay it.'
+                : '${fixture.label} should now be $teams.',
+          ),
+          if (!started) ...[
+            const SizedBox(height: 10),
+            FilledButton(onPressed: onUpdate, child: Text('Update ${fixture.label}')),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TableTab extends StatelessWidget {
+  const _TableTab({required this.progress});
+
+  final TournamentProgress progress;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          for (final group in progress.tables) ...[
+            if (group.name case final name?) ...[
+              SectionLabel(name),
+              const SizedBox(height: 8),
+            ],
+            for (var i = 0; i < group.teams.length; i++) ...[
+              teamRow(context, i + 1, group.teams[i]),
+              const SizedBox(height: 8),
+            ],
+            const SizedBox(height: 12),
+          ],
+        ],
+      );
 }
 
 class _ChampionBanner extends StatelessWidget {

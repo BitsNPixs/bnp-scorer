@@ -128,11 +128,18 @@ with target = first innings runs + 1), then `completed` (result set).
   its full overs. A chase that ends early uses the overs actually faced.
 
 ### Tournaments (`tournament.dart`)
-A `Tournament` holds teams and `Fixture`s, and each fixture may name the match
-played for it. `progressOf` joins them with the matches to derive the league
-table (league games only, including teams yet to play), a `StatsBook` of every
-game, the finalists once the league is done, and the champion. A deleted match
+A `Tournament` holds teams, groups and `Fixture`s, and each fixture may name the
+match played for it. `progressOf` joins them with the matches to derive a table
+per group (league games only, including teams yet to play), a `StatsBook` of every
+game, `nextRound` (fixtures ready to schedule) and the champion. A deleted match
 reopens its fixture.
+
+Knockouts: one group pairs 1 v 4 and 2 v 3, or 1 v 2 for a final. Two groups pair
+A1 v B2 and B1 v A2, or the group winners for a final. A tied knockout game gets a
+decider fixture (`deciderOf`) played as a one-over match with
+`MatchRules.superOver`, so an innings ends at two wickets and the side that batted
+second bats first. A tied Super Over gets another. If a result changes after a knockout game is
+scheduled, `outdated` offers that game with the teams the results now call for.
 
 ### Adding a rule or event (checklist)
 1. Write the failing test in `engine_test.dart` using the `Scorer` helper

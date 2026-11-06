@@ -223,7 +223,8 @@ class StatsBook {
 }
 
 /// Builds the book from [matches], oldest first. Unfinished matches are left
-/// out, so a live match joins the numbers once it has a result. [entrants] are
+/// out, so a live match joins the numbers once it has a result, and so are
+/// Super Overs, which decide a tie but are not part of the record. [entrants] are
 /// listed even if they have not played yet.
 StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = const []}) {
   final players = <String, _PlayerBuilder>{};
@@ -234,7 +235,7 @@ StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = 
 
   for (final match in matches) {
     final result = match.result;
-    if (!match.isCompleted || result == null) continue;
+    if (!match.isCompleted || result == null || match.setup.rules.superOver) continue;
     counted++;
     final setup = match.setup;
 

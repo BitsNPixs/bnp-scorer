@@ -15,8 +15,41 @@ import 'tournaments_screen.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-class HomeScreen extends ConsumerWidget {
+const _allMatches = 'all';
+const _friendlies = 'friendlies';
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  /// [_allMatches], [_friendlies] or a tournament id.
+  String _filter = _allMatches;
+
+  /// Which tournament each of its matches belongs to, for the delete warning.
+  Map<String, String> _tournamentNames(List<TournamentProgress> tournaments) => {
+        for (final p in tournaments)
+          for (final f in p.tournament.fixtures) ?f.matchId: p.tournament.name,
+      };
+
+  /// The list for [_filter]. A deleted tournament falls back to all matches.
+  List<MatchSummary> _filtered(List<MatchSummary> matches, List<TournamentProgress> tournaments) {
+    Set<String> matchIdsOf(Iterable<TournamentProgress> list) => {
+          for (final p in list)
+            for (final f in p.tournament.fixtures) ?f.matchId,
+        };
+    if (_filter == _friendlies) {
+      final inTournaments = matchIdsOf(tournaments);
+      return matches.where((m) => !inTournaments.contains(m.record.id)).toList();
+    }
+    final chosen = tournaments.where((p) => p.tournament.id == _filter);
+    if (chosen.isEmpty) return matches;
+    final ids = matchIdsOf(chosen);
+    return matches.where((m) => ids.contains(m.record.id)).toList();
+  }
 
   Future<void> _newMatch(BuildContext context, WidgetRef ref) async {
     await Navigator.of(context).push(
@@ -26,8 +59,9 @@ class HomeScreen extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final matches = ref.watch(matchListProvider);
+    final tournaments = ref.watch(tournamentsProvider).value ?? const <TournamentProgress>[];
     final hasMatches = matches.value?.isNotEmpty ?? false;
 
     return Scaffold(
@@ -36,6 +70,14 @@ class HomeScreen extends ConsumerWidget {
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: _BrandHeader()),
+            if (tournaments.isNotEmpty)
+              SliverToBoxAdapter(
+                child: _MatchFilter(
+                  selected: _filter,
+                  tournaments: tournaments,
+                  onSelected: (filter) => setState(() => _filter = filter),
+                ),
+              ),
             matches.when(
               loading: () => const SliverFillRemaining(
                 child: Center(child: CircularProgressIndicator()),
@@ -48,16 +90,9 @@ class HomeScreen extends ConsumerWidget {
                       hasScrollBody: false,
                       child: _EmptyState(onStart: () => _newMatch(context, ref)),
                     )
-                  : SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
-                      sliver: SliverList.separated(
-                        itemCount: list.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, i) => _MatchCard(
-                          key: ValueKey(list[i].record.id),
-                          summary: list[i],
-                        ),
-                      ),
+                  : _MatchList(
+                      matches: _filtered(list, tournaments),
+                      tournamentNames: _tournamentNames(tournaments),
                     ),
             ),
           ],
@@ -72,6 +107,71 @@ class HomeScreen extends ConsumerWidget {
               label: const Text('New match', style: TextStyle(fontWeight: FontWeight.w800)),
             )
           : null,
+    );
+  }
+}
+
+/// Chips that narrow the home list to one tournament, or to friendlies.
+class _MatchFilter extends StatelessWidget {
+  const _MatchFilter({
+    required this.selected,
+    required this.tournaments,
+    required this.onSelected,
+  });
+
+  final String selected;
+  final List<TournamentProgress> tournaments;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget chip(String filter, String label) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            label: Text(label),
+            selected: selected == filter,
+            onSelected: (_) => onSelected(filter),
+          ),
+        );
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.fromLTRB(16, 4, 8, 4),
+      child: Row(
+        children: [
+          chip(_allMatches, 'All'),
+          chip(_friendlies, 'Friendlies'),
+          for (final p in tournaments) chip(p.tournament.id, p.tournament.name),
+        ],
+      ),
+    );
+  }
+}
+
+class _MatchList extends StatelessWidget {
+  const _MatchList({required this.matches, required this.tournamentNames});
+
+  final List<MatchSummary> matches;
+  final Map<String, String> tournamentNames;
+
+  @override
+  Widget build(BuildContext context) {
+    if (matches.isEmpty) {
+      return const SliverFillRemaining(
+        hasScrollBody: false,
+        child: Center(child: Text('No matches here yet.')),
+      );
+    }
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+      sliver: SliverList.separated(
+        itemCount: matches.length,
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        itemBuilder: (context, i) => _MatchCard(
+          key: ValueKey(matches[i].record.id),
+          summary: matches[i],
+          tournamentName: tournamentNames[matches[i].record.id],
+        ),
+      ),
     );
   }
 }
@@ -197,9 +297,10 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _MatchCard extends ConsumerWidget {
-  const _MatchCard({super.key, required this.summary});
+  const _MatchCard({super.key, required this.summary, this.tournamentName});
 
   final MatchSummary summary;
+  final String? tournamentName;
 
   Future<void> _open(BuildContext context, WidgetRef ref) async {
     await Navigator.of(context).push(
@@ -213,7 +314,12 @@ class _MatchCard extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: const Text('Delete this match?'),
-        content: const Text('The scorecard will be removed from this device.'),
+        content: Text(
+          tournamentName == null
+              ? 'The scorecard will be removed from this device.'
+              : 'This is a $tournamentName match. Deleting it reopens its fixture and '
+                  'changes the table and stats.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),

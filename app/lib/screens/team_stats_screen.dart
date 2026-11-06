@@ -43,7 +43,7 @@ class _TeamStats extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       children: [
         StatGrid(
-          title: 'Record',
+          title: 'All matches',
           stats: [
             ('Played', '${team.played}'),
             ('Won', '${team.won}'),

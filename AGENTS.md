@@ -29,9 +29,13 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Saved teams work offline. A squad can gain players but there is no screen yet
   to remove one or to rename a player: delete the team and re-enter it.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
-  id. `StatsScreen` covers every match, and `TournamentScreen` covers one
-  tournament. Tournaments are round robin with an optional final, with no groups,
-  semi-finals or home-and-away.
+  id, leaving out Super Overs. `StatsScreen` covers every match, and
+  `TournamentScreen` covers one tournament.
+- Tournament formats: one league or two groups (no more), one or two legs, and no
+  knockouts, a final, or semi-finals and a final. Groups are split by the order of
+  the team list and cannot be arranged by hand. League ties share a point and only
+  knockout games go to a Super Over. Knockout rounds are offered by
+  `TournamentProgress.nextRound`, and the scorer confirms them with one tap.
 - Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
   (README "Demo data"). There is no tournament feature yet: the cup is only a
   set of ordinary matches, labelled through `venue`.
@@ -107,7 +111,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
-| Tournament logic | `roundRobinFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
+| Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas

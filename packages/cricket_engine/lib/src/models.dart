@@ -102,6 +102,8 @@ class Team {
 }
 
 /// Local cricket varies a lot, so the common house rules are configurable.
+const _superOverWickets = 2;
+
 class MatchRules {
   MatchRules({
     required this.oversPerInnings,
@@ -111,6 +113,7 @@ class MatchRules {
     this.freeHitOnNoBall = true,
     this.lastManStands = false,
     this.maxOversPerBowler,
+    this.superOver = false,
   }) {
     if (oversPerInnings < 1) throw ArgumentError('Overs must be at least 1.');
     if (ballsPerOver < 1) throw ArgumentError('Balls per over must be >= 1.');
@@ -133,10 +136,17 @@ class MatchRules {
   final bool lastManStands;
   final int? maxOversPerBowler;
 
+  /// A Super Over: an innings ends after 2 wickets. It settles a tied knockout
+  /// game and does not count towards career stats.
+  final bool superOver;
+
   int get ballsPerInnings => oversPerInnings * ballsPerOver;
 
   /// Wickets that end an innings for a side of [teamSize] players.
-  int maxWicketsFor(int teamSize) => lastManStands ? teamSize : teamSize - 1;
+  int maxWicketsFor(int teamSize) {
+    final wickets = lastManStands ? teamSize : teamSize - 1;
+    return superOver && wickets > _superOverWickets ? _superOverWickets : wickets;
+  }
 
   Json toJson() => {
         'oversPerInnings': oversPerInnings,
@@ -146,6 +156,7 @@ class MatchRules {
         'freeHitOnNoBall': freeHitOnNoBall,
         'lastManStands': lastManStands,
         'maxOversPerBowler': maxOversPerBowler,
+        'superOver': superOver,
       };
 
   factory MatchRules.fromJson(Json json) => MatchRules(
@@ -156,6 +167,7 @@ class MatchRules {
         freeHitOnNoBall: json['freeHitOnNoBall']! as bool,
         lastManStands: json['lastManStands']! as bool,
         maxOversPerBowler: json['maxOversPerBowler'] as int?,
+        superOver: json['superOver'] as bool? ?? false,
       );
 }
 

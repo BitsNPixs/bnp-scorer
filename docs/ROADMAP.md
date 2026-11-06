@@ -85,8 +85,8 @@ From the independent review and known limitations, in priority order:
 2. **Leg byes off a no-ball** are recorded as byes. Fix: let the no-ball sheet
    pick byes or leg byes. The engine needs an extra field (keep the JSON
    backward compatible).
-3. **No "no result" / "abandoned".** Closing the second innings early always
-   decides on runs. Fix: a result kind plus an "Abandon match" action.
+3. **Closing an innings early** still decides on runs. Use "Abandon match" for a
+   game that should have no result. Rain rules such as DLS are not implemented.
 4. **Two-bowler deadlock.** With strict Law 17.8, a side with only 2 bowlers
    that changes bowler mid-over has nobody eligible for the next over. "End
    innings" is the only way out. Consider allowing it with a warning in local

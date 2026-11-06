@@ -19,6 +19,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- Latest full run: 146 engine and 147 app tests passing, and a debug build with
+  every feature installed on a phone (2026-11-06). Most newer screens are checked
+  by widget tests at 360 dp rather than by hand on a device.
 - v0.1 **builds and runs on Android**. On 2026-11-06 analyze was clean for the
   app and engine, all tests passed (app 11, engine 46), and a debug APK was
   installed and launched on a physical phone (Android 17). Scoring has not been

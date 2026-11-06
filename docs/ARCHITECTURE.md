@@ -51,6 +51,7 @@ immutable `MatchState`. Nothing derived is ever stored.
 | `BatterRetired` | `batterRetired` | `batterId`, `hurt` | Retired hurt (not out, may return) or retired out (a wicket) |
 | `StrikeSwapped` | `strikeSwapped` | — | Manual correction |
 | `InningsClosed` | `inningsClosed` | `reason` | Declared / ended early |
+| `MatchAbandoned` | `matchAbandoned` | `reason` | Ends the match with no result |
 
 `id` must be unique per event (`newId()`). It is the key for idempotent cloud
 sync later. `at` is stored as UTC ISO-8601.

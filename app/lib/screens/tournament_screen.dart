@@ -130,7 +130,7 @@ class _MatchesTab extends ConsumerWidget {
     final tournament = progress.tournament;
     final teams = '${tournament.teamById(first.teamAId).name} v '
         '${tournament.teamById(first.teamBId).name}';
-    return first.isDecider ? 'Tied: set up the Super Over, $teams' : 'Set up the final: $teams';
+    return first.isDecider ? 'Set up the Super Over: $teams' : 'Set up the final: $teams';
   }
 
   @override

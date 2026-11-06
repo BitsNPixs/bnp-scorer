@@ -84,6 +84,9 @@ class LiveMatchNotifier extends AsyncNotifier<LiveMatch> {
   String? closeInnings(String reason) =>
       _add(InningsClosed(id: newId(), at: DateTime.now(), reason: reason));
 
+  String? abandon(String reason) =>
+      _add(MatchAbandoned(id: newId(), at: DateTime.now(), reason: reason));
+
   /// Removes the last event. Returns false when there is nothing to undo.
   bool undo() {
     final current = state.value;

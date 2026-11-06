@@ -31,6 +31,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.
+- Abandoned matches give a point each, stay out of team run rates and totals, and
+  still count for player stats.
 - Tournament formats: one league or two groups (no more), one or two legs, and no
   knockouts, a final, or semi-finals and a final. Groups are split by the order of
   the team list and cannot be arranged by hand. League ties share a point and only

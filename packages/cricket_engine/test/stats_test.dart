@@ -312,6 +312,47 @@ void main() {
     });
   });
 
+  group('no result', () {
+    MatchState abandoned() {
+      final m = _Match(_setup())
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..balls([6, 4]);
+      return ScoringEngine.replay(m.setup, [
+        ...m._events,
+        MatchAbandoned(id: 'x', at: m._at, reason: 'Rain'),
+      ]);
+    }
+
+    test('gives each side a point', () {
+      final book = computeStats([abandoned()]);
+      for (final id in ['a', 'b']) {
+        final team = _teamStats(book, id);
+        expect(team.noResults, 1);
+        expect(team.played, 1);
+        expect(team.points, 1);
+        expect(team.form, [MatchOutcome.noResult]);
+      }
+    });
+
+    test('stays out of net run rate and totals', () {
+      final a = _teamStats(computeStats([abandoned()]), 'a');
+      expect(a.netRunRate, isNull);
+      expect(a.runsFor, 0);
+      expect(a.highest, 0);
+    });
+
+    test('a side with results keeps its net run rate', () {
+      final a = _teamStats(computeStats([_aBeatsB(), abandoned()]), 'a');
+      expect(a.netRunRate, closeTo(9, 0.001));
+      expect(a.points, 3);
+    });
+
+    test('runs still count for the batter', () {
+      expect(_player(computeStats([abandoned()]), 'a1').batting.runs, 10);
+    });
+  });
+
   group('the book', () {
     test('adds a player up across matches under one id', () {
       final book = computeStats([_aBeatsB(), _aBeatsB()]);

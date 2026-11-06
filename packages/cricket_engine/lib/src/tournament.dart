@@ -364,6 +364,7 @@ TournamentProgress progressOf(Tournament tournament, Map<String, MatchState> mat
       fixtures.where((f) => f.fixture.deciderOf == id).toList();
 
   /// The side going through, once a knockout game and any Super Over are done.
+  /// A knockout game with no winner, tied or abandoned, needs a Super Over.
   String? winnerOf(String fixtureId) {
     final game = fixtures.where((f) => f.fixture.id == fixtureId).firstOrNull;
     if (game == null || !game.isFinished) return null;

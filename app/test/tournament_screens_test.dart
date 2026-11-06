@@ -320,7 +320,7 @@ void main() {
 
       expect(find.text('Match tied'), findsOneWidget);
       expect(find.text('CHAMPIONS'), findsNothing);
-      await tester.tap(find.text('Tied: set up the Super Over, Bravo v Alpha'));
+      await tester.tap(find.text('Set up the Super Over: Bravo v Alpha'));
       await settle(tester);
 
       await tester.tap(find.text('Tap to start'));

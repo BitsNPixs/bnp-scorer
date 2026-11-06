@@ -40,7 +40,7 @@ class ScoringScreen extends ConsumerWidget {
   }
 }
 
-enum _MenuAction { changeBowler, retire, endInnings }
+enum _MenuAction { changeBowler, retire, endInnings, abandon }
 
 class _ScoringView extends ConsumerWidget {
   const _ScoringView({required this.matchId, required this.live});
@@ -87,7 +87,7 @@ class _ScoringView extends ConsumerWidget {
             icon: const Icon(Icons.table_chart_outlined),
           ),
           PopupMenuButton<_MenuAction>(
-            enabled: isLive,
+            enabled: phase != MatchPhase.completed,
             onSelected: (action) => _onMenu(context, ref, action),
             itemBuilder: (context) => [
               PopupMenuItem(
@@ -100,17 +100,25 @@ class _ScoringView extends ConsumerWidget {
               ),
               PopupMenuItem(
                 value: _MenuAction.retire,
-                enabled: phase != MatchPhase.awaitingBatter,
+                enabled: isLive && phase != MatchPhase.awaitingBatter,
                 child: const ListTile(
                   leading: Icon(Icons.personal_injury_outlined),
                   title: Text('Retire batter'),
                 ),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: _MenuAction.endInnings,
-                child: ListTile(
+                enabled: isLive,
+                child: const ListTile(
                   leading: Icon(Icons.flag_outlined),
                   title: Text('End innings'),
+                ),
+              ),
+              const PopupMenuItem(
+                value: _MenuAction.abandon,
+                child: ListTile(
+                  leading: Icon(Icons.umbrella_outlined),
+                  title: Text('Abandon match'),
                 ),
               ),
             ],
@@ -270,10 +278,37 @@ class _ScoringView extends ConsumerWidget {
     );
   }
 
+  Future<void> _confirmAbandon(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Abandon this match?'),
+        content: const Text(
+          'It ends with no result and each team gets a point. Undo brings it back.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Keep playing'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Abandon'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+    reportResult(context, _notifier(ref).abandon('Abandoned'));
+  }
+
   Future<void> _onMenu(BuildContext context, WidgetRef ref, _MenuAction action) async {
     final state = live.state;
     final inn = state.current;
     switch (action) {
+      case _MenuAction.abandon:
+        await _confirmAbandon(context, ref);
       case _MenuAction.changeBowler:
         final id = await showModalBottomSheet<String>(
           context: context,

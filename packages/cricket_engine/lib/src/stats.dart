@@ -10,6 +10,7 @@ const _statBallsPerOver = 6;
 
 const pointsForWin = 2;
 const pointsForTie = 1;
+const pointsForNoResult = 1;
 
 class HighScore {
   const HighScore({required this.runs, required this.notOut});
@@ -131,7 +132,7 @@ class PlayerStats {
   final FieldingStats fielding;
 }
 
-enum MatchOutcome { won, lost, tied }
+enum MatchOutcome { won, lost, tied, noResult }
 
 class TeamStats {
   const TeamStats({
@@ -140,6 +141,7 @@ class TeamStats {
     required this.won,
     required this.lost,
     required this.tied,
+    required this.noResults,
     required this.runsFor,
     required this.runsAgainst,
     required this.oversFaced,
@@ -154,6 +156,7 @@ class TeamStats {
   final int won;
   final int lost;
   final int tied;
+  final int noResults;
   final int runsFor;
   final int runsAgainst;
 
@@ -166,11 +169,12 @@ class TeamStats {
   /// Results in the order they were played.
   final List<MatchOutcome> form;
 
-  int get played => won + lost + tied;
-  int get points => won * pointsForWin + tied * pointsForTie;
+  int get played => won + lost + tied + noResults;
+  int get points => won * pointsForWin + tied * pointsForTie + noResults * pointsForNoResult;
 
   /// Net run rate: runs per over scored minus runs per over conceded. A side
-  /// bowled out is charged its full quota of overs.
+  /// bowled out is charged its full quota of overs. Abandoned matches are left
+  /// out, because the two sides did not face the same overs.
   double? get netRunRate {
     if (oversFaced == 0 || oversBowled == 0) return null;
     return runsFor / oversFaced - runsAgainst / oversBowled;
@@ -241,9 +245,10 @@ StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = 
 
     for (final team in [setup.teamA, setup.teamB]) {
       final record = teams.putIfAbsent(team.id, _TeamBuilder.new)..name = team.name;
-      record.form.add(switch (result.winnerTeamId) {
-        null => MatchOutcome.tied,
-        final winner when winner == team.id => MatchOutcome.won,
+      record.form.add(switch (result) {
+        MatchResult(kind: ResultKind.noResult) => MatchOutcome.noResult,
+        MatchResult(winnerTeamId: null) => MatchOutcome.tied,
+        MatchResult(:final winnerTeamId) when winnerTeamId == team.id => MatchOutcome.won,
         _ => MatchOutcome.lost,
       });
       for (final player in team.players) {
@@ -257,9 +262,11 @@ StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = 
 
     for (final innings in match.innings) {
       final batting = setup.teamById(innings.battingTeamId);
-      final overs = _oversForRunRate(innings, batting, setup.rules);
-      teams[innings.battingTeamId]!.addInningsBatted(innings.runs, overs);
-      teams[innings.bowlingTeamId]!.addInningsBowled(innings.runs, overs);
+      if (result.kind != ResultKind.noResult) {
+        final overs = _oversForRunRate(innings, batting, setup.rules);
+        teams[innings.battingTeamId]!.addInningsBatted(innings.runs, overs);
+        teams[innings.bowlingTeamId]!.addInningsBowled(innings.runs, overs);
+      }
 
       for (final score in innings.batters) {
         players[score.playerId]!.addInnings(score);
@@ -429,6 +436,7 @@ class _TeamBuilder {
         won: form.where((o) => o == MatchOutcome.won).length,
         lost: form.where((o) => o == MatchOutcome.lost).length,
         tied: form.where((o) => o == MatchOutcome.tied).length,
+        noResults: form.where((o) => o == MatchOutcome.noResult).length,
         runsFor: runsFor,
         runsAgainst: runsAgainst,
         oversFaced: oversFaced,

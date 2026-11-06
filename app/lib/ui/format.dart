@@ -75,6 +75,8 @@ String matchStatus(MatchState state) {
     switch (result.kind) {
       case ResultKind.tie:
         return 'Match tied';
+      case ResultKind.noResult:
+        return 'No result';
       case ResultKind.runs:
         return '${setup.teamById(result.winnerTeamId!).name} won by '
             '${plural(result.margin, 'run')}';

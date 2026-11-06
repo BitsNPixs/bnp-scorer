@@ -49,6 +49,7 @@ class _TeamStats extends StatelessWidget {
             ('Won', '${team.won}'),
             ('Lost', '${team.lost}'),
             ('Tied', '${team.tied}'),
+            ('No result', '${team.noResults}'),
             ('Points', '${team.points}'),
             ('Net run rate', signedDecimal(team.netRunRate)),
           ],
@@ -108,6 +109,7 @@ class _FormChip extends StatelessWidget {
       MatchOutcome.won => ('W', AppColors.lime),
       MatchOutcome.lost => ('L', AppColors.wicket),
       MatchOutcome.tied => ('T', AppColors.extra),
+      MatchOutcome.noResult => ('N', AppColors.extra),
     };
     return CircleAvatar(
       radius: 18,

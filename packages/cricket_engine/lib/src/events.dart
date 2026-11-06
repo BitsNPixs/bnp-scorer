@@ -56,6 +56,8 @@ sealed class MatchEvent {
       StrikeSwapped.typeName => StrikeSwapped(id: id, at: at),
       InningsClosed.typeName =>
         InningsClosed(id: id, at: at, reason: json['reason']! as String),
+      MatchAbandoned.typeName =>
+        MatchAbandoned(id: id, at: at, reason: json['reason']! as String),
       final other => throw FormatException('Unknown event type: $other'),
     };
   }
@@ -211,6 +213,20 @@ final class InningsClosed extends MatchEvent {
   const InningsClosed({required super.id, required super.at, required this.reason});
 
   static const typeName = 'inningsClosed';
+  final String reason;
+
+  @override
+  String get type => typeName;
+
+  @override
+  Json payloadToJson() => {'reason': reason};
+}
+
+/// Ends the match with no result (rain, bad light, no ground), at any point.
+final class MatchAbandoned extends MatchEvent {
+  const MatchAbandoned({required super.id, required super.at, required this.reason});
+
+  static const typeName = 'matchAbandoned';
   final String reason;
 
   @override

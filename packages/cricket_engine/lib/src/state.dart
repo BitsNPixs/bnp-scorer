@@ -229,7 +229,7 @@ class InningsState {
   }
 }
 
-enum ResultKind { runs, wickets, tie }
+enum ResultKind { runs, wickets, tie, noResult }
 
 class MatchResult {
   const MatchResult({
@@ -241,7 +241,7 @@ class MatchResult {
 
   final ResultKind kind;
 
-  /// Null for a tie.
+  /// Null for a tie or no result.
   final String? winnerTeamId;
   final int margin;
 

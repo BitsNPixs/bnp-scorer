@@ -102,6 +102,8 @@ class _MatchBuilder {
       case final InningsClosed e:
         _requireLive(p);
         current.close(e.reason);
+      case MatchAbandoned():
+        result = const MatchResult(kind: ResultKind.noResult);
     }
     if (innings.length == 2 && current.complete) result = _computeResult();
   }

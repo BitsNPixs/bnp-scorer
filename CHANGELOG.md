@@ -22,6 +22,9 @@
 - Super Overs for tied knockout games, played as a one-over match with an innings
   ending at two wickets (`MatchRules.superOver`). A tied Super Over leads to
   another. They are left out of career stats.
+- No result: a match can be abandoned at any point (`MatchAbandoned`). Each side
+  gets a point, it stays out of net run rate, and a knockout game goes to a Super
+  Over.
 - Home filter chips for each tournament and for friendlies.
 - A changed result now flags any knockout game it affects: unplayed games can be
   corrected in one tap, and played ones are explained rather than silently left

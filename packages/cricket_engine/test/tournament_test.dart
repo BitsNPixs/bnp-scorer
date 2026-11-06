@@ -333,6 +333,44 @@ void main() {
     });
   });
 
+  group('abandoned games', () {
+    MatchState abandoned(Team first, Team second) {
+      final at = DateTime.utc(2026);
+      final setup = MatchSetup(
+        id: 'rain',
+        teamA: first,
+        teamB: second,
+        rules: MatchRules(oversPerInnings: 1),
+        tossWinnerId: first.id,
+        tossDecision: TossDecision.bat,
+      );
+      return ScoringEngine.replay(setup, [MatchAbandoned(id: 'e', at: at, reason: 'Rain')]);
+    }
+
+    test('an abandoned league game counts as played', () {
+      final (t, matches) = _record(_tournament(['a', 'b']), const {}, 'f1', abandoned(_team('a'), _team('b')));
+      final p = progressOf(t, matches);
+      expect(p.fixtures.single.isFinished, isTrue);
+      expect(p.tables.single.teams.map((team) => team.points), [1, 1]);
+      expect(p.nextRound, isEmpty);
+      expect(p.championId, isNotNull);
+    });
+
+    test('an abandoned final goes to a Super Over', () {
+      final start = _tournament(['a', 'b', 'c'], hasFinal: true);
+      final winners = [
+        for (final f in start.fixtures) f.teamAId == 'a' || f.teamBId == 'a' ? 'a' : 'b',
+      ];
+      var (t, matches) = _play(start, winners);
+      t = t.withFixtures(progressOf(t, matches).nextRound);
+      (t, matches) = _record(t, matches, 'final', abandoned(_team('a'), _team('b')));
+
+      final p = progressOf(t, matches);
+      expect(p.championId, isNull);
+      expect(p.nextRound.single.isDecider, isTrue);
+    });
+  });
+
   group('corrected results', () {
     (Tournament, Map<String, MatchState>) semisPlayed() {
       final start = _tournament(['a', 'b', 'c', 'd'], hasFinal: true, hasSemiFinals: true);

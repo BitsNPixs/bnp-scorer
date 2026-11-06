@@ -19,14 +19,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- v0.1 is **written but has never been compiled, analysed or tested**. The
-  environment it was written in had no Dart/Flutter SDK. An independent desk
-  review found no compile errors and its valid findings were fixed (CHANGELOG).
-- There is **no git history yet**. Initialise git after the first green run.
-- Platform folders (`app/android`, `app/ios`) are **not generated yet**. See
-  README "Setup".
-- **Your first task:** run README "Verify" end to end and fix whatever fails
-  (ROADMAP "Phase 0").
+- v0.1 **builds and runs on Android**. On 2026-11-06 analyze was clean for the
+  app and engine, all tests passed (app 11, engine 46), and a debug APK was
+  installed and launched on a physical phone (Android 17). Scoring has not been
+  exercised by hand on a device yet. Only the debug build has been tried.
+- Git is initialised. Commit each finished, verified piece of work.
+- `app/android` is generated. `app/ios` is **not generated yet** and iOS is
+  unverified (needs a Mac). See README "Setup".
+- `kotlin.incremental=false` in `app/android/gradle.properties` works around a
+  Kotlin cache failure when the pub cache and project are on different drives.
 
 ## Working rules (from the project owner, mandatory)
 1. Never assume. If requirements, behaviour or architecture are unclear, inspect

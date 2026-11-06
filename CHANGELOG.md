@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+- Generated the Android platform folder (`app/android`), label "BNP Scorer".
+
+### Fixed
+- Android build: set `kotlin.incremental=false`, because compiling
+  `shared_preferences_android` failed on Kotlin's incremental caches. The pub
+  cache and project were on different drives, which is the suspected cause.
+
+### Verified
+- First real run: analyze clean, app and engine tests pass, debug APK installed
+  and launched on a phone. iOS, release builds and full on-device scoring are
+  still unverified.
+
 ## 0.1.0 — 2026-11-05
 
 ### Added

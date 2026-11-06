@@ -5,8 +5,8 @@ By Bits N Pixs (BNP).
 Ball-by-ball cricket scoring for local matches, for Android and iOS (Flutter).
 Offline-first: scoring works with no network and every match is stored on the device.
 
-> Status: **v0.1, not yet compiled or run.** The code was written in an environment
-> without a Dart/Flutter SDK. Run the checks in "Verify" below before building on it.
+> Status: **v0.1, builds and runs on Android (debug).** iOS has not been generated
+> or tested yet. Run the checks in "Verify" below before building on it.
 
 ## Documentation
 | File | For |

@@ -1,0 +1,30 @@
+import 'package:cricket_engine/cricket_engine.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../data/match_record.dart';
+import '../data/match_repository.dart';
+
+/// Overridden in `main()` with the real implementation.
+final matchRepositoryProvider = Provider<MatchRepository>(
+  (ref) => throw UnimplementedError('matchRepositoryProvider must be overridden'),
+);
+
+/// A stored match with its replayed state, for lists.
+typedef MatchSummary = ({MatchRecord record, MatchState state});
+
+final matchListProvider = FutureProvider.autoDispose<List<MatchSummary>>((ref) async {
+  final records = await ref.watch(matchRepositoryProvider).loadAll();
+  final summaries = <MatchSummary>[];
+  for (final record in records) {
+    try {
+      summaries.add((
+        record: record,
+        state: ScoringEngine.replay(record.setup, record.events),
+      ));
+    } on ScoringException catch (e) {
+      debugPrint('Skipping match ${record.id} with an invalid log: $e');
+    }
+  }
+  return summaries;
+});

@@ -1,0 +1,25 @@
+name: bnp_scorer
+description: BNP Scorer — ball-by-ball cricket scoring for local matches, by Bits N Pixs.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cricket_engine:
+    path: ../packages/cricket_engine
+  flutter_riverpod: ^3.0.0
+  google_fonts: ^6.2.1
+  shared_preferences: ^2.3.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

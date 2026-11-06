@@ -73,7 +73,9 @@ void main() {
 
     await tester.tap(find.byTooltip('Show menu'));
     await tester.pump(_settle);
+    await tester.pump(_settle);
     await tester.tap(find.text('Abandon match'));
+    await tester.pump(_settle);
     await tester.pump(_settle);
     await tester.tap(find.text('Abandon'));
     await tester.pump(_settle);

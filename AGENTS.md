@@ -28,6 +28,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline. A squad can gain players but there is no screen yet
   to remove one or to rename a player: delete the team and re-enter it.
+- Stats (`computeStats`, `StatsScreen`) cover finished matches only and are
+  grouped by team and player id, across all matches. There is no filter by
+  tournament or season yet.
 - Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
   (README "Demo data"). There is no tournament feature yet: the cup is only a
   set of ordinary matches, labelled through `venue`.
@@ -76,7 +79,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **State:** Riverpod 3 without code generation. One `AsyncNotifier` per live
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
-- **Navigation:** plain `Navigator` (4 screens). Add go_router only with deep
+- **Stats are derived too:** add a number to `stats.dart`, never store one.
+- **Navigation:** plain `Navigator` (7 screens). Add go_router only with deep
   links (shared scorecards).
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.
@@ -96,6 +100,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Colours, fonts, numbers | `AppColors`, `AppTheme`, `scoreStyle()` (`theme/app_theme.dart`) |
 | New ids | `newId()` (`data/ids.dart`) |
+| Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |
+| Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 
 ## Gotchas

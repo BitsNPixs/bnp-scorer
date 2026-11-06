@@ -64,9 +64,10 @@
 - FCM pushes for wickets, milestones and results. Share a match link.
 
 **Phase 4: tournaments and stats**
-- Tournaments, fixtures, points table, NRR, player career stats and
-  leaderboards. Precompute them in Functions. Never let clients write
-  aggregates.
+- Career stats, NRR and leaderboards work on the device from local matches
+  (`computeStats`). Still to do: tournaments and fixtures, a points table per
+  tournament, and precomputing shared stats in Functions. Never let clients
+  write aggregates.
 - Charts: Manhattan, worm, wagon wheel (needs shot direction added to
   `BallBowled` as an optional field).
 

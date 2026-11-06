@@ -25,6 +25,9 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.
+- **Stats:** team table with points, net run rate and form, batting and bowling
+  leaderboards, and a full profile for each team and player. Worked out from
+  finished matches, so they always agree with the scorecards.
 - **Live scoring:**
   - one-tap 0–4 and 6, wides, no-balls (bat runs or byes), byes and leg byes;
   - wickets: only legal dismissal types are offered, including on free hits;

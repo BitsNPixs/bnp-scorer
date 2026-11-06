@@ -23,6 +23,14 @@ final savedTeamsProvider = FutureProvider.autoDispose<List<Team>>(
 /// A stored match with its replayed state, for lists.
 typedef MatchSummary = ({MatchRecord record, MatchState state});
 
+/// Career numbers from every finished match. Derived, never stored.
+final statsProvider = FutureProvider.autoDispose<StatsBook>((ref) async {
+  final matches = await ref.watch(matchListProvider.future);
+  final oldestFirst = [...matches]
+    ..sort((a, b) => a.record.createdAt.compareTo(b.record.createdAt));
+  return computeStats(oldestFirst.map((m) => m.state));
+});
+
 final matchListProvider = FutureProvider.autoDispose<List<MatchSummary>>((ref) async {
   final records = await ref.watch(matchRepositoryProvider).loadAll();
   final summaries = <MatchSummary>[];

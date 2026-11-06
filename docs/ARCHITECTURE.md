@@ -116,6 +116,17 @@ with target = first innings runs + 1), then `completed` (result set).
 - **getters:** `oversText`, `runRate`, `runsNeeded`, `requiredRunRate`,
   `ballsRemaining`, `batter(id)`, `bowler(id)`.
 
+### Stats (`stats.dart`)
+`computeStats` folds finished matches, oldest first, into a `StatsBook` of
+`PlayerStats` and `TeamStats`. Nothing is stored. Definitions:
+- Average: runs per dismissal, with no value until the batter is out. Retired
+  hurt is not out.
+- Bowling average is runs per wicket, strike rate balls per wicket, economy
+  runs per over. Run outs are not credited to the bowler.
+- Points: 2 for a win, 1 for a tie.
+- Net run rate: runs per over scored minus conceded. A side bowled out is charged
+  its full overs. A chase that ends early uses the overs actually faced.
+
 ### Adding a rule or event (checklist)
 1. Write the failing test in `engine_test.dart` using the `Scorer` helper
    (`start()`, `runs()`, `wide()`, `out()`, `rejects()`).

@@ -9,3 +9,4 @@ export 'src/engine.dart';
 export 'src/events.dart';
 export 'src/models.dart';
 export 'src/state.dart';
+export 'src/stats.dart';

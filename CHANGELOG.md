@@ -13,6 +13,14 @@
   team from the list, extra players sit out, and teams are remembered when a
   match starts. Team and player ids stay the same across matches.
 
+- Stats: `computeStats` in `cricket_engine` derives player and team numbers from
+  finished matches. Home has a Stats button leading to a team table, batting and
+  bowling leaderboards, and team and player profiles.
+
+### Changed
+- A team typed with a saved team's name now uses that team's ids, so a player's
+  stats are not split across two identities.
+
 ### Fixed
 - New match: the "Players · N" label no longer overflows next to "Fill to 11"
   on narrow screens.

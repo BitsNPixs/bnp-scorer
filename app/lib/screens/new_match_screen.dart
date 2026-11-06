@@ -82,6 +82,8 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     if (_blocker != null || _saving) return;
     setState(() => _saving = true);
     final savedTeams = ref.read(teamRepositoryProvider);
+    await _linkTypedTeams(savedTeams);
+    if (!mounted) return;
     final now = DateTime.now();
     final teamA = _teamA.build();
     final teamB = _teamB.build();
@@ -120,6 +122,20 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: setup.id)),
     );
+  }
+
+  /// Career stats follow ids, so a team typed by hand must share the ids of the
+  /// saved team with its name. Without saved teams it is simply a new team.
+  Future<void> _linkTypedTeams(TeamRepository repository) async {
+    final List<Team> saved;
+    try {
+      saved = await repository.loadAll();
+    } on Object catch (e) {
+      debugPrint('Loading saved teams failed: $e');
+      return;
+    }
+    _teamA.linkByName(saved, _teamB);
+    _teamB.linkByName(saved, _teamA);
   }
 
   /// The match is already saved, so a failure here must not stop it starting.
@@ -372,10 +388,23 @@ class _TeamDraft {
 
   bool isSaved(String player) => _savedPlayerIds.containsKey(player);
 
-  void load(Team team) {
-    final names = [for (final p in team.players) p.name];
+  void _useIdsOf(Team team) {
     savedTeamId = team.id;
     _savedPlayerIds = {for (final p in team.players) p.name: p.id};
+  }
+
+  /// Treats a typed name as the saved team of that name. [other] may already
+  /// be playing as that team, and a team cannot play itself.
+  void linkByName(List<Team> saved, _TeamDraft other) {
+    if (savedTeamId != null) return;
+    final typed = name.text.trim().toLowerCase();
+    final match = saved.where((t) => t.name.toLowerCase() == typed && t.id != other.savedTeamId);
+    if (match.isNotEmpty) _useIdsOf(match.first);
+  }
+
+  void load(Team team) {
+    final names = [for (final p in team.players) p.name];
+    _useIdsOf(team);
     players
       ..clear()
       ..addAll(names.take(_quickFillSize));

@@ -10,6 +10,7 @@ import '../widgets/avatars.dart';
 import '../widgets/score_header.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
+import 'stats_screen.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -97,13 +98,20 @@ class _BrandHeader extends StatelessWidget {
                 child: const Icon(Icons.sports_cricket_rounded, color: AppColors.lime),
               ),
               const SizedBox(width: 12),
-              Flexible(
+              Expanded(
                 child: Text(
                   'BNP Scorer',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: scoreStyle(28, color: scheme.onSurface, weight: FontWeight.w800),
                 ),
+              ),
+              IconButton.filledTonal(
+                tooltip: 'Stats',
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(builder: (_) => const StatsScreen()),
+                ),
+                icon: const Icon(Icons.leaderboard_rounded),
               ),
             ],
           ),

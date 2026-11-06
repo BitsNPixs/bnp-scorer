@@ -1,6 +1,9 @@
 import 'package:cricket_engine/cricket_engine.dart';
 
-String plural(int count, String word) => '$count $word${count == 1 ? '' : 's'}';
+String plural(int count, String word) {
+  final ending = word.endsWith('ch') ? 'es' : 's';
+  return '$count $word${count == 1 ? '' : ending}';
+}
 
 String playerName(MatchSetup setup, String? playerId) {
   if (playerId == null) return '—';
@@ -44,6 +47,23 @@ String dismissalText(MatchSetup setup, BatterScore batter) {
     DismissalType.retiredHurt => 'retired hurt',
   };
 }
+
+/// [value] to [digits] places, or a dash when it has no value yet.
+String decimal(double? value, [int digits = 2]) => value?.toStringAsFixed(digits) ?? '—';
+
+/// Net run rate style, always with a sign: "+1.25".
+String signedDecimal(double? value) {
+  if (value == null) return '—';
+  return '${value >= 0 ? '+' : ''}${value.toStringAsFixed(2)}';
+}
+
+/// "48*" for a not-out score.
+String highScoreText(HighScore? high) =>
+    high == null ? '—' : '${high.runs}${high.notOut ? '*' : ''}';
+
+/// Wickets then runs, e.g. "3/16".
+String bestBowlingText(BestBowling? best) =>
+    best == null ? '—' : '${best.wickets}/${best.runs}';
 
 String inningsLabel(int number) => number == 1 ? '1st innings' : '2nd innings';
 

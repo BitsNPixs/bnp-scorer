@@ -186,6 +186,41 @@ void main() {
     expect(teams.teams.values.single.players.map((p) => p.name), ['Asha', 'Bilal']);
   });
 
+  testWidgets('typing a saved name reuses its team and player ids', (tester) async {
+    await teams.save(_squad('a', 'Alpha', 3));
+    await teams.save(_squad('b', 'Bravo', 2));
+    await pump(tester);
+
+    await tester.enterText(find.byType(TextField).at(0), 'alpha');
+    await addPlayer(tester, find.byType(TextField).at(1), 'Alpha P2');
+    await addPlayer(tester, find.byType(TextField).at(1), 'New Face');
+    await pick(tester, 'Bravo', side: 1);
+    await start(tester);
+
+    final team = matches.records.values.single.setup.teamA;
+    expect(team.id, 'a');
+    expect(team.players.first.id, 'a-2');
+    expect(teams.teams, hasLength(2), reason: 'no duplicate team');
+    expect(teams.teams['a']!.players, hasLength(4));
+  });
+
+  testWidgets('renaming a picked team over a typed team keeps two teams', (tester) async {
+    await teams.save(_squad('a', 'Alpha', 2));
+    await pump(tester);
+
+    await pick(tester, 'Alpha');
+    await tester.enterText(find.byType(TextField).at(0), 'Renamed');
+    await tester.pump(_settle);
+    await tester.enterText(find.byType(TextField).at(2), 'Alpha');
+    await addPlayer(tester, find.byType(TextField).at(3), 'Asha');
+    await addPlayer(tester, find.byType(TextField).at(3), 'Bilal');
+    await start(tester);
+
+    final setup = matches.records.values.single.setup;
+    expect(setup.teamA.id, 'a');
+    expect(setup.teamB.id, isNot('a'));
+  });
+
   testWidgets('a saved team cannot play itself', (tester) async {
     await teams.save(_squad('a', 'Alpha', 11));
     await pump(tester);

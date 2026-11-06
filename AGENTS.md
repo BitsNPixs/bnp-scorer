@@ -19,14 +19,19 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest full run: 146 engine and 147 app tests passing, and a debug build with
-  every feature installed on a phone (2026-11-06). Most newer screens are checked
-  by widget tests at 360 dp rather than by hand on a device.
-- v0.1 **builds and runs on Android**. On 2026-11-06 analyze was clean for the
-  app and engine, all tests passed (app 11, engine 46), and a debug APK was
-  installed and launched on a physical phone (Android 17). Scoring has not been
-  exercised by hand on a device yet. Only the debug build has been tried.
-- Git is initialised. Commit each finished, verified piece of work.
+- Latest run (2026-11-06): analyze clean, 146 engine and 161 app tests passing,
+  and a debug demo build installed on a phone (Android 17).
+- **Checked by hand on the phone so far:** launch, Home and its filter, Stats, a
+  tournament's matches, New match with saved teams, the Overs tab.
+- **Not yet checked on a real phone:** sharing to WhatsApp, backup and restore
+  (tests replace the share sheet and file picker), charts, the wagon wheel, the
+  Teams screen, Super Overs, and a full match scored by hand. See ROADMAP "Open
+  issues".
+- Only the debug build has been tried. Release builds and iOS have not.
+- Work happens on the `dev` branch, which has not been merged to `main` or pushed.
+  Commit each finished, verified piece of work.
+- `test-team.xlsx` in the repo root holds real names. The owner wants it left out
+  of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline and are edited on the Teams screen (Home, More menu).
@@ -43,9 +48,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.
-- Demo builds: `--dart-define=BNP_DEMO=true` seeds sample matches at launch
-  (README "Demo data"). There is no tournament feature yet: the cup is only a
-  set of ordinary matches, labelled through `venue`.
+- Demo builds: `--dart-define=BNP_DEMO=true` seeds teams, five finished
+  tournaments and two friendlies at launch (README "Demo data"). All of it is
+  simulated through the engine. Normal builds contain none of it.
 - `kotlin.incremental=false` in `app/android/gradle.properties` works around a
   Kotlin cache failure when the pub cache and project are on different drives.
 
@@ -141,6 +146,13 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds` and
   `bnp_scorer.tournament.<id>`. Changing them loses users' data.
+- **Wrap and chips:** a `Container` with `alignment` fills its parent's width. Size
+  to the content with `Center(widthFactor: 1)`, and test sizes as well as presence:
+  `BallChip` once stretched across the screen with every test passing.
+- **Wide tab bars:** scrollable tabs can start off-screen at 360 dp. Call
+  `ensureVisible` before tapping one in a test.
+- **Installing on a phone:** use `adb install -r`, which keeps saved data.
+  `flutter install` can uninstall first.
 - Name clash: "Crease" is another cricket app. The product name is BNP Scorer.
   The words crease / `CreasePanel` refer to the cricket crease, not the old name.
 

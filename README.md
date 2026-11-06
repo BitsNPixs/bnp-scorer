@@ -5,8 +5,8 @@ By Bits N Pixs (BNP).
 Ball-by-ball cricket scoring for local matches, for Android and iOS (Flutter).
 Offline-first: scoring works with no network and every match is stored on the device.
 
-> Status: **v0.1, builds and runs on Android (debug).** iOS has not been generated
-> or tested yet. Run the checks in "Verify" below before building on it.
+> Status: **v0.1, builds and runs on Android (debug).** Release builds and iOS have
+> not been tried. Run the checks in "Verify" below before building on it.
 
 ## Documentation
 | File | For |
@@ -21,7 +21,7 @@ Offline-first: scoring works with no network and every match is stored on the de
 
 - **Match setup** in one screen: team names, players (type names or "Fill to 11"),
   overs (presets or stepper), toss, venue, and house rules (wide/no-ball run,
-  free hit, last man stands, max overs per bowler).
+  free hit, last man stands, max overs per bowler, shot direction).
 - **Teams:** edit a squad from Home's More menu: rename players, set roles, and
   mark the captain, vice-captain and wicket-keeper. Scorecards show (c) and (wk).
 - **Saved teams:** a team is remembered when its first match starts, then
@@ -44,18 +44,21 @@ Offline-first: scoring works with no network and every match is stored on the de
   with a caption.
 - **Awards:** Player of the Match on every result, MVP rankings, and Player of the
   Tournament for each champion.
-- **Stats:** team table with points, net run rate and form, batting and bowling
-  leaderboards, and a full profile for each team and player. Worked out from
-  finished matches, so they always agree with the scorecards.
+- **Stats:** team table with points, net run rate and form, batting, bowling, MVP
+  and boundary leaderboards, and a full profile for each team and player. Worked
+  out from finished matches, so they always agree with the scorecards.
 - **Live scoring:**
   - one-tap 0–4 and 6, wides, no-balls (bat runs or byes), byes and leg byes;
   - wickets: only legal dismissal types are offered, including on free hits;
   - run outs at either end with runs completed, plus the fielder or keeper;
-  - undo, swap strike, mid-over bowler change, retire hurt or out, end innings.
+  - undo, swap strike, mid-over bowler change, retire hurt or out, end innings,
+    abandon the match with no result.
 - **Guided flow**: the bottom panel always shows the next thing to do
   (openers → bowler → score → new batter → next over → innings break → result).
-- **Scorecard**: batting, extras, total, yet to bat, fall of wickets, bowling.
-- **Home**: match list with live/result status, long-press to delete.
+- **Scorecard**: batting, extras, total, yet to bat, fall of wickets, bowling,
+  plus the Overs and Charts tabs and sharing.
+- **Home**: match list with live/result status, filter chips, long-press to delete,
+  and shortcuts to Tournaments, Stats, Teams and Backup.
 
 ```
 packages/cricket_engine/   Pure Dart scoring engine (no Flutter) + rules test suite
@@ -66,11 +69,12 @@ docs/                      Architecture and roadmap
 ## Setup
 
 1. Install Flutter (stable, 3.32 or newer) and run `flutter doctor`.
-2. Generate the Android/iOS platform folders (this does not touch `lib/`):
+2. `app/android` is already in the repo. For iOS, generate the folder on a Mac
+   (this does not touch `lib/`):
 
    ```sh
    cd app
-   flutter create . --org com.bitsnpixs --project-name bnp_scorer --platforms android,ios
+   flutter create . --org com.bitsnpixs --project-name bnp_scorer --platforms ios
    flutter pub get
    ```
 
@@ -87,10 +91,16 @@ docs/                      Architecture and roadmap
 
 ## Demo data
 
-Build with `--dart-define=BNP_DEMO=true` to fill the app with sample data: five
-finished tournaments (BNP Cup, Pongal Trophy, Monsoon League, Summer Shield and
-Winter Bash) and a friendly left in progress, so scoring can be shown straight away. The four full
-squads are added to Saved teams too.
+Build with `--dart-define=BNP_DEMO=true` to fill the app with sample data:
+
+- the four full squads, in Saved teams;
+- five finished tournaments: BNP Cup, Pongal Trophy (every format at once, with a
+  tied final and a Super Over), Monsoon League, Summer Shield and Winter Bash;
+- a friendly left in progress, so scoring can be shown straight away;
+- an Exhibition match with a wagon wheel.
+
+All performances are simulated through the scoring engine, so they are invented
+even though the squad names are real.
 
 ```sh
 cd app
@@ -101,8 +111,8 @@ adb install -r build/app/outputs/flutter-apk/app-debug.apk
 Use `adb install -r` to keep what is already saved on the phone. Demo matches
 are added at launch only if missing, so a match scored in a demo is kept and a
 deleted one comes back on the next launch. Teams and tournaments work the same
-way. Normal
-builds contain no demo data, but anything already stored on a phone stays there.
+way. Normal builds contain no demo data, but anything already stored on a phone
+stays there.
 
 ## Verify
 
@@ -125,4 +135,4 @@ flutter build apk --debug      # and `flutter build ios --no-codesign` on a Mac
 
 `google_fonts` downloads Inter and Space Grotesk on first launch and caches
 them. If there's no network on first launch, the system font is used. Bundling
-the fonts is listed in [docs/ROADMAP.md](docs/ROADMAP.md) (open issue 7).
+the fonts is listed in [docs/ROADMAP.md](docs/ROADMAP.md) (open issue 9).

@@ -6,13 +6,12 @@
 - Generated the Android platform folder (`app/android`), label "BNP Scorer".
 - Demo data behind `--dart-define=BNP_DEMO=true` (`app/lib/data/demo_data.dart`):
   a five-match cup and a live friendly for four real squads. Matches are
-  simulated through `ScoringEngine`, and normal builds are unaffected.
-
+  simulated through `ScoringEngine`, and normal builds are unaffected. It has since
+  grown to five tournaments, two friendlies and the four squads.
 - Saved teams: squads are stored separately from matches (`TeamRepository`,
   keys `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`). New match can fill a
   team from the list, extra players sit out, and teams are remembered when a
   match starts. Team and player ids stay the same across matches.
-
 - Tournaments: round-robin fixtures, an optional final between the top two, a
   points table of league games, leaderboards per tournament and a champion. Stored
   as `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`. Results stay in
@@ -55,6 +54,9 @@
   stats are not split across two identities.
 
 ### Fixed
+- Ball chips stretched across the whole line on the Overs tab. They now size to
+  their label, and tests check the size.
+- A tournament with results but no boundaries showed a blank Boundaries tab.
 - New match: the "Players · N" label no longer overflows next to "Fill to 11"
   on narrow screens.
 - Android build: set `kotlin.incremental=false`, because compiling
@@ -63,8 +65,11 @@
 
 ### Verified
 - First real run: analyze clean, app and engine tests pass, debug APK installed
-  and launched on a phone. iOS, release builds and full on-device scoring are
-  still unverified.
+  and launched on a phone.
+- Latest run: 146 engine and 161 app tests pass, and existing saved data loaded
+  after every update.
+- Still unverified: iOS, release builds, a full match scored by hand, and on a real
+  phone, sharing, backup and restore, charts, the wagon wheel and the Teams screen.
 
 ## 0.1.0 — 2026-11-05
 
@@ -103,6 +108,6 @@
   `CurvedAnimation`; null-aware collection elements for the Dart 3.8 lint;
   engine package aligned to Dart 3.8 and `lints` 6.
 
-### Not yet verified
+### Not verified at the time
 - Not compiled or tested: no Dart/Flutter SDK was available when this was
-  written. Run the commands in README "Verify".
+  written. The first real run is recorded under Unreleased.

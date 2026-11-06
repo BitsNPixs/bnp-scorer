@@ -9,20 +9,27 @@ How BNP Scorer works, for anyone extending it. Rules for changing it are in
 packages/cricket_engine/        Pure Dart scoring engine (no Flutter)
   lib/cricket_engine.dart       Public exports
   lib/src/models.dart           Player, Team, MatchRules, MatchSetup, enums
-  lib/src/events.dart           MatchEvent (sealed) + 7 event types, JSON
+  lib/src/events.dart           MatchEvent (sealed) + 8 event types, JSON
   lib/src/state.dart            Immutable derived state: MatchState, InningsState, …
   lib/src/engine.dart           ScoringEngine.replay / apply, allowedDismissals
-  test/engine_test.dart         Rules test suite (Scorer test helper)
+  lib/src/stats.dart            computeStats, MVP points, Player of the Match
+  lib/src/tournament.dart       Tournament, Fixture, fixture generation, progressOf
+  test/                         Rules, stats, tournament and no-result suites
 app/                            Flutter app (package name bnp_scorer)
-  lib/main.dart                 Loads SharedPreferences, overrides the repository
+  lib/main.dart                 Loads SharedPreferences, overrides the repositories,
+                                seeds demo data in demo builds
   lib/app.dart                  BnpScorerApp (MaterialApp, light/dark themes)
-  lib/data/                     MatchRecord, MatchRepository, LocalMatchRepository, newId
-  lib/state/                    providers.dart (repository, match list), live_match.dart
-  lib/screens/                  Home, NewMatch, Scoring, Scorecard
-  lib/widgets/                  Score hero, over strip, crease panel, pad, sheets, panels
+  lib/data/                     Records, repositories, LocalDocuments, Backup,
+                                DeviceFiles, demo data, newId
+  lib/state/                    providers.dart (repositories, lists, stats), live_match.dart
+  lib/screens/                  Home, NewMatch, Scoring, Scorecard, Stats, player and team
+                                stats, Tournaments, Tournament, NewTournament, Teams,
+                                TeamEdit, Backup
+  lib/widgets/                  Score hero, over strip, crease panel, pad, sheets, panels,
+                                charts, overs timeline, wagon wheel, share card
   lib/theme/app_theme.dart      AppColors, AppFonts, AppTheme, scoreStyle()
   lib/ui/                       format.dart, feedback.dart, inputs.dart
-  test/                         fakes, notifier tests, storage tests, scoring flow widget test
+  test/                         fakes, unit tests, widget tests per feature
 docs/                           This file and ROADMAP.md
 ```
 
@@ -46,7 +53,7 @@ immutable `MatchState`. Nothing derived is ever stored.
 | --- | --- | --- | --- |
 | `OpenersSelected` | `openersSelected` | `strikerId`, `nonStrikerId` | Starts an innings |
 | `BowlerChanged` | `bowlerChanged` | `bowlerId` | Bowler for the next over, or a mid-over replacement |
-| `BallBowled` | `ballBowled` | `runsOffBat`, `extra` (`none/wide/noBall/bye/legBye`), `extraRuns`, `boundary`, `wicket?` {`type`, `batterOutId`, `fielderId?`} | One delivery |
+| `BallBowled` | `ballBowled` | `runsOffBat`, `extra` (`none/wide/noBall/bye/legBye`), `extraRuns`, `boundary`, `wicket?` {`type`, `batterOutId`, `fielderId?`}, `shotZone?` | One delivery |
 | `NewBatter` | `newBatter` | `batterId` | Fills the empty slot (also a returning retired-hurt batter) |
 | `BatterRetired` | `batterRetired` | `batterId`, `hurt` | Retired hurt (not out, may return) or retired out (a wicket) |
 | `StrikeSwapped` | `strikeSwapped` | — | Manual correction |
@@ -97,7 +104,9 @@ with target = first innings runs + 1), then `completed` (result set).
   - target reached;
   - closed manually.
 - **Last man stands:** the lone batter is always on strike.
-- **Result:** won by wickets (with balls remaining), won by runs, or tie.
+- **Result:** won by wickets (with balls remaining), won by runs, tie, or no result
+  when abandoned.
+- **Super Over:** `MatchRules.superOver` ends an innings at two wickets.
 
 ### Derived state (`state.dart`)
 `MatchState`:
@@ -108,8 +117,9 @@ with target = first innings runs + 1), then `completed` (result set).
 - **score:** runs, wickets, legal balls, extras;
 - **players:** `batters` (`BatterScore`), `bowlers` (`BowlerFigures`);
 - **crease:** striker, non-striker and bowler ids, `lastOverBowlerId`;
-- **overs:** `completedOvers` and `currentOver` (`BallSummary` label + kind,
-  for the chips);
+- **overs:** `completedOvers` and `currentOver` (`BallSummary`: label, kind, runs,
+  batter, bowler, direction and the score after the ball), with `overs`
+  (`OverSummary`) and `shots` for the Overs tab and charts;
 - **innings record:** fall of wickets, partnership runs and balls (balls faced,
   wides excluded);
 - **status:** free hit, target, complete and close reason;
@@ -164,6 +174,8 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `withEvents()` returns a copy.
 - `MatchRepository`: `loadAll()` (newest first), `load(id)`, `save(record)`
   (upsert the whole record), `delete(id)`.
+- `LocalDocuments`: generic JSON documents in shared_preferences, used by the team
+  and tournament repositories.
 - `LocalMatchRepository` (shared_preferences):
   - storage layout:
     - `bnp_scorer.matchIds`: a list of ids;
@@ -176,17 +188,25 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `LocalTeamRepository` stores `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`.
   `mergeIntoSquad` decides what to store when a match starts: the saved squad
   stays whole, newcomers are added, and "Fill to 11" placeholders are dropped.
+- `TournamentRepository`: newest first. `LocalTournamentRepository` stores
+  `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`.
+- `Backup`: versioned JSON of matches, teams and tournaments. `Backup.decode` checks
+  the whole file first, and `restoreBackup` only adds missing records.
+- `DeviceFiles`: the share sheet and file picker, replaced in tests.
 
 ### State (Riverpod 3)
 - `matchRepositoryProvider`: overridden in `main()` and in tests. It throws if
   not overridden.
-- `teamRepositoryProvider`, the same way, and `savedTeamsProvider` for the list.
+- `teamRepositoryProvider` and `tournamentRepositoryProvider`, the same way.
+- `savedTeamsProvider`, `tournamentsProvider` (with derived progress) and
+  `statsProvider`, which follow the match list.
+- `deviceFilesProvider`: defaults to the real platform, overridden in tests.
 - `matchListProvider`: `FutureProvider.autoDispose` of
   `({MatchRecord record, MatchState state})` for the home list.
 - `liveMatchProvider(matchId)`: `LiveMatchNotifier` (`AsyncNotifier`) holding
   `LiveMatch {record, state, saveFailed}`.
   - **Actions:** `openers`, `bowler`, `ball`, `newBatter`, `retire`,
-    `swapStrike`, `closeInnings` each return `String?`. Null means success;
+    `swapStrike`, `closeInnings`, `abandon` each return `String?`. Null means success;
     otherwise it's the error to show. `undo()` returns `bool`.
   - **Flow:** `_add(event)` validates through `ScoringEngine.apply`, updates
     the state immediately (optimistic), then `_persist()` saves in the
@@ -200,16 +220,20 @@ Pad key → `ScoringScreen` handler (may open a sheet for runs / wicket details)
 from `state.phase` / `state.current` → record saved → home list invalidated.
 
 ### Screens
-- **Home:** brand header, match cards (live pill or result, teams, scores),
-  long-press to delete, lime "New match" FAB, empty state.
+- **Home:** brand header with Tournaments, Stats and a More menu (Teams, Backup),
+  filter chips, match cards (live pill or result, teams, scores), long-press to
+  delete with a warning for tournament matches, lime "New match" FAB, empty state.
 - **New match:**
-  - teams and players (type names, or "Fill to 11");
+  - teams and players (type names, "Fill to 11", or pick a saved team, with extra
+    squad members sitting out);
   - overs (stepper and presets 5/6/8/10/12/15/20);
   - toss winner and decision;
   - house rules: wide / no-ball runs, free hit, last man stands, max overs per
-    bowler (ceil(overs/5));
+    bowler (ceil(overs/5)), shot direction;
   - venue;
-  - a sticky Start button that explains what is missing (`_blocker`).
+  - a sticky Start button that explains what is missing (`_blocker`);
+  - for a tournament fixture, teams and title are filled and locked. A Super Over
+    also hides the overs and toss, because the rules decide them.
 - **Scoring:**
   - `ScoreHeader`: navy gradient hero, animated score, CRR / target / RRR or
     projected;
@@ -218,8 +242,8 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `CreasePanel`: batters, partnership, swap, bowler figures;
   - a bottom panel that switches by phase: `OpenersPanel`, `BowlerPanel`,
     `BatterPanel`, `ScorePad`, `InningsBreakPanel`, `ResultPanel`;
-  - AppBar: undo, scorecard, and a menu with change bowler, retire batter and
-    end innings.
+  - AppBar: undo, scorecard, and a menu with change bowler, retire batter, end
+    innings and abandon match.
 - **Score pad (3×4):**
   - `0 1 2 3` (long-press 3 for 5+);
   - `4 6 WD NB`: WD and NB open sheets for extra runs; the NB sheet chooses bat
@@ -227,8 +251,17 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `BYE LB OUT Undo`: OUT opens the wicket sheet, which offers only the
     dismissal types the engine allows for the chosen delivery, plus who is out,
     runs completed and the fielder / keeper.
-- **Scorecard:** a tab per innings with batting, extras, total, yet to bat,
-  fall of wickets and bowling.
+- **Scorecard:** a tab per innings with batting, extras, total, yet to bat, fall of
+  wickets and bowling, then an Overs tab and a Charts tab. The AppBar shares a
+  picture of the result.
+- **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
+  to team and player profiles.
+- **Tournaments:** the list, then one tournament with Matches, Table, Batting,
+  Bowling, MVP and Boundaries tabs. The Matches tab offers the next round in one
+  tap and flags knockout games that a changed result has made wrong.
+- **New tournament:** name, venue, teams, overs, optional dates, format.
+- **Teams and Team edit:** squads, roles, captain, vice-captain, keeper.
+- **Backup:** create a backup file, or restore from one.
 
 ### Design system
 - Light theme by default (readable in sunlight); dark theme supported.
@@ -251,16 +284,21 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
     hunt for a menu.
 
 ## 3. Tests
-- **Engine** (`dart test`): 46 tests in groups toss, phases, runs and strike,
-  extras, wickets, retirements, bowling, innings and result and event log,
-  plus the `allowedDismissals` and `formatOvers` tests.
-- **App** (`flutter test`):
-  - `local_match_repository_test` (4): save/load newest first, re-save
-    without duplicates, delete, corrupt record skipped;
-  - `live_match_test` (6): legal and illegal events, undo, persistence, save
-    failure, unknown id;
-  - `scoring_flow_test` (1, widget): openers, then bowler, then a four, then
-    undo, at 360 dp.
-- `test/fakes.dart`: `InMemoryMatchRepository` (with `failSaves`) and
-  `sampleRecord()` (team "a": Asha, Arun, Anil, Abdul; team "b": Bilal,
+- **Engine** (`dart test`, 146 tests):
+  - `engine_test`: toss, phases, runs and strike, extras, wickets, retirements,
+    bowling, innings and result, event log, `allowedDismissals`, `formatOvers`;
+  - `stats_test`: batting, bowling, fielding, teams, no result, overs, MVP;
+  - `tournament_test`: fixtures, formats, scheduling, progress, tied and abandoned
+    knockouts, corrected results, storage;
+  - `no_result_test`: abandoning a match and shot direction.
+- **App** (`flutter test`, 161 tests):
+  - data: `local_match_repository_test`, `team_repository_test`, `backup_test`,
+    `demo_data_test`;
+  - state: `live_match_test`;
+  - flows, mostly at 360 dp: `scoring_flow_test`, `new_match_saved_teams_test`,
+    `team_edit_test`, `tournament_screens_test`, `stats_screen_test`,
+    `overs_timeline_test`, `match_charts_test`, `wagon_wheel_test`,
+    `share_scorecard_test`.
+- `test/fakes.dart`: in-memory match, team and tournament repositories (with
+  `failSaves`) and `sampleRecord()` (team "a": Asha, Arun, Anil, Abdul; team "b": Bilal,
   Bharat, Bose, Bala; ids `a1…a4` and `b1…b4`; team "a" bats first).

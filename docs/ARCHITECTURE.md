@@ -127,6 +127,11 @@ with target = first innings runs + 1), then `completed` (result set).
 - Net run rate: runs per over scored minus conceded. A side bowled out is charged
   its full overs. A chase that ends early uses the overs actually faced.
 
+MVP points (`matchPoints`): a run is a point, +1 a four, +2 a six, +5 for 30,
++10 for 50, +20 for 100, 20 a wicket, 10 a maiden, 8 for a catch, stumping or run
+out. Player of the Match is the top score with winners weighted by 1.25, so a
+standout performance on the losing side can still take it.
+
 ### Tournaments (`tournament.dart`)
 A `Tournament` holds teams, groups and `Fixture`s, and each fixture may name the
 match played for it. `progressOf` joins them with the matches to derive a table

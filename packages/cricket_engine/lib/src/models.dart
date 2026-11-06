@@ -31,6 +31,9 @@ enum DismissalType {
   /// Retirements are recorded with [BatterRetired], never on a delivery.
   bool get isRetirement => this == retiredHurt || this == retiredOut;
 
+  /// A fielder took part, so it counts for them.
+  bool get isFieldingAssist => this == caught || this == stumped || this == runOut;
+
   /// Dismissals where the non-striker can be the batter who is out.
   bool get canDismissNonStriker =>
       this == runOut || this == obstructingTheField || isRetirement;

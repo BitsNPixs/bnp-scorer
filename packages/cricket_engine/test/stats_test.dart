@@ -353,6 +353,101 @@ void main() {
     });
   });
 
+  group('MVP', () {
+    test('adds runs, boundaries, wickets and catches', () {
+      // a1: 10 runs + a four + a six; 1 wicket bowling, and took no catch.
+      final points = matchPoints(_aBeatsB());
+      expect(points['a1'], 10 + 1 + 2 + 20);
+      // b2 scored 1, and caught a1.
+      expect(points['b2'], 1 + 8);
+    });
+
+    test('rewards milestones once, at the highest reached', () {
+      MatchState score(int overs) {
+        final m = _Match(_setup(size: 2, overs: 20))..openers('a1', 'a2');
+        for (var over = 0; over < overs; over++) {
+          m
+            ..bowler(over.isEven ? 'b1' : 'b2')
+            ..balls([6, 6, 6, 6, 6, 1]);
+        }
+        return _finished(m);
+      }
+
+      expect(matchPoints(score(1))['a1'], 31 + 10 + 5);
+      expect(matchPoints(score(2))['a1'], 62 + 20 + 10);
+      expect(matchPoints(score(4))['a1'], 124 + 40 + 20);
+    });
+
+    test('a maiden is worth ten', () {
+      final m = _Match(_setup(overs: 2))
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..balls([0, 0, 0, 0, 0, 0]);
+      expect(matchPoints(_finished(m))['b1'], 10);
+    });
+
+    test('Player of the Match favours the winners, but not blindly', () {
+      expect(playerOfTheMatch(_aBeatsB()), 'a1');
+    });
+
+    test('a loser can still win it with a huge game', () {
+      // a1 hits six sixes for 53 points. Team B wins, sharing the runs, so
+      // nobody on the winning side gets near that even when weighted.
+      final m = _Match(_setup(overs: 2))
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..balls([6, 6, 6, 6, 6, 6])
+        ..bowler('b2')
+        ..balls([0, 0, 0, 0, 0, 0])
+        ..openers('b1', 'b2')
+        ..bowler('a2')
+        ..balls([6, 1, 6, 1, 6, 1])
+        ..bowler('a3')
+        ..balls([6, 1, 6, 1, 6]);
+      final state = m.state;
+      expect(state.result!.winnerTeamId, 'b');
+      expect(matchPoints(state)['a1'], 53);
+      expect(playerOfTheMatch(state), 'a1');
+    });
+
+    test('in a tie the best performer takes it', () {
+      final m = _Match(_setup())
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..wicket(DismissalType.bowled, 'a1')
+        ..newBatter('a3')
+        ..wicket(DismissalType.bowled, 'a3')
+        ..openers('b1', 'b2')
+        ..bowler('a1')
+        ..balls([0, 0, 0, 0, 0, 0]);
+      final state = m.state;
+      expect(state.result!.kind, ResultKind.tie);
+      expect(playerOfTheMatch(state), 'b1');
+    });
+
+    test('nobody gets it for a no result or a Super Over', () {
+      final m = _Match(_setup())
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..balls([6]);
+      final abandoned = ScoringEngine.replay(m.setup, [
+        ...m._events,
+        MatchAbandoned(id: 'x', at: m._at, reason: 'Rain'),
+      ]);
+      expect(playerOfTheMatch(abandoned), isNull);
+      expect(playerOfTheMatch(m.state), isNull, reason: 'it is still going');
+    });
+
+    test('the book ranks players and counts awards', () {
+      final book = computeStats([_aBeatsB(), _aBeatsB()]);
+      final top = book.mvp.first;
+      expect(top.playerId, 'a1');
+      expect(top.mvpPoints, 66);
+      expect(top.playerOfMatchAwards, 2);
+      expect(book.mvp.every((p) => p.mvpPoints > 0), isTrue);
+    });
+  });
+
   group('the book', () {
     test('adds a player up across matches under one id', () {
       final book = computeStats([_aBeatsB(), _aBeatsB()]);

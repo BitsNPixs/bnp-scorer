@@ -69,6 +69,14 @@ class _PlayerStats extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         StatGrid(
+          title: 'Awards',
+          stats: [
+            ('MVP points', '${player.mvpPoints}'),
+            ('Player of the Match', '${player.playerOfMatchAwards}'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        StatGrid(
           title: 'Batting',
           stats: [
             ('Runs', '${batting.runs}'),

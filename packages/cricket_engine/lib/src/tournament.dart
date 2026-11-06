@@ -383,6 +383,9 @@ class TournamentProgress {
   }
 
   bool get isFinished => championId != null;
+
+  /// The top MVP once the title is decided.
+  PlayerStats? get playerOfTheTournament => isFinished ? book.mvp.firstOrNull : null;
 }
 
 /// Combines [tournament] with its matches. [matches] is keyed by match id and

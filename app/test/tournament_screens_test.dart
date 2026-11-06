@@ -577,6 +577,7 @@ void main() {
 
     expect(find.text('CHAMPIONS'), findsOneWidget);
     expect(find.text('Team C'), findsOneWidget);
+    expect(find.textContaining('Player of the Tournament:'), findsOneWidget);
     await tester.tap(find.text('Table'));
     await settle(tester);
     await tester.tap(find.text('Batting'));

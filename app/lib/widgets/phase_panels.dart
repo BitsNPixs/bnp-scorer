@@ -255,6 +255,14 @@ class ResultPanel extends StatelessWidget {
           textAlign: TextAlign.center,
           style: text.bodyMedium,
         ),
+        if (playerOfTheMatch(state) case final id?) ...[
+          const SizedBox(height: 8),
+          Text(
+            'Player of the Match: ${playerName(state.setup, id)}',
+            textAlign: TextAlign.center,
+            style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+          ),
+        ],
         const SizedBox(height: 20),
         FilledButton.icon(
           onPressed: onScorecard,

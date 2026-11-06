@@ -33,7 +33,7 @@ class TournamentScreen extends ConsumerWidget {
     final book = progress.book;
     const noResults = StatsEmpty(message: 'Stats appear here once a match has finished.');
     return DefaultTabController(
-      length: 5,
+      length: 6,
       child: Scaffold(
         appBar: AppBar(
           title: Text(progress.tournament.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -45,6 +45,7 @@ class TournamentScreen extends ConsumerWidget {
               Tab(text: 'Table'),
               Tab(text: 'Batting'),
               Tab(text: 'Bowling'),
+              Tab(text: 'MVP'),
               Tab(text: 'Boundaries'),
             ],
           ),
@@ -55,6 +56,7 @@ class TournamentScreen extends ConsumerWidget {
             _TableTab(progress: progress),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
+            if (book.isEmpty) noResults else MvpTab(book: book),
             if (book.isEmpty) noResults else BoundariesTab(book: book),
           ],
         ),
@@ -165,7 +167,10 @@ class _MatchesTab extends ConsumerWidget {
       padding: const EdgeInsets.all(16),
       children: [
         if (champion != null) ...[
-          _ChampionBanner(name: tournament.teamById(champion).name),
+          _ChampionBanner(
+            name: tournament.teamById(champion).name,
+            bestPlayer: progress.playerOfTheTournament?.name,
+          ),
           const SizedBox(height: 12),
         ],
         for (final fixture in progress.outdated) ...[
@@ -270,9 +275,10 @@ class _TableTab extends StatelessWidget {
 }
 
 class _ChampionBanner extends StatelessWidget {
-  const _ChampionBanner({required this.name});
+  const _ChampionBanner({required this.name, this.bestPlayer});
 
   final String name;
+  final String? bestPlayer;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -296,6 +302,15 @@ class _ChampionBanner extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: scoreStyle(26, color: Colors.white),
                   ),
+                  if (bestPlayer case final player?) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Player of the Tournament: $player',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                  ],
                 ],
               ),
             ),

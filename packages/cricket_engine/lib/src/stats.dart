@@ -12,6 +12,67 @@ const pointsForWin = 2;
 const pointsForTie = 1;
 const pointsForNoResult = 1;
 
+const _pointsPerFour = 1;
+const _pointsPerSix = 2;
+const _pointsPerThirty = 5;
+const _pointsPerFifty = 10;
+const _pointsPerHundred = 20;
+const _pointsPerWicket = 20;
+const _pointsPerMaiden = 10;
+const _pointsPerDismissalAssist = 8;
+
+/// The winning side counts for more when choosing Player of the Match.
+const _winningSideWeight = 1.25;
+
+/// MVP points earned by each player in [match]: a run is a point, with bonuses
+/// for boundaries and milestones, 20 a wicket, 10 a maiden, and 8 for a catch,
+/// stumping or run out.
+Map<String, int> matchPoints(MatchState match) {
+  final points = <String, int>{};
+  void add(String playerId, int value) =>
+      points[playerId] = (points[playerId] ?? 0) + value;
+
+  for (final innings in match.innings) {
+    for (final b in innings.batters) {
+      add(b.playerId, b.runs + b.fours * _pointsPerFour + b.sixes * _pointsPerSix);
+      if (b.runs >= 100) {
+        add(b.playerId, _pointsPerHundred);
+      } else if (b.runs >= 50) {
+        add(b.playerId, _pointsPerFifty);
+      } else if (b.runs >= 30) {
+        add(b.playerId, _pointsPerThirty);
+      }
+      final dismissal = b.dismissal;
+      final fielder = dismissal?.fielderId;
+      if (dismissal != null && fielder != null && dismissal.type.isFieldingAssist) {
+        add(fielder, _pointsPerDismissalAssist);
+      }
+    }
+    for (final figures in innings.bowlers) {
+      add(figures.playerId, figures.wickets * _pointsPerWicket + figures.maidens * _pointsPerMaiden);
+    }
+  }
+  return points;
+}
+
+/// The best performer of a finished match, or null for a Super Over, a match
+/// with no result, or a match where nobody did anything.
+String? playerOfTheMatch(MatchState match) {
+  final result = match.result;
+  if (result == null || result.kind == ResultKind.noResult || match.setup.rules.superOver) {
+    return null;
+  }
+  final winner = result.winnerTeamId;
+  double weighted(MapEntry<String, int> entry) {
+    final onWinningSide = winner != null && match.setup.teamById(winner).hasPlayer(entry.key);
+    return entry.value * (onWinningSide ? _winningSideWeight : 1);
+  }
+
+  final ranked = matchPoints(match).entries.where((e) => e.value > 0).toList();
+  if (ranked.isEmpty) return null;
+  return ranked.reduce((best, e) => weighted(e) > weighted(best) ? e : best).key;
+}
+
 class HighScore {
   const HighScore({required this.runs, required this.notOut});
 
@@ -118,6 +179,8 @@ class PlayerStats {
     required this.batting,
     required this.bowling,
     required this.fielding,
+    required this.mvpPoints,
+    required this.playerOfMatchAwards,
   });
 
   final String playerId;
@@ -130,6 +193,8 @@ class PlayerStats {
   final BattingStats batting;
   final BowlingStats bowling;
   final FieldingStats fielding;
+  final int mvpPoints;
+  final int playerOfMatchAwards;
 }
 
 enum MatchOutcome { won, lost, tied, noResult }
@@ -210,6 +275,16 @@ class StatsBook {
       });
   }
 
+  /// Everyone with MVP points, best first.
+  List<PlayerStats> get mvp {
+    final list = players.where((p) => p.mvpPoints > 0).toList();
+    return list
+      ..sort((a, b) {
+        final points = b.mvpPoints.compareTo(a.mvpPoints);
+        return points != 0 ? points : a.name.compareTo(b.name);
+      });
+  }
+
   /// Players who hit a boundary: most fours and sixes first, then most sixes.
   List<PlayerStats> get boundaryHitters {
     int boundaries(PlayerStats p) => p.batting.fours + p.batting.sixes;
@@ -272,6 +347,9 @@ StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = 
           ..teamName = team.name;
       }
     }
+
+    matchPoints(match).forEach((id, points) => players[id]?.mvpPoints += points);
+    players[playerOfTheMatch(match)]?.playerOfMatchAwards += 1;
 
     for (final innings in match.innings) {
       final batting = setup.teamById(innings.battingTeamId);
@@ -342,6 +420,9 @@ class _PlayerBuilder {
   int catches = 0;
   int stumpings = 0;
   int runOuts = 0;
+
+  int mvpPoints = 0;
+  int playerOfMatchAwards = 0;
 
   void addInnings(BatterScore score) {
     innings++;
@@ -416,6 +497,8 @@ class _PlayerBuilder {
           best: best,
         ),
         fielding: FieldingStats(catches: catches, stumpings: stumpings, runOuts: runOuts),
+        mvpPoints: mvpPoints,
+        playerOfMatchAwards: playerOfMatchAwards,
       );
 }
 

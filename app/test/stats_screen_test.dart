@@ -98,6 +98,19 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the MVP tab ranks players and shows awards', (tester) async {
+    await pump(tester, const StatsScreen());
+    await tester.ensureVisible(find.text('MVP'));
+    await settle(tester);
+    await tester.tap(find.text('MVP'));
+    await settle(tester);
+    expect(find.textContaining('Player of the Match'), findsWidgets);
+    await tester.tap(find.text('pts').first);
+    await settle(tester);
+    expect(find.text('AWARDS'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('the boundaries tab ranks hitters', (tester) async {
     await pump(tester, const StatsScreen());
     await tester.ensureVisible(find.text('Boundaries'));

@@ -435,6 +435,18 @@ void main() {
     });
   });
 
+  group('player of the tournament', () {
+    test('waits for a champion, then is the top MVP', () {
+      final start = _tournament(['a', 'b']);
+      expect(progressOf(start, const {}).playerOfTheTournament, isNull);
+
+      final (t, matches) = _play(start, ['a']);
+      final p = progressOf(t, matches);
+      expect(p.championId, 'a');
+      expect(p.playerOfTheTournament!.playerId, p.book.mvp.first.playerId);
+    });
+  });
+
   group('corrected results', () {
     (Tournament, Map<String, MatchState>) semisPlayed() {
       final start = _tournament(['a', 'b', 'c', 'd'], hasFinal: true, hasSemiFinals: true);

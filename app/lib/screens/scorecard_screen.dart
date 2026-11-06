@@ -37,9 +37,21 @@ class ScorecardScreen extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                  child: Text(
-                    matchStatus(state),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        matchStatus(state),
+                        style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                      ),
+                      if (playerOfTheMatch(state) case final id?)
+                        Text(
+                          'Player of the Match: ${playerName(setup, id)}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                    ],
                   ),
                 ),
                 Expanded(

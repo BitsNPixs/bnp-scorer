@@ -16,7 +16,7 @@ class StatsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final stats = ref.watch(statsProvider);
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Stats'),
@@ -27,6 +27,7 @@ class StatsScreen extends ConsumerWidget {
               Tab(text: 'Teams'),
               Tab(text: 'Batting'),
               Tab(text: 'Bowling'),
+              Tab(text: 'MVP'),
               Tab(text: 'Boundaries'),
             ],
           ),
@@ -41,6 +42,7 @@ class StatsScreen extends ConsumerWidget {
                     TeamsTab(teams: book.teams),
                     BattingTab(book: book),
                     BowlingTab(book: book),
+                    MvpTab(book: book),
                     BoundariesTab(book: book),
                   ],
                 ),
@@ -130,6 +132,32 @@ class BattingTab extends StatelessWidget {
     return _RankedList(
       rows: [
         for (var i = 0; i < batters.length; i++) battingRow(context, i + 1, batters[i]),
+      ],
+    );
+  }
+}
+
+class MvpTab extends StatelessWidget {
+  const MvpTab({super.key, required this.book});
+
+  final StatsBook book;
+
+  @override
+  Widget build(BuildContext context) {
+    final players = book.mvp;
+    return _RankedList(
+      rows: [
+        for (var i = 0; i < players.length; i++)
+          LeaderRow(
+            rank: i + 1,
+            leading: PlayerAvatar(name: players[i].name),
+            title: players[i].name,
+            subtitle: '${players[i].teamName} · '
+                '${players[i].playerOfMatchAwards} Player of the Match',
+            value: '${players[i].mvpPoints}',
+            valueLabel: 'pts',
+            onTap: () => openPlayer(context, players[i].playerId),
+          ),
       ],
     );
   }

@@ -28,6 +28,8 @@
 - Fixture dates: a start date and matches per day schedule a tournament, later
   rounds are dated after the latest game, and a long press moves a fixture.
 - Boundary leaderboards, overall and per tournament.
+- Awards: Player of the Match, MVP rankings and Player of the Tournament, all
+  derived from the matches by `matchPoints`.
 - No result: a match can be abandoned at any point (`MatchAbandoned`). Each side
   gets a point, it stays out of net run rate, and a knockout game goes to a Super
   Over.

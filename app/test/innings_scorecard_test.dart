@@ -1,17 +1,12 @@
 import 'package:bnp_scorer/data/demo_data.dart';
 import 'package:bnp_scorer/data/match_record.dart';
-import 'package:bnp_scorer/screens/scorecard_screen.dart';
-import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/ui/format.dart';
 import 'package:bnp_scorer/widgets/innings_scorecard.dart';
 import 'package:bnp_scorer/widgets/result_hero.dart';
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'fakes.dart';
 
 const _settle = Duration(milliseconds: 400);
 final _now = DateTime.utc(2026, 11, 6);
@@ -26,24 +21,35 @@ void main() {
   MatchRecord cupFinal() => demo.firstWhere((m) => m.setup.venue?.contains('BNP Cup Final') ?? false);
   MatchState replay(MatchRecord r) => ScoringEngine.replay(r.setup, r.events);
 
-  Future<void> pump(WidgetTester tester, MatchRecord record, {ThemeData? theme, bool reduceMotion = false}) async {
+  /// Innings indexes the summary card asked to open.
+  late List<int> opened;
+
+  /// One innings' scorecard on its own, as the match screen's tab shows it.
+  Future<void> pump(
+    WidgetTester tester,
+    MatchRecord record, {
+    int innings = 0,
+    ThemeData? theme,
+    bool reduceMotion = false,
+    bool settle = true,
+  }) async {
     tester.view
       ..physicalSize = const Size(1080, 2400)
       ..devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final repo = InMemoryMatchRepository();
-    await repo.save(record);
-    await tester.pumpWidget(ProviderScope(
-      overrides: [matchRepositoryProvider.overrideWithValue(repo)],
-      child: MaterialApp(
-        theme: theme ?? AppTheme.light(),
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
-          child: child!,
-        ),
-        home: ScorecardScreen(matchId: record.setup.id),
+    final state = replay(record);
+    opened = [];
+    await tester.pumpWidget(MaterialApp(
+      theme: theme ?? AppTheme.light(),
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+        child: child!,
+      ),
+      home: Scaffold(
+        body: InningsScorecard(state: state, innings: state.innings[innings], onInnings: opened.add),
       ),
     ));
+    if (!settle) return;
     for (var i = 0; i < 4; i++) {
       await tester.pump(_settle);
     }
@@ -187,43 +193,31 @@ void main() {
     );
   });
 
-  testWidgets('the first tab pill is clear of the screen edge', (tester) async {
-    await pump(tester, cupFinal());
-    expect(tester.getTopLeft(find.byType(Tab).first).dx, greaterThanOrEqualTo(12));
-  });
-
   testWidgets('with reduced motion the bars are full length at once', (tester) async {
     final record = cupFinal();
-    tester.view
-      ..physicalSize = const Size(1080, 2400)
-      ..devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
-    final repo = InMemoryMatchRepository();
-    await repo.save(record);
-    await tester.pumpWidget(ProviderScope(
-      overrides: [matchRepositoryProvider.overrideWithValue(repo)],
-      child: MaterialApp(
-        theme: AppTheme.light(),
-        builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: true),
-          child: child!,
-        ),
-        home: ScorecardScreen(matchId: record.setup.id),
-      ),
-    ));
-    // One frame for the match to load, one to build: no time for an animation.
-    await tester.pump();
-    await tester.pump();
-    final first = inFirstTab(find.byType(FractionallySizedBox)).evaluate().first.widget as FractionallySizedBox;
+    await pump(tester, record, reduceMotion: true, settle: false);
     final inn = replay(record).innings.first;
     final top = inn.batters.map((b) => b.runs).reduce((a, b) => a > b ? a : b);
+    final first = inFirstTab(find.byType(FractionallySizedBox)).evaluate().first.widget as FractionallySizedBox;
     expect(first.widthFactor, inn.batters.firstWhere((b) => b.runs > 0).runs / top);
   });
 
-  testWidgets('every demo scorecard fits at 360 dp in the dark theme', (tester) async {
+  testWidgets('tapping an innings in the summary card asks for its tab', (tester) async {
+    final record = cupFinal();
+    await pump(tester, record);
+    final second = replay(record).innings[1];
+    final team = record.setup.teamById(second.battingTeamId).name;
+    await tester.tap(find.descendant(of: find.byType(ResultHero), matching: find.text(team)));
+    await tester.pump(_settle);
+    expect(opened, [1]);
+  });
+
+  testWidgets('every demo innings fits at 360 dp in the dark theme', (tester) async {
     for (final record in demo) {
-      await pump(tester, record, theme: AppTheme.dark());
-      expect(tester.takeException(), isNull, reason: record.id);
+      for (var i = 0; i < replay(record).innings.length; i++) {
+        await pump(tester, record, innings: i, theme: AppTheme.dark());
+        expect(tester.takeException(), isNull, reason: '${record.id} innings ${i + 1}');
+      }
     }
   });
 }

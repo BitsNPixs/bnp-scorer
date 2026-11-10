@@ -10,17 +10,20 @@ import 'surface_panel.dart';
 /// One innings of the scorecard: the match summary, batting, the fall of
 /// wickets and bowling.
 class InningsScorecard extends StatelessWidget {
-  const InningsScorecard({super.key, required this.state, required this.innings});
+  const InningsScorecard({super.key, required this.state, required this.innings, this.onInnings});
 
   final MatchState state;
   final InningsState innings;
+
+  /// Switches to another innings when its line in the summary card is tapped.
+  final ValueChanged<int>? onInnings;
 
   @override
   Widget build(BuildContext context) {
     final setup = state.setup;
     final inn = innings;
     final sections = <Widget>[
-      ResultHero(state: state, focusInnings: inn.number),
+      ResultHero(state: state, focusInnings: inn.number, onInningsTap: onInnings),
       _BattingCard(setup: setup, innings: inn),
       if (inn.fallOfWickets.isNotEmpty) _WicketTimeline(setup: setup, innings: inn),
       if (inn.bowlers.isNotEmpty) _BowlingCard(setup: setup, innings: inn),

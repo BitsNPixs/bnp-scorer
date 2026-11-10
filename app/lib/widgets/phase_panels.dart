@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
-import '../ui/motion.dart';
 import 'player_choice_grid.dart';
 
 /// Title + prompt used by every phase panel.
@@ -216,67 +215,6 @@ class InningsBreakPanel extends StatelessWidget {
           team: chasing,
           title: 'Chase openers',
           onConfirm: onOpeners,
-        ),
-      ],
-    );
-  }
-}
-
-class ResultPanel extends StatelessWidget {
-  const ResultPanel({super.key, required this.state, required this.onScorecard});
-
-  final MatchState state;
-  final VoidCallback onScorecard;
-
-  @override
-  Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 4),
-        Center(
-          child: PopIn(
-            child: Container(
-              width: 84,
-              height: 84,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.four.withValues(alpha: 0.14),
-                boxShadow: AppColors.glow(AppColors.four, strength: 0.25, blur: 28),
-              ),
-              child: const Icon(Icons.emoji_events_rounded, size: 50, color: AppColors.four),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          matchStatus(state),
-          textAlign: TextAlign.center,
-          style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          [
-            for (final inn in state.innings)
-              '${state.setup.teamById(inn.battingTeamId).name} ${scoreLine(inn)} (${inn.oversText})',
-          ].join('  ·  '),
-          textAlign: TextAlign.center,
-          style: text.bodyMedium,
-        ),
-        if (playerOfTheMatch(state) case final id?) ...[
-          const SizedBox(height: 8),
-          Text(
-            'Player of the Match: ${playerName(state.setup, id)}',
-            textAlign: TextAlign.center,
-            style: text.titleSmall?.copyWith(fontWeight: FontWeight.w700),
-          ),
-        ],
-        const SizedBox(height: 20),
-        FilledButton.icon(
-          onPressed: onScorecard,
-          icon: const Icon(Icons.table_chart_rounded),
-          label: const Text('Full scorecard'),
         ),
       ],
     );

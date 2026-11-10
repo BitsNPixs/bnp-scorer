@@ -10,12 +10,16 @@ import 'score_header.dart';
 /// The floodlit summary at the top of a scorecard: every innings, the result
 /// or the state of play, and the Player of the Match.
 class ResultHero extends StatelessWidget {
-  const ResultHero({super.key, required this.state, this.focusInnings});
+  const ResultHero({super.key, required this.state, this.focusInnings, this.onInningsTap});
 
   final MatchState state;
 
   /// The innings number whose tab is open. Its line gets a neon marker.
   final int? focusInnings;
+
+  /// Called with an innings' index in [MatchState.innings] when its line is
+  /// tapped. Lines are plain text without it.
+  final ValueChanged<int>? onInningsTap;
 
   @override
   Widget build(BuildContext context) {
@@ -86,12 +90,13 @@ class ResultHero extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 14),
-                for (final inn in state.innings)
+                for (final (i, inn) in state.innings.indexed)
                   _InningsLine(
                     team: setup.teamById(inn.battingTeamId),
                     innings: inn,
                     won: winner == inn.battingTeamId,
                     focused: inn.number == focusInnings,
+                    onTap: onInningsTap == null ? null : () => onInningsTap!(i),
                   ),
                 const SizedBox(height: 10),
                 Divider(height: 1, color: Colors.white.withValues(alpha: 0.10)),
@@ -167,18 +172,25 @@ class ResultHero extends StatelessWidget {
 }
 
 class _InningsLine extends StatelessWidget {
-  const _InningsLine({required this.team, required this.innings, required this.won, required this.focused});
+  const _InningsLine({
+    required this.team,
+    required this.innings,
+    required this.won,
+    required this.focused,
+    this.onTap,
+  });
 
   final Team team;
   final InningsState innings;
   final bool won;
   final bool focused;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     const muted = Color(0x99FFFFFF);
     final started = innings.legalBalls > 0 || innings.runs > 0 || innings.isComplete;
-    return Padding(
+    final line = Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(
         children: [
@@ -195,6 +207,7 @@ class _InningsLine extends StatelessWidget {
           PlayerAvatar(name: team.name, radius: 16),
           const SizedBox(width: 10),
           Expanded(
+            flex: 3,
             child: Text(
               team.name,
               maxLines: 1,
@@ -205,19 +218,47 @@ class _InningsLine extends StatelessWidget {
                   ),
             ),
           ),
-          if (started) ...[
-            Text(
-              scoreLine(innings),
-              style: scoreStyle(30, color: won ? Colors.white : const Color(0xD9FFFFFF), weight: FontWeight.w800),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '(${innings.oversText})',
-              style: const TextStyle(color: muted, fontSize: 12, fontWeight: FontWeight.w600),
-            ),
-          ] else
+          if (started)
+            // Shrinks rather than overflows when a long name and a big score meet.
+            Flexible(
+              flex: 2,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      scoreLine(innings),
+                      style: scoreStyle(
+                        30,
+                        color: won ? Colors.white : const Color(0xD9FFFFFF),
+                        weight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '(${innings.oversText})',
+                      style: const TextStyle(color: muted, fontSize: 12, fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
             const Text('Yet to bat', style: TextStyle(color: muted, fontSize: 12)),
+          if (onTap != null) const Icon(Icons.chevron_right_rounded, size: 20, color: muted),
         ],
+      ),
+    );
+    if (onTap == null) return line;
+    return Semantics(
+      button: true,
+      label: 'Scorecard for ${team.name}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: InkWell(borderRadius: BorderRadius.circular(12), onTap: onTap, child: line),
       ),
     );
   }

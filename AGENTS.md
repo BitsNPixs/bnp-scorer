@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-10): analyze clean, 146 engine and 209 app tests passing,
+- Latest run (2026-11-10): analyze clean, 146 engine and 217 app tests passing,
   and a debug demo build installed on a phone (Android 17).
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
@@ -31,12 +31,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   tournament's matches, New match with saved teams, the Overs tab. After the
   redesign: Home in dark and light, the Teams tab, the new icon, and the
   release build (screenshots, no taps). The Home chips no longer clip.
-- **Not yet checked on a real phone:** the splash screen's mark, the redesigned
-  Scorecard (seen only in test renders with the real fonts), the redesigned
-  scoring screen, the bursts and confetti, the Settings sheet, the Tournaments
-  and Stats tabs, sharing to WhatsApp, backup and restore (tests replace the
-  share sheet and file picker), charts, the wagon wheel, Super Overs, and a full
-  match scored by hand. See ROADMAP "Open issues".
+- **Not yet checked on a real phone:** the splash screen's mark, the scorecard
+  tabs and Result tab (seen only in test renders with the real fonts), the
+  bursts and confetti, the Settings sheet, the Tournaments and Stats tabs,
+  sharing to WhatsApp, backup and restore (tests replace the share sheet and
+  file picker), charts, the wagon wheel, and Super Overs. The owner has scored
+  a match to its result on the redesigned scoring screen.
 - A release build (`flutter build apk --release`) was installed and ran on the
   phone on 2026-11-10. It is signed with the debug key, so it installs over a
   debug build; the Play Store will need a real upload key. iOS is untried.
@@ -115,7 +115,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (13 screens). `HomeScreen` is the shell:
+- **Navigation:** plain `Navigator` (12 screens). `HomeScreen` is the shell:
   a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
   `IndexedStack`, built on first visit. Every other screen is pushed over it.
   Back on a tab other than Matches returns to Matches. Add go_router only with
@@ -146,7 +146,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
 | Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
 | Match card, number tiles, stumps art | `MatchCard`, `SummaryTiles`, `StumpsArt` (`widgets/`) |
-| Match summary card, one innings' scorecard | `ResultHero` (`widgets/result_hero.dart`), `InningsScorecard` (`widgets/innings_scorecard.dart`) |
+| Match summary card, one innings' scorecard, finished-match tab | `ResultHero` (`widgets/result_hero.dart`), `InningsScorecard` (`widgets/innings_scorecard.dart`), `MatchResultTab` (`widgets/match_result_tab.dart`) |
 | Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |
 | New ids | `newId()` (`data/ids.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |

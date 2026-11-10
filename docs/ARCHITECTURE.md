@@ -23,9 +23,9 @@ app/                            Flutter app (package name bnp_scorer)
                                 DeviceFiles, AppSettings, demo data, newId
   lib/state/                    providers.dart (repositories, lists, stats, theme mode),
                                 live_match.dart
-  lib/screens/                  Home (the shell), MatchesTab, NewMatch, Scoring, Scorecard,
-                                Stats, player and team stats, Tournaments, Tournament,
-                                NewTournament, Teams, TeamEdit, Backup
+  lib/screens/                  Home (the shell), MatchesTab, NewMatch, Scoring (with the
+                                scorecard tabs), Stats, player and team stats, Tournaments,
+                                Tournament, NewTournament, Teams, TeamEdit, Backup
   lib/widgets/                  Score hero, over strip, crease panel, pad, sheets, panels,
                                 charts, overs timeline, wagon wheel, share card, bottom
                                 bar, settings sheet, floodlight and confetti, match card,
@@ -256,9 +256,17 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `OverStrip`: this over's chips;
   - `CreasePanel`: batters, partnership, swap, bowler figures;
   - a bottom panel that switches by phase: `OpenersPanel`, `BowlerPanel`,
-    `BatterPanel`, `ScorePad`, `InningsBreakPanel`, `ResultPanel`;
-  - AppBar: undo, scorecard, and a menu with change bowler, retire batter, end
-    innings and abandon match.
+    `BatterPanel`, `ScorePad`, `InningsBreakPanel`;
+  - AppBar: undo, share, and a menu with change bowler, retire batter, end
+    innings and abandon match;
+  - tabs under the AppBar: Live (Result once finished), one per innings, Overs
+    and Charts. Swiping between tabs is off while the match is in play, so a
+    hurried drag on the pad cannot leave the Live tab; tapping a tab works.
+    A new innings adds its tab (the controller is keyed by the tab count);
+  - once finished, the first tab is `MatchResultTab`: `ResultHero` with
+    tappable innings lines, Top batter and Best bowler cards that open the
+    innings they came from, and shortcut tiles to the scorecard, Overs and
+    Charts.
 - **Score pad (3×4):**
   - `0 1 2 3` (long-press 3 for 5+);
   - `4 6 WD NB`: WD and NB open sheets for extra runs; the NB sheet chooses bat
@@ -266,10 +274,11 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `BYE LB OUT Undo`: OUT opens the wicket sheet, which offers only the
     dismissal types the engine allows for the chosen delivery, plus who is out,
     runs completed and the fielder / keeper.
-- **Scorecard:** a tab per innings (`InningsScorecard`), then an Overs tab and a
-  Charts tab. The AppBar shares a picture of the result. Each innings tab has:
+- **Scorecard (tabs on the Scoring screen):** a tab per innings
+  (`InningsScorecard`), then an Overs tab and a Charts tab. Each innings tab has:
   - `ResultHero`: every innings, the result or the state of play (LIVE), and the
-    Player of the Match; the open innings is marked in neon;
+    Player of the Match; the open innings is marked in neon, and tapping
+    another innings switches to its tab;
   - batting, with a run bar under each batter scaled to the top score (neon for
     the top scorer), `*` for not out, and 4s and 6s in coloured badges;
   - extras as chips (only kinds that happened) and a floodlit total band;

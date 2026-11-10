@@ -16,7 +16,7 @@
 | Area | Target | v0.1 | Why the difference |
 | --- | --- | --- | --- |
 | App | Flutter, Riverpod | Flutter 3.32+, Riverpod 3 | — |
-| Routing | go_router | `Navigator` | 13 screens, no deep links yet. Add go_router with them |
+| Routing | go_router | `Navigator` | 12 screens, no deep links yet. Add go_router with them |
 | Models | freezed + json_serializable | hand-written | Builds without build_runner |
 | Offline store | Drift (SQLite) | shared_preferences behind repositories | Enough for v0.1. Swap via the interfaces |
 | Backend | Firebase: Auth (phone OTP, Google, Apple), Firestore, Cloud Functions, Storage, FCM, Crashlytics, App Check | none | Needs the owner's Firebase project |

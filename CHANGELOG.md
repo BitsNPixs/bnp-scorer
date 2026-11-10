@@ -72,6 +72,13 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- The scorecard is now tabs on the match screen (Live, each innings, Overs,
+  Charts) instead of a separate screen behind a "Full scorecard" button.
+  Swiping between tabs is off while scoring, so a hurried drag on the pad
+  cannot leave the Live tab. A finished match opens on a Result tab: the result
+  card (tap an innings to open it), Top batter and Best bowler cards that open
+  the innings they came from, and shortcuts to the scorecard, Overs and Charts.
+  Share moved to the match screen's top bar.
 - Scorecard redesign: a floodlit result card (every innings, the result or LIVE,
   and the Player of the Match), run bars under batters scaled to the top score,
   `*` for not out, coloured badges for 4s, 6s and wickets, extras as chips, a

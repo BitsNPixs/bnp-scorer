@@ -58,8 +58,10 @@ Offline-first: scoring works with no network and every match is stored on the de
     abandon the match with no result.
 - **Guided flow**: the bottom panel always shows the next thing to do
   (openers → bowler → score → new batter → next over → innings break → result).
-- **Scorecard**: batting, extras, total, yet to bat, fall of wickets, bowling,
-  plus the Overs and Charts tabs and sharing.
+- **Scorecard**: tabs on the match screen, a tap away while scoring: batting,
+  extras, total, yet to bat, fall of wickets and bowling for each innings, plus
+  Overs and Charts. A finished match opens on its result, with the stars of the
+  match and shortcuts into each tab. Share is in the top bar.
 - **Home**: match list with live/result status, filter chips, long-press to delete,
   and shortcuts to Tournaments, Stats, Teams and Backup.
 

@@ -171,7 +171,7 @@ void main() {
       expect(find.text('FOUR'), findsOneWidget);
       await tapKey(tester, 'FOUR');
       await tester.pump(ConfettiBurst.duration);
-      expect(find.text('Full scorecard'), findsOneWidget);
+      expect(find.text('TOP BATTER'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

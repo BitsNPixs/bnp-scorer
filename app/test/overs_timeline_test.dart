@@ -1,5 +1,5 @@
 import 'package:bnp_scorer/data/demo_data.dart';
-import 'package:bnp_scorer/screens/scorecard_screen.dart';
+import 'package:bnp_scorer/screens/scoring_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/ui/format.dart';
@@ -203,7 +203,7 @@ void main() {
     });
   });
 
-  testWidgets('the scorecard has an Overs tab', (tester) async {
+  testWidgets('the match screen has an Overs tab', (tester) async {
     tester.view
       ..physicalSize = const Size(1080, 2400)
       ..devicePixelRatio = 3;
@@ -212,10 +212,13 @@ void main() {
     await repo.save(sampleRecord(events: const []));
     await tester.pumpWidget(ProviderScope(
       overrides: [matchRepositoryProvider.overrideWithValue(repo)],
-      child: MaterialApp(theme: AppTheme.light(), home: const ScorecardScreen(matchId: 'm1')),
+      child: MaterialApp(theme: AppTheme.light(), home: const ScoringScreen(matchId: 'm1')),
     ));
     await tester.pump(const Duration(milliseconds: 400));
 
+    // Scrollable tabs can start off-screen at 360 dp.
+    await tester.ensureVisible(find.text('Overs'));
+    await tester.pump(const Duration(milliseconds: 400));
     await tester.tap(find.text('Overs'));
     for (var i = 0; i < 4; i++) {
       await tester.pump(const Duration(milliseconds: 400));

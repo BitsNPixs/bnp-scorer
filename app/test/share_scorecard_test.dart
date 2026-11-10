@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/demo_data.dart';
-import 'package:bnp_scorer/screens/scorecard_screen.dart';
+import 'package:bnp_scorer/screens/scoring_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/ui/format.dart';
@@ -59,7 +59,7 @@ void main() {
         matchRepositoryProvider.overrideWithValue(repo),
         deviceFilesProvider.overrideWithValue(files),
       ],
-      child: MaterialApp(theme: AppTheme.light(), home: ScorecardScreen(matchId: matchId)),
+      child: MaterialApp(theme: AppTheme.light(), home: ScoringScreen(matchId: matchId)),
     ));
     await tester.pump(_settle);
     return files;

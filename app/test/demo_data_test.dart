@@ -1,7 +1,6 @@
 import 'package:bnp_scorer/data/demo_data.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/screens/home_screen.dart';
-import 'package:bnp_scorer/screens/scorecard_screen.dart';
 import 'package:bnp_scorer/screens/scoring_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
@@ -277,7 +276,7 @@ void main() {
 
     testWidgets('every cup scorecard renders', (tester) async {
       for (final record in cup) {
-        await pump(tester, ScorecardScreen(matchId: record.id));
+        await pump(tester, ScoringScreen(matchId: record.id));
         expect(find.textContaining('won by'), findsWidgets, reason: record.id);
         expect(tester.takeException(), isNull, reason: record.id);
       }

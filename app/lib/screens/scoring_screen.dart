@@ -9,14 +9,18 @@ import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/motion.dart';
 import '../widgets/crease_panel.dart';
+import '../widgets/innings_scorecard.dart';
+import '../widgets/match_charts.dart';
+import '../widgets/match_result_tab.dart';
 import '../widgets/over_strip.dart';
+import '../widgets/overs_timeline.dart';
 import '../widgets/phase_panels.dart';
 import '../widgets/score_header.dart';
 import '../widgets/score_pad.dart';
 import '../widgets/scoring_sheets.dart';
+import '../widgets/share_scorecard_sheet.dart';
 import '../widgets/stadium_effects.dart';
 import '../widgets/wicket_sheet.dart';
-import 'scorecard_screen.dart';
 
 class ScoringScreen extends ConsumerWidget {
   const ScoringScreen({super.key, required this.matchId});
@@ -68,151 +72,204 @@ class _ScoringView extends ConsumerWidget {
 
     void act(String? error) => reportResult(context, error);
 
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        scrolledUnderElevation: 0,
-        title: Text(
-          '${setup.teamA.name} vs ${setup.teamB.name}',
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          IconButton(
-            tooltip: 'Undo last action',
-            onPressed: live.canUndo ? () => _undo(context, ref) : null,
-            icon: const Icon(Icons.undo_rounded),
-          ),
-          IconButton(
-            tooltip: 'Scorecard',
-            onPressed: () => _openScorecard(context),
-            icon: const Icon(Icons.table_chart_outlined),
-          ),
-          PopupMenuButton<_MenuAction>(
-            enabled: phase != MatchPhase.completed,
-            onSelected: (action) => _onMenu(context, ref, action),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _MenuAction.changeBowler,
-                enabled: phase == MatchPhase.inPlay,
-                child: const ListTile(
-                  leading: Icon(Icons.sports_baseball_outlined),
-                  title: Text('Change bowler'),
-                ),
+    final tabs = [
+      if (state.isCompleted) 'Result' else 'Live',
+      for (final innings in state.innings) '${setup.teamById(innings.battingTeamId).name} ${scoreLine(innings)}',
+      'Overs',
+      'Charts',
+    ];
+
+    return DefaultTabController(
+      // A new innings adds a tab, which needs a fresh controller.
+      key: ValueKey(tabs.length),
+      length: tabs.length,
+      child: Builder(
+        builder: (context) {
+          void jumpTo(int tab) => DefaultTabController.of(context).animateTo(tab);
+          void openInnings(int index) => jumpTo(1 + index);
+          return Scaffold(
+            appBar: AppBar(
+              backgroundColor: Colors.transparent,
+              scrolledUnderElevation: 0,
+              title: Text(
+                '${setup.teamA.name} vs ${setup.teamB.name}',
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
               ),
-              PopupMenuItem(
-                value: _MenuAction.retire,
-                enabled: isLive && phase != MatchPhase.awaitingBatter,
-                child: const ListTile(
-                  leading: Icon(Icons.personal_injury_outlined),
-                  title: Text('Retire batter'),
+              actions: [
+                IconButton(
+                  tooltip: 'Undo last action',
+                  onPressed: live.canUndo ? () => _undo(context, ref) : null,
+                  icon: const Icon(Icons.undo_rounded),
                 ),
-              ),
-              PopupMenuItem(
-                value: _MenuAction.endInnings,
-                enabled: isLive,
-                child: const ListTile(
-                  leading: Icon(Icons.flag_outlined),
-                  title: Text('End innings'),
+                IconButton(
+                  tooltip: 'Share',
+                  onPressed: () => showShareScorecardSheet(context, state),
+                  icon: const Icon(Icons.share_rounded),
                 ),
-              ),
-              const PopupMenuItem(
-                value: _MenuAction.abandon,
-                child: ListTile(
-                  leading: Icon(Icons.umbrella_outlined),
-                  title: Text('Abandon match'),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      body: _ResultCelebration(
-        state: state,
-        child: Floodlight(
-          child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
-              children: [
-                ScoreHeader(state: state),
-                if (live.saveFailed) ...[
-                  const SizedBox(height: 12),
-                  const _Banner(
-                    icon: Icons.cloud_off_rounded,
-                    text: 'Could not save the last change. It will be saved with the next one.',
-                    background: AppColors.wicket,
-                    foreground: Colors.white,
-                  ),
-                ],
-                if (inn.isFreeHit) ...[
-                  const SizedBox(height: 12),
-                  const _Banner(
-                    icon: Icons.bolt_rounded,
-                    text: 'FREE HIT · only a run out counts',
-                    background: AppColors.neon,
-                    foreground: AppColors.night,
-                  ),
-                ],
-                const SizedBox(height: 12),
-                OverStrip(state: state),
-                const SizedBox(height: 12),
-                CreasePanel(
-                  state: state,
-                  onSwapStrike: canSwap ? () => act(_notifier(ref).swapStrike()) : null,
+                PopupMenuButton<_MenuAction>(
+                  enabled: phase != MatchPhase.completed,
+                  onSelected: (action) => _onMenu(context, ref, action),
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: _MenuAction.changeBowler,
+                      enabled: phase == MatchPhase.inPlay,
+                      child: const ListTile(
+                        leading: Icon(Icons.sports_baseball_outlined),
+                        title: Text('Change bowler'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _MenuAction.retire,
+                      enabled: isLive && phase != MatchPhase.awaitingBatter,
+                      child: const ListTile(
+                        leading: Icon(Icons.personal_injury_outlined),
+                        title: Text('Retire batter'),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: _MenuAction.endInnings,
+                      enabled: isLive,
+                      child: const ListTile(
+                        leading: Icon(Icons.flag_outlined),
+                        title: Text('End innings'),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: _MenuAction.abandon,
+                      child: ListTile(
+                        leading: Icon(Icons.umbrella_outlined),
+                        title: Text('Abandon match'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
+              bottom: TabBar(
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                // Keeps the first pill off the screen edge. Compact, so the
+                // Live tab keeps as much room as it can for scoring.
+                padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
+                tabs: [for (final t in tabs) Tab(height: 38, text: t)],
+              ),
             ),
-          ),
-          _BottomPanel(
-            child: KeyedSubtree(
-              key: ValueKey('${phase.name}-${inn.number}'),
-              child: switch (phase) {
-                MatchPhase.awaitingOpeners => OpenersPanel(
-                    team: setup.teamById(inn.battingTeamId),
-                    onConfirm: (s, ns) => act(_notifier(ref).openers(s, ns)),
+            body: _ResultCelebration(
+              state: state,
+              child: TabBarView(
+                // While scoring, a hurried drag on the pad must not flip tabs.
+                // Tapping a tab still works; swiping returns with the result.
+                physics: state.isCompleted ? null : const NeverScrollableScrollPhysics(),
+                children: [
+                  Floodlight(
+                    child: state.isCompleted
+                        ? MatchResultTab(
+                            state: state,
+                            onInnings: openInnings,
+                            onOvers: () => jumpTo(tabs.length - 2),
+                            onCharts: () => jumpTo(tabs.length - 1),
+                          )
+                        : _liveTab(context, ref, act: act, canSwap: canSwap),
                   ),
-                MatchPhase.awaitingBowler => BowlerPanel(
-                    state: state,
-                    onSelected: (id) => act(_notifier(ref).bowler(id)),
-                  ),
-                MatchPhase.awaitingBatter => BatterPanel(
-                    state: state,
-                    onSelected: (id) => act(_notifier(ref).newBatter(id)),
-                  ),
-                MatchPhase.inningsBreak => InningsBreakPanel(
-                    state: state,
-                    onOpeners: (s, ns) => act(_notifier(ref).openers(s, ns)),
-                  ),
-                MatchPhase.completed => ResultPanel(
-                    state: state,
-                    onScorecard: () => _openScorecard(context),
-                  ),
-                MatchPhase.inPlay => ScorePad(
-                    canUndo: live.canUndo,
-                    onUndo: () => _undo(context, ref),
-                    onRuns: (r, {required boundary}) => _scoreRuns(context, ref, r, boundary: boundary),
-                    onMoreRuns: () => _moreRuns(context, ref),
-                    onWide: () => _wide(context, ref),
-                    onNoBall: () => _noBall(context, ref),
-                    onBye: () => _byes(context, ref, ExtraType.bye),
-                    onLegBye: () => _byes(context, ref, ExtraType.legBye),
-                    onWicket: () => _wicket(context, ref),
-                  ),
-              },
+                  for (final innings in state.innings)
+                    InningsScorecard(state: state, innings: innings, onInnings: openInnings),
+                  OversTimeline(state: state),
+                  MatchCharts(state: state),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-        ),
+          );
+        },
       ),
     );
   }
 
-  void _openScorecard(BuildContext context) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => ScorecardScreen(matchId: matchId)),
-      );
+  /// Scoring: the score, this over, the batters and bowler, and the panel for
+  /// the next action.
+  Widget _liveTab(
+    BuildContext context,
+    WidgetRef ref, {
+    required void Function(String? error) act,
+    required bool canSwap,
+  }) {
+    final state = live.state;
+    final setup = state.setup;
+    final inn = state.current;
+    final phase = state.phase;
+    return Column(
+      children: [
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+            children: [
+              ScoreHeader(state: state),
+              if (live.saveFailed) ...[
+                const SizedBox(height: 12),
+                const _Banner(
+                  icon: Icons.cloud_off_rounded,
+                  text: 'Could not save the last change. It will be saved with the next one.',
+                  background: AppColors.wicket,
+                  foreground: Colors.white,
+                ),
+              ],
+              if (inn.isFreeHit) ...[
+                const SizedBox(height: 12),
+                const _Banner(
+                  icon: Icons.bolt_rounded,
+                  text: 'FREE HIT · only a run out counts',
+                  background: AppColors.neon,
+                  foreground: AppColors.night,
+                ),
+              ],
+              const SizedBox(height: 12),
+              OverStrip(state: state),
+              const SizedBox(height: 12),
+              CreasePanel(
+                state: state,
+                onSwapStrike: canSwap ? () => act(_notifier(ref).swapStrike()) : null,
+              ),
+            ],
+          ),
+        ),
+        _BottomPanel(
+          child: KeyedSubtree(
+            key: ValueKey('${phase.name}-${inn.number}'),
+            child: switch (phase) {
+              MatchPhase.awaitingOpeners => OpenersPanel(
+                  team: setup.teamById(inn.battingTeamId),
+                  onConfirm: (s, ns) => act(_notifier(ref).openers(s, ns)),
+                ),
+              MatchPhase.awaitingBowler => BowlerPanel(
+                  state: state,
+                  onSelected: (id) => act(_notifier(ref).bowler(id)),
+                ),
+              MatchPhase.awaitingBatter => BatterPanel(
+                  state: state,
+                  onSelected: (id) => act(_notifier(ref).newBatter(id)),
+                ),
+              MatchPhase.inningsBreak => InningsBreakPanel(
+                  state: state,
+                  onOpeners: (s, ns) => act(_notifier(ref).openers(s, ns)),
+                ),
+              // A finished match shows MatchResultTab instead of this tab.
+              MatchPhase.completed => const SizedBox.shrink(),
+              MatchPhase.inPlay => ScorePad(
+                  canUndo: live.canUndo,
+                  onUndo: () => _undo(context, ref),
+                  onRuns: (r, {required boundary}) => _scoreRuns(context, ref, r, boundary: boundary),
+                  onMoreRuns: () => _moreRuns(context, ref),
+                  onWide: () => _wide(context, ref),
+                  onNoBall: () => _noBall(context, ref),
+                  onBye: () => _byes(context, ref, ExtraType.bye),
+                  onLegBye: () => _byes(context, ref, ExtraType.legBye),
+                  onWicket: () => _wicket(context, ref),
+                ),
+            },
+          ),
+        ),
+      ],
+    );
+  }
 
   void _undo(BuildContext context, WidgetRef ref) {
     if (_notifier(ref).undo()) {

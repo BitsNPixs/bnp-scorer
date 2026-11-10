@@ -1,6 +1,6 @@
 import 'package:bnp_scorer/data/demo_data.dart';
 import 'package:bnp_scorer/data/match_record.dart';
-import 'package:bnp_scorer/screens/scorecard_screen.dart';
+import 'package:bnp_scorer/screens/scoring_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/widgets/match_charts.dart';
@@ -96,7 +96,7 @@ void main() {
     await repo.save(live);
     await tester.pumpWidget(ProviderScope(
       overrides: [matchRepositoryProvider.overrideWithValue(repo)],
-      child: MaterialApp(theme: AppTheme.dark(), home: ScorecardScreen(matchId: live.id)),
+      child: MaterialApp(theme: AppTheme.dark(), home: ScoringScreen(matchId: live.id)),
     ));
     await tester.pump(_settle);
 

@@ -144,7 +144,7 @@ class _WicketSheetState extends State<_WicketSheet> {
                 for (final r in const [0, 1, 2, 3])
                   RoundOption(
                     label: '$r',
-                    color: AppColors.ink,
+                    color: Theme.of(context).colorScheme.primary,
                     selected: _runs == r,
                     onTap: () => setState(() => _runs = r),
                   ),

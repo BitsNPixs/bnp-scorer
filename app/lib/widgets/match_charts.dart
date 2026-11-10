@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
+import '../ui/motion.dart';
 import 'surface_panel.dart';
 import 'wagon_wheel.dart';
 
@@ -17,6 +18,9 @@ const _barRadius = 4.0;
 const _lineWidth = 2.0;
 const _markerRadius = 4.0;
 const _ticks = 4;
+
+/// How long the bars take to grow and the worm to draw when a chart opens.
+const _drawIn = Duration(milliseconds: 800);
 
 /// Runs per over and the race between the innings. Tap or drag a chart to read
 /// one over. The scorecard tabs are the table view of the same numbers.
@@ -63,7 +67,8 @@ class _MatchChartsState extends State<MatchCharts> {
     return 'Over ${over + 1}: ${parts.join(', ')}';
   }
 
-  Widget _chart(CustomPainter painter, String description) => LayoutBuilder(
+  /// [painter] gets how far the draw-in has got, from 0 to 1.
+  Widget _chart(CustomPainter Function(double progress) painter, String description) => LayoutBuilder(
         builder: (context, constraints) => Semantics(
           label: description,
           child: GestureDetector(
@@ -73,7 +78,12 @@ class _MatchChartsState extends State<MatchCharts> {
             child: SizedBox(
               height: _chartHeight,
               width: double.infinity,
-              child: CustomPaint(painter: painter),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween(begin: reduceMotion(context) ? 1 : 0, end: 1),
+                duration: _drawIn,
+                curve: Curves.easeOutCubic,
+                builder: (context, progress, _) => CustomPaint(painter: painter(progress)),
+              ),
             ),
           ),
         ),
@@ -121,7 +131,7 @@ class _MatchChartsState extends State<MatchCharts> {
               legend,
               const SizedBox(height: 12),
               _chart(
-                _ManhattanPainter(series: series, style: style, selected: _selectedOver),
+                (p) => _ManhattanPainter(series: series, style: style, selected: _selectedOver, progress: p),
                 'Runs per over. $totals.',
               ),
               readout,
@@ -138,7 +148,7 @@ class _MatchChartsState extends State<MatchCharts> {
               legend,
               const SizedBox(height: 12),
               _chart(
-                _WormPainter(series: series, style: style, selected: _selectedOver),
+                (p) => _WormPainter(series: series, style: style, selected: _selectedOver, progress: p),
                 'Total runs over by over. $totals.',
               ),
               readout,
@@ -212,11 +222,15 @@ int _niceMax(int value) {
 
 /// Shared axes: horizontal gridlines, y labels and over numbers.
 abstract class _OverChartPainter extends CustomPainter {
-  _OverChartPainter({required this.series, required this.style, required this.selected});
+  _OverChartPainter({required this.series, required this.style, required this.selected, this.progress = 1});
 
   final List<List<OverSummary>> series;
   final _ChartStyle style;
   final int? selected;
+
+  /// Draw-in progress: bars grow and the worm extends from 0 to 1. The axes
+  /// are scaled to the final numbers from the start, so nothing jumps.
+  final double progress;
 
   int get overCount => series.map((s) => s.length).fold(0, max);
 
@@ -289,11 +303,14 @@ abstract class _OverChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _OverChartPainter old) =>
-      old.selected != selected || old.series != series || old.style.surface != style.surface;
+      old.selected != selected ||
+      old.series != series ||
+      old.style.surface != style.surface ||
+      old.progress != progress;
 }
 
 class _ManhattanPainter extends _OverChartPainter {
-  _ManhattanPainter({required super.series, required super.style, required super.selected});
+  _ManhattanPainter({required super.series, required super.style, required super.selected, super.progress});
 
   @override
   int get highestValue => series.expand((s) => s).map((o) => o.runs).fold(0, max);
@@ -314,7 +331,7 @@ class _ManhattanPainter extends _OverChartPainter {
       for (var i = 0; i < series[s].length; i++) {
         final over = series[s][i];
         final left = plot.left + slot * i + _barGap + (barWidth + _barGap) * s;
-        final top = yFor(plot, over.runs);
+        final top = yFor(plot, over.runs * progress);
         canvas.drawRRect(
           RRect.fromLTRBAndCorners(
             left,
@@ -326,7 +343,7 @@ class _ManhattanPainter extends _OverChartPainter {
           ),
           paint,
         );
-        for (var w = 0; w < over.wickets; w++) {
+        for (var w = 0; progress == 1 && w < over.wickets; w++) {
           final center = Offset(left + barWidth / 2, top - _markerRadius - 2 - w * (_markerRadius * 2 + 1));
           paintWicket(canvas, center, style.colors[s]);
         }
@@ -336,7 +353,7 @@ class _ManhattanPainter extends _OverChartPainter {
 }
 
 class _WormPainter extends _OverChartPainter {
-  _WormPainter({required super.series, required super.style, required super.selected});
+  _WormPainter({required super.series, required super.style, required super.selected, super.progress});
 
   @override
   int get highestValue =>
@@ -350,6 +367,9 @@ class _WormPainter extends _OverChartPainter {
     final count = overCount;
     if (count == 0) return;
     final slot = plot.width / count;
+    canvas
+      ..save()
+      ..clipRect(Rect.fromLTRB(0, 0, plot.left + plot.width * progress + _markerRadius * 2, size.height));
 
     for (var s = 0; s < series.length; s++) {
       final overs = series[s];
@@ -385,5 +405,6 @@ class _WormPainter extends _OverChartPainter {
         align: TextAlign.right,
       );
     }
+    canvas.restore();
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
+import '../ui/motion.dart';
 import 'player_choice_grid.dart';
 
 /// Title + prompt used by every phase panel.
@@ -193,12 +194,13 @@ class InningsBreakPanel extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppColors.lime.withValues(alpha: 0.25),
+            color: AppColors.neon.withValues(alpha: 0.16),
             borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.neon.withValues(alpha: 0.45)),
           ),
           child: Row(
             children: [
-              const Icon(Icons.flag_rounded),
+              Icon(Icons.flag_rounded, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -233,12 +235,19 @@ class ResultPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 4),
-        TweenAnimationBuilder<double>(
-          tween: Tween(begin: 0, end: 1),
-          duration: const Duration(milliseconds: 700),
-          curve: Curves.elasticOut,
-          builder: (context, v, child) => Transform.scale(scale: v, child: child),
-          child: const Icon(Icons.emoji_events_rounded, size: 56, color: AppColors.four),
+        Center(
+          child: PopIn(
+            child: Container(
+              width: 84,
+              height: 84,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.four.withValues(alpha: 0.14),
+                boxShadow: AppColors.glow(AppColors.four, strength: 0.25, blur: 28),
+              ),
+              child: const Icon(Icons.emoji_events_rounded, size: 50, color: AppColors.four),
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         Text(

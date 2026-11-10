@@ -7,12 +7,14 @@ import '../state/live_match.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
+import '../ui/motion.dart';
 import '../widgets/crease_panel.dart';
 import '../widgets/over_strip.dart';
 import '../widgets/phase_panels.dart';
 import '../widgets/score_header.dart';
 import '../widgets/score_pad.dart';
 import '../widgets/scoring_sheets.dart';
+import '../widgets/stadium_effects.dart';
 import '../widgets/wicket_sheet.dart';
 import 'scorecard_screen.dart';
 
@@ -125,7 +127,10 @@ class _ScoringView extends ConsumerWidget {
           ),
         ],
       ),
-      body: Column(
+      body: _ResultCelebration(
+        state: state,
+        child: Floodlight(
+          child: Column(
         children: [
           Expanded(
             child: ListView(
@@ -146,8 +151,8 @@ class _ScoringView extends ConsumerWidget {
                   const _Banner(
                     icon: Icons.bolt_rounded,
                     text: 'FREE HIT · only a run out counts',
-                    background: AppColors.lime,
-                    foreground: AppColors.ink,
+                    background: AppColors.neon,
+                    foreground: AppColors.night,
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -200,6 +205,8 @@ class _ScoringView extends ConsumerWidget {
           ),
         ],
       ),
+        ),
+      ),
     );
   }
 
@@ -220,7 +227,7 @@ class _ScoringView extends ConsumerWidget {
       title: 'Runs completed',
       subtitle: 'All run or overthrows, without a boundary.',
       options: const [4, 5, 6, 7],
-      color: AppColors.inkRaised,
+      color: Theme.of(context).colorScheme.primary,
     );
     if (runs == null || !context.mounted) return;
     await _scoreRuns(context, ref, runs, boundary: false);
@@ -405,6 +412,40 @@ class _ScoringView extends ConsumerWidget {
   }
 }
 
+/// Throws confetti when the match is won while the scorer watches. Opening a
+/// finished match does not.
+class _ResultCelebration extends StatefulWidget {
+  const _ResultCelebration({required this.state, required this.child});
+
+  final MatchState state;
+  final Widget child;
+
+  @override
+  State<_ResultCelebration> createState() => _ResultCelebrationState();
+}
+
+class _ResultCelebrationState extends State<_ResultCelebration> {
+  /// Bumped per celebration, so a second win (after an undo) replays it.
+  int _bursts = 0;
+
+  @override
+  void didUpdateWidget(_ResultCelebration old) {
+    super.didUpdateWidget(old);
+    final justWon = !old.state.isCompleted &&
+        widget.state.isCompleted &&
+        widget.state.result?.winnerTeamId != null;
+    if (justWon && !reduceMotion(context)) setState(() => _bursts++);
+  }
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        children: [
+          widget.child,
+          if (_bursts > 0) Positioned.fill(child: ConfettiBurst(key: ValueKey(_bursts))),
+        ],
+      );
+}
+
 class _BottomPanel extends StatelessWidget {
   const _BottomPanel({required this.child});
 
@@ -417,11 +458,12 @@ class _BottomPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: scheme.surfaceContainerLowest,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 24,
+            offset: const Offset(0, -6),
           ),
         ],
       ),

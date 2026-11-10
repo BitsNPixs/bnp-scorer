@@ -85,7 +85,7 @@ class BallChip extends StatelessWidget {
     final (Color bg, Color fg) = switch (ball.kind) {
       BallKind.dot => (scheme.surfaceContainerHigh, scheme.onSurfaceVariant),
       BallKind.runs => (scheme.primary, scheme.onPrimary),
-      BallKind.four => (AppColors.four, AppColors.ink),
+      BallKind.four => (AppColors.four, AppColors.night),
       BallKind.six => (AppColors.six, Colors.white),
       BallKind.extra => (AppColors.extra, Colors.white),
       BallKind.wicket => (AppColors.wicket, Colors.white),

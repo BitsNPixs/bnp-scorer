@@ -14,6 +14,7 @@ Offline-first: scoring works with no network and every match is stored on the de
 | [AGENTS.md](AGENTS.md) | **Start here** (people and coding agents): rules, current status, reuse map, gotchas |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Product context, stack decisions, next phases, open issues |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Engine, events, rules implemented, app state, screens, design system, tests |
+| [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) | Review of coding standards, separation of concerns and refactoring roadmap |
 | [CHANGELOG.md](CHANGELOG.md) | What changed |
 | [CLAUDE.md](CLAUDE.md) | Imports AGENTS.md for Claude Code |
 
@@ -22,7 +23,10 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Match setup** in one screen: team names, players (type names or "Fill to 11"),
   overs (presets or stepper), toss, venue, and house rules (wide/no-ball run,
   free hit, last man stands, max overs per bowler, shot direction).
-- **Teams:** edit a squad from Home's More menu: rename players, set roles, and
+- **Look:** a night-pitch and neon-green design with light and dark themes. Pick
+  System, Light or Dark in Settings (top of Home). A bottom bar holds Matches,
+  Tournaments, Stats and Teams, with a big "+" to start a match from anywhere.
+- **Teams:** edit a squad from the Teams tab: rename players, set roles, and
   mark the captain, vice-captain and wicket-keeper. Scorecards show (c) and (wk).
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
@@ -38,7 +42,7 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Charts:** every scorecard has runs per over (Manhattan) and the run race (worm),
   with wickets marked. Tap or drag to read an over. Turn on "Record shot direction"
   in the house rules to add a wagon wheel, by innings or batter.
-- **Backup:** save everything to one file from Home's More menu, and restore it on
+- **Backup:** save everything to one file from Settings, and restore it on
   this or another phone. Restoring only adds what is missing.
 - **Share:** send any scorecard to WhatsApp or anywhere else as a branded picture
   with a caption.
@@ -133,6 +137,6 @@ flutter build apk --debug      # and `flutter build ios --no-codesign` on a Mac
 
 ## Fonts and offline first launch
 
-`google_fonts` downloads Inter and Space Grotesk on first launch and caches
+`google_fonts` downloads Inter and Barlow Condensed on first launch and caches
 them. If there's no network on first launch, the system font is used. Bundling
 the fonts is listed in [docs/ROADMAP.md](docs/ROADMAP.md) (open issue 9).

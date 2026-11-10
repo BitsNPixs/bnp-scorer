@@ -38,6 +38,7 @@ class LeaderRow extends StatelessWidget {
         gradient: leader ? AppColors.heroGradient : null,
         color: leader ? null : scheme.surfaceContainerLowest,
         borderRadius: radius,
+        border: Border.all(color: leader ? AppColors.neon.withValues(alpha: 0.35) : scheme.outlineVariant),
       ),
       child: InkWell(
         borderRadius: radius,
@@ -51,7 +52,7 @@ class LeaderRow extends StatelessWidget {
                 child: Text(
                   '$rank',
                   textAlign: TextAlign.center,
-                  style: scoreStyle(14, color: leader ? AppColors.lime : muted),
+                  style: scoreStyle(16, color: leader ? AppColors.neon : muted),
                 ),
               ),
               const SizedBox(width: 6),
@@ -81,7 +82,7 @@ class LeaderRow extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(value, style: scoreStyle(22, color: leader ? AppColors.lime : strong)),
+                  Text(value, style: scoreStyle(24, color: leader ? AppColors.neon : strong)),
                   Text(valueLabel, style: text.labelSmall?.copyWith(color: muted)),
                 ],
               ),

@@ -43,7 +43,8 @@ void main() {
     await pump(tester, const HomeScreen());
     await tester.tap(find.byTooltip('Stats'));
     await settle(tester);
-    expect(find.text('Teams'), findsOneWidget);
+    // The stats tabs, not the bottom bar's Teams tab.
+    expect(find.descendant(of: find.byType(TabBar), matching: find.text('Teams')), findsOneWidget);
   });
 
   testWidgets('before any result it explains itself', (tester) async {

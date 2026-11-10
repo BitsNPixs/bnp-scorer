@@ -18,17 +18,19 @@ packages/cricket_engine/        Pure Dart scoring engine (no Flutter)
 app/                            Flutter app (package name bnp_scorer)
   lib/main.dart                 Loads SharedPreferences, overrides the repositories,
                                 seeds demo data in demo builds
-  lib/app.dart                  BnpScorerApp (MaterialApp, light/dark themes)
+  lib/app.dart                  BnpScorerApp (MaterialApp, light/dark themes, saved theme mode)
   lib/data/                     Records, repositories, LocalDocuments, Backup,
-                                DeviceFiles, demo data, newId
-  lib/state/                    providers.dart (repositories, lists, stats), live_match.dart
+                                DeviceFiles, AppSettings, demo data, newId
+  lib/state/                    providers.dart (repositories, lists, stats, theme mode),
+                                live_match.dart
   lib/screens/                  Home, NewMatch, Scoring, Scorecard, Stats, player and team
                                 stats, Tournaments, Tournament, NewTournament, Teams,
                                 TeamEdit, Backup
   lib/widgets/                  Score hero, over strip, crease panel, pad, sheets, panels,
-                                charts, overs timeline, wagon wheel, share card
+                                charts, overs timeline, wagon wheel, share card, bottom
+                                bar, settings sheet, floodlight and confetti
   lib/theme/app_theme.dart      AppColors, AppFonts, AppTheme, scoreStyle()
-  lib/ui/                       format.dart, feedback.dart, inputs.dart
+  lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart
   test/                         fakes, unit tests, widget tests per feature
 docs/                           This file and ROADMAP.md
 ```
@@ -220,9 +222,15 @@ Pad key → `ScoringScreen` handler (may open a sheet for runs / wicket details)
 from `state.phase` / `state.current` → record saved → home list invalidated.
 
 ### Screens
-- **Home:** brand header with Tournaments, Stats and a More menu (Teams, Backup),
-  filter chips, match cards (live pill or result, teams, scores), long-press to
-  delete with a warning for tournament matches, lime "New match" FAB, empty state.
+- **Home (the shell):** a floating bottom bar with four tabs (Matches,
+  Tournaments, Stats, Teams) and a raised neon "+" that opens New match from any
+  tab. Tabs live in an `IndexedStack`, are built on first visit and fade in when
+  chosen. Back on another tab returns to Matches.
+- **Matches tab:** brand header with a Settings button (System / Light / Dark and
+  Backup), a floodlit hero card with a "New match" button and stumps art, three
+  number tiles (played, live, tournaments), filter chips, match cards (live pill
+  with an overs bar and a neon edge, or a result tag with the winner's trophy),
+  long-press to delete with a warning for tournament matches, empty state.
 - **New match:**
   - teams and players (type names, "Fill to 11", or pick a saved team, with extra
     squad members sitting out);
@@ -235,8 +243,11 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - for a tournament fixture, teams and title are filled and locked. A Super Over
     also hides the overs and toss, because the rules decide them.
 - **Scoring:**
-  - `ScoreHeader`: navy gradient hero, animated score, CRR / target / RRR or
-    projected;
+  - `ScoreHeader`: floodlit hero; runs and wickets roll up when they change; an
+    overs ring fills through the innings; CRR / target / RRR or projected in
+    glass tiles; a FOUR!, SIX! or WICKET! burst for the ball just bowled (not on
+    undo or reopening), and a shake on a wicket;
+  - confetti when the match is won while scoring (not on reopening a result);
   - free-hit and save-failure banners;
   - `OverStrip`: this over's chips;
   - `CreasePanel`: batters, partnership, swap, bowler figures;
@@ -264,21 +275,35 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **Backup:** create a backup file, or restore from one.
 
 ### Design system
-- Light theme by default (readable in sunlight); dark theme supported.
+- Light, dark, or follow the phone, chosen in Settings and stored as
+  `bnp_scorer.themeMode` (`AppSettings`, `themeModeProvider`).
 - **Brand:**
-  - ink navy `#0E1430` to `#26338A` for the hero gradient and primary;
-  - floodlight lime `#D4FF3F` as the accent.
+  - night `#07100C`, with the hero gradient `#173F2F` to `#0B1A14`. Hero cards
+    (score, champions, leaders, share card) stay dark in both themes, like a
+    floodlit scoreboard;
+  - neon green `#2CF59E` as the accent and the fill of primary buttons, always
+    with night text;
+  - turf green `#007A4D` as `colorScheme.primary` in the light theme, for text
+    and icons on light surfaces, where neon is too faint;
+  - cards have a hairline edge (`cardShape`) for a glassy look in the dark.
 - **Outcome colours** (the same in both themes):
   - four: amber `#FFB21E`;
   - six: violet `#7C4DFF`;
   - wicket: `#FF4D5E`;
-  - extras: teal `#12B5A6`;
+  - extras: blue `#1C72D8`, so extras never read as the green of runs;
   - dot: `#9AA3B5`;
   - live: `#FF3B5C`.
-- **Type:** Inter for UI and Space Grotesk for numbers with tabular figures,
-  through `scoreStyle()`.
+- **Type:** Inter for UI. Barlow Condensed, the tall scoreboard face, for
+  headings and for numbers with tabular figures, through `scoreStyle()` and
+  `AppFonts.display`.
+- **Motion** (`ui/motion.dart`), skipped when the phone asks for reduced motion:
+  - list cards fade and lift in, staggered for the first eight (`EntranceFade`);
+  - trophies spring in (`PopIn`);
+  - screens rise and fade in on Android;
+  - charts grow their bars and draw the worm when opened.
 - **Interaction:**
-  - 64 px pad keys with a press-scale animation and haptics;
+  - 64 px pad keys with a press-scale animation and haptics. 4, 6 and OUT have
+    a gradient and a glow;
   - score changes animate;
   - the next action is always shown in the bottom panel, so scorers never
     hunt for a menu.

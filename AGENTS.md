@@ -19,14 +19,22 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-06): analyze clean, 146 engine and 161 app tests passing,
+- Latest run (2026-11-10): analyze clean, 146 engine and 184 app tests passing,
   and a debug demo build installed on a phone (Android 17).
+- **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
+  (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
+  System / Light / Dark switch in Settings, saved on the device. Animations follow
+  the content: cards slide in, the overs ring fills, FOUR! / SIX! / WICKET! burst
+  on the score card, confetti on a win. All are skipped when the phone asks for
+  reduced motion.
 - **Checked by hand on the phone so far:** launch, Home and its filter, Stats, a
-  tournament's matches, New match with saved teams, the Overs tab.
-- **Not yet checked on a real phone:** sharing to WhatsApp, backup and restore
-  (tests replace the share sheet and file picker), charts, the wagon wheel, the
-  Teams screen, Super Overs, and a full match scored by hand. See ROADMAP "Open
-  issues".
+  tournament's matches, New match with saved teams, the Overs tab. After the
+  redesign: only the new Home, in dark and in light (screenshots, no taps).
+- **Not yet checked on a real phone:** the redesigned scoring screen, the bursts
+  and confetti, the Settings sheet, the other bottom-bar tabs, sharing to
+  WhatsApp, backup and restore (tests replace the share sheet and file picker),
+  charts, the wagon wheel, the Teams screen, Super Overs, and a full match scored
+  by hand. See ROADMAP "Open issues".
 - Only the debug build has been tried. Release builds and iOS have not.
 - Work happens on the `dev` branch, which has not been merged to `main` or pushed.
   Commit each finished, verified piece of work.
@@ -34,7 +42,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
-- Saved teams work offline and are edited on the Teams screen (Home, More menu).
+- Saved teams work offline and are edited on the Teams tab.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.
@@ -99,8 +107,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (13 screens). Add go_router only with deep
-  links (shared scorecards).
+- **Navigation:** plain `Navigator` (13 screens). `HomeScreen` is the shell:
+  a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
+  `IndexedStack`, built on first visit. Every other screen is pushed over it.
+  Back on a tab other than Matches returns to Matches. Add go_router only with
+  deep links (shared scorecards).
+- **Theme:** colours come from `Theme.of(context).colorScheme` or `AppColors`.
+  Neon (`AppColors.neon`) is a fill and an accent on dark surfaces. Text on light
+  surfaces uses `colorScheme.primary`, which is deep green in the light theme.
+  Hero cards stay dark in both themes.
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.
 
@@ -117,7 +132,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Names, scores, figures, dismissal text, result line | `ui/format.dart` |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
-| Colours, fonts, numbers | `AppColors`, `AppTheme`, `scoreStyle()` (`theme/app_theme.dart`) |
+| Colours, fonts, numbers | `AppColors`, `AppTheme`, `AppFonts.display`, `scoreStyle()` (`theme/app_theme.dart`) |
+| Card edge, section heading | `cardShape`, `SectionTitle` (`widgets/surface_panel.dart`) |
+| Entrance, pop and reduced motion | `EntranceFade`, `PopIn`, `reduceMotion` (`ui/motion.dart`) |
+| Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
+| Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
+| Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |
 | New ids | `newId()` (`data/ids.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
@@ -134,7 +154,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `maxLines` + ellipsis. Widget tests run at 360 dp in the FlutterTest font,
   where every glyph is 1em wide, so long labels overflow and fail the test.
 - **Fonts:** widget tests must set `AppFonts.useGoogleFonts = false`
-  (`setUpAll`). The app fetches Inter / Space Grotesk at runtime (README).
+  (`setUpAll`). The app fetches Inter / Barlow Condensed at runtime (README).
 - **Riverpod 3 specifics used here:** `ref.mounted` after `await`;
   `AsyncValue.value` is nullable; tests build
   `ProviderContainer(retry: (_, _) => null)` and keep auto-dispose providers
@@ -144,8 +164,17 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Dart 3.8 features in use:** null-aware collection elements (`{?x}`) and
   wildcard `_` parameters. Don't lower the SDK constraint.
 - Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
-  `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds` and
-  `bnp_scorer.tournament.<id>`. Changing them loses users' data.
+  `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
+  `bnp_scorer.tournament.<id>` and `bnp_scorer.themeMode`. Changing them loses
+  users' data.
+- **Animations in tests:** an animation starts its clock on the first frame after
+  it starts, and reports done only once its time is past. After a tap, pump once,
+  then pump past the duration (see `celebrations_test.dart`). Decorative
+  animations must check `reduceMotion(context)`, and none may run longer than a
+  test's settle step if it changes text a test reads.
+- **`AnimatedDefaultTextStyle` replaces the inherited style** rather than merging
+  it. Build its style from the theme (`textTheme.labelSmall!.copyWith`), or the
+  text falls back to a serif face, as the bottom bar's labels once did.
 - **Wrap and chips:** a `Container` with `alignment` fills its parent's width. Size
   to the content with `Center(widthFactor: 1)`, and test sizes as well as presence:
   `BallChip` once stretched across the screen with every test passing.

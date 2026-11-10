@@ -6,6 +6,7 @@ import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
+import '../ui/motion.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
 import 'new_match_screen.dart';
@@ -286,16 +287,21 @@ class _ChampionBanner extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: AppColors.heroGradient,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: AppColors.four.withValues(alpha: 0.45)),
+          boxShadow: AppColors.glow(AppColors.four, strength: 0.18, blur: 24),
         ),
         child: Row(
           children: [
-            const Icon(Icons.emoji_events_rounded, size: 40, color: AppColors.lime),
+            const PopIn(child: Icon(Icons.emoji_events_rounded, size: 44, color: AppColors.four)),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('CHAMPIONS', style: TextStyle(color: Colors.white70, letterSpacing: 1.4)),
+                  const Text(
+                    'CHAMPIONS',
+                    style: TextStyle(color: AppColors.four, letterSpacing: 2, fontWeight: FontWeight.w800),
+                  ),
                   Text(
                     name,
                     maxLines: 1,

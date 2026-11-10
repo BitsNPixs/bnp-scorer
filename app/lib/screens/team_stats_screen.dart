@@ -106,7 +106,7 @@ class _FormChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (outcome) {
-      MatchOutcome.won => ('W', AppColors.lime),
+      MatchOutcome.won => ('W', AppColors.neon),
       MatchOutcome.lost => ('L', AppColors.wicket),
       MatchOutcome.tied => ('T', AppColors.extra),
       MatchOutcome.noResult => ('N', AppColors.extra),
@@ -116,7 +116,7 @@ class _FormChip extends StatelessWidget {
       backgroundColor: color,
       child: Text(
         label,
-        style: scoreStyle(14, color: outcome == MatchOutcome.won ? AppColors.ink : Colors.white),
+        style: scoreStyle(14, color: outcome == MatchOutcome.won ? AppColors.night : Colors.white),
       ),
     );
   }

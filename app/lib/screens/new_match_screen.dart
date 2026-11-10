@@ -640,6 +640,11 @@ class _TossCard extends StatelessWidget {
         gradient: selected ? AppColors.heroGradient : null,
         color: selected ? null : scheme.surfaceContainer,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: selected ? AppColors.neon.withValues(alpha: 0.6) : Colors.transparent,
+          width: 1.5,
+        ),
+        boxShadow: selected ? AppColors.glow(AppColors.neon, strength: 0.2, blur: 16) : null,
       ),
       child: Material(
         type: MaterialType.transparency,
@@ -652,7 +657,7 @@ class _TossCard extends StatelessWidget {
               children: [
                 Icon(
                   selected ? Icons.emoji_events_rounded : Icons.circle_outlined,
-                  color: selected ? AppColors.lime : scheme.onSurfaceVariant,
+                  color: selected ? AppColors.neon : scheme.onSurfaceVariant,
                 ),
                 const SizedBox(height: 8),
                 Text(

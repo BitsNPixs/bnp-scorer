@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/providers.dart';
-import '../theme/app_theme.dart';
 import '../ui/format.dart';
+import '../ui/motion.dart';
 import '../widgets/avatars.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
@@ -13,9 +13,8 @@ import 'team_edit_screen.dart';
 class TeamsScreen extends ConsumerWidget {
   const TeamsScreen({super.key});
 
-  void _open(BuildContext context, [Team? team]) => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => TeamEditScreen(team: team)),
-      );
+  void _open(BuildContext context, [Team? team]) =>
+      Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => TeamEditScreen(team: team)));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,10 +23,8 @@ class TeamsScreen extends ConsumerWidget {
       appBar: AppBar(title: const Text('Teams')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _open(context),
-        backgroundColor: AppColors.lime,
-        foregroundColor: AppColors.ink,
         icon: const Icon(Icons.add_rounded),
-        label: const Text('New team', style: TextStyle(fontWeight: FontWeight.w800)),
+        label: const Text('New team'),
       ),
       body: teams.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -41,18 +38,22 @@ class TeamsScreen extends ConsumerWidget {
                 itemBuilder: (context, i) {
                   final team = list[i];
                   final captain = team.playerById(team.captainId ?? '')?.name;
-                  return SurfacePanel(
-                    padding: EdgeInsets.zero,
-                    child: ListTile(
-                      leading: TeamBadge(name: team.name, size: 40),
-                      title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      subtitle: Text(
-                        [plural(team.players.length, 'player'), if (captain != null) 'Captain: $captain'].join(' · '),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  return EntranceFade(
+                    key: ValueKey(team.id),
+                    index: i,
+                    child: SurfacePanel(
+                      padding: EdgeInsets.zero,
+                      child: ListTile(
+                        leading: TeamBadge(name: team.name, size: 40),
+                        title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: Text(
+                          [plural(team.players.length, 'player'), if (captain != null) 'Captain: $captain'].join(' · '),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => _open(context, team),
                       ),
-                      trailing: const Icon(Icons.chevron_right_rounded),
-                      onTap: () => _open(context, team),
                     ),
                   );
                 },

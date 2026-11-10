@@ -83,13 +83,14 @@ class ScorecardCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.neon.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Icon(Icons.sports_cricket_rounded, color: AppColors.lime, size: 20),
+              const Icon(Icons.sports_cricket_rounded, color: AppColors.neon, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -115,7 +116,7 @@ class ScorecardCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             matchStatus(state),
-            style: scoreStyle(18, color: AppColors.lime),
+            style: scoreStyle(20, color: AppColors.neon),
           ),
           if (best != null) ...[
             const SizedBox(height: 6),

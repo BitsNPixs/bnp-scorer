@@ -262,6 +262,9 @@ void main() {
 
     testWidgets('home lists the matches', (tester) async {
       await pump(tester, const HomeScreen());
+      // The live friendly comes first; finished matches follow below it.
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 400));
       expect(find.textContaining('won by'), findsWidgets);
       expect(tester.takeException(), isNull);
     });

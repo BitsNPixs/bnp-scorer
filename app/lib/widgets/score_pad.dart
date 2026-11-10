@@ -37,27 +37,30 @@ class ScorePad extends StatelessWidget {
     final neutralFg = scheme.onSurface;
 
     Widget run(int r) => PadButton(
-          label: '$r',
-          background: neutralBg,
-          foreground: neutralFg,
-          onTap: () {
-            HapticFeedback.selectionClick();
-            onRuns(r, boundary: false);
-          },
-        );
+      label: '$r',
+      background: neutralBg,
+      foreground: neutralFg,
+      onTap: () {
+        HapticFeedback.selectionClick();
+        onRuns(r, boundary: false);
+      },
+    );
 
     Widget extra(String label, VoidCallback onTap) => PadButton(
-          label: label,
-          small: true,
-          background: AppColors.extra.withValues(alpha: 0.14),
-          foreground: AppColors.extra,
-          onTap: onTap,
-        );
+      label: label,
+      small: true,
+      background: AppColors.extra.withValues(alpha: 0.14),
+      foreground: AppColors.extra,
+      onTap: onTap,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _row([run(0), run(1), run(2),
+        _row([
+          run(0),
+          run(1),
+          run(2),
           PadButton(
             label: '3',
             caption: 'hold: 5+',
@@ -75,7 +78,8 @@ class ScorePad extends StatelessWidget {
             label: '4',
             caption: 'FOUR',
             background: AppColors.four,
-            foreground: AppColors.ink,
+            foreground: AppColors.night,
+            glow: true,
             onTap: () {
               HapticFeedback.mediumImpact();
               onRuns(4, boundary: true);
@@ -86,6 +90,7 @@ class ScorePad extends StatelessWidget {
             caption: 'SIX',
             background: AppColors.six,
             foreground: Colors.white,
+            glow: true,
             onTap: () {
               HapticFeedback.heavyImpact();
               onRuns(6, boundary: true);
@@ -102,6 +107,7 @@ class ScorePad extends StatelessWidget {
             small: true,
             background: AppColors.wicket,
             foreground: Colors.white,
+            glow: true,
             onTap: () {
               HapticFeedback.heavyImpact();
               onWicket();
@@ -121,16 +127,16 @@ class ScorePad extends StatelessWidget {
   }
 
   Widget _row(List<Widget> children) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Row(
-          children: [
-            for (var i = 0; i < children.length; i++) ...[
-              if (i > 0) const SizedBox(width: 10),
-              Expanded(child: children[i]),
-            ],
-          ],
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      children: [
+        for (var i = 0; i < children.length; i++) ...[
+          if (i > 0) const SizedBox(width: 10),
+          Expanded(child: children[i]),
+        ],
+      ],
+    ),
+  );
 }
 
 /// A big key that squishes slightly when pressed.
@@ -145,6 +151,7 @@ class PadButton extends StatefulWidget {
     this.caption,
     this.icon,
     this.small = false,
+    this.glow = false,
   });
 
   final String label;
@@ -157,6 +164,9 @@ class PadButton extends StatefulWidget {
 
   /// Text keys (WD, OUT...) use a smaller label than digits.
   final bool small;
+
+  /// Big-moment keys (4, 6, OUT) shine with a gradient and a glow.
+  final bool glow;
 
   @override
   State<PadButton> createState() => _PadButtonState();
@@ -172,6 +182,8 @@ class _PadButtonState extends State<PadButton> {
   @override
   Widget build(BuildContext context) {
     final enabled = widget.onTap != null;
+    final scheme = Theme.of(context).colorScheme;
+    final shape = RoundedRectangleBorder(borderRadius: BorderRadius.circular(18));
     return Semantics(
       button: true,
       enabled: enabled,
@@ -179,39 +191,59 @@ class _PadButtonState extends State<PadButton> {
       child: AnimatedScale(
         scale: _pressed ? 0.93 : 1,
         duration: const Duration(milliseconds: 90),
-        child: Material(
-          color: widget.background,
-          borderRadius: BorderRadius.circular(18),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: widget.onTap,
-            onLongPress: widget.onLongPress,
-            onHighlightChanged: enabled ? _setPressed : null,
-            child: SizedBox(
-              height: 64,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  if (widget.icon != null)
-                    Icon(widget.icon, color: widget.foreground)
-                  else
-                    Text(
-                      widget.label,
-                      style: scoreStyle(widget.small ? 18 : 26, color: widget.foreground),
-                    ),
-                  if (widget.caption != null || widget.icon != null) ...[
-                    const SizedBox(height: 3),
-                    Text(
-                      widget.icon != null ? widget.label : widget.caption!,
-                      style: TextStyle(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.8,
-                        color: widget.foreground.withValues(alpha: 0.75),
-                      ),
-                    ),
-                  ],
-                ],
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: widget.glow && enabled ? AppColors.glow(widget.background, strength: 0.35, blur: 14) : null,
+          ),
+          child: Material(
+            type: MaterialType.transparency,
+            shape: shape,
+            clipBehavior: Clip.antiAlias,
+            child: Ink(
+              decoration: BoxDecoration(
+                color: widget.glow ? null : widget.background,
+                gradient: widget.glow
+                    ? LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Color.lerp(widget.background, Colors.white, 0.22)!, widget.background],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(18),
+                border: widget.glow ? null : Border.all(color: scheme.outlineVariant),
+              ),
+              child: InkWell(
+                onTap: widget.onTap,
+                onLongPress: widget.onLongPress,
+                onHighlightChanged: enabled ? _setPressed : null,
+                child: SizedBox(
+                  height: 64,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.icon != null)
+                        Icon(widget.icon, color: widget.foreground)
+                      else
+                        Text(
+                          widget.label,
+                          style: scoreStyle(widget.small ? 20 : 30, color: widget.foreground, weight: FontWeight.w800),
+                        ),
+                      if (widget.caption != null || widget.icon != null) ...[
+                        const SizedBox(height: 3),
+                        Text(
+                          widget.icon != null ? widget.label : widget.caption!,
+                          style: TextStyle(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: widget.foreground.withValues(alpha: 0.75),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

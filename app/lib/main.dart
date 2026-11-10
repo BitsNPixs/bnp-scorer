@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app.dart';
+import 'data/app_settings.dart';
 import 'data/demo_data.dart';
 import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
@@ -23,6 +24,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
+        appSettingsProvider.overrideWithValue(AppSettings(prefs)),
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),

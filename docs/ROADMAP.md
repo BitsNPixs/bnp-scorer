@@ -34,7 +34,7 @@ Still to do:
    chase, the result and undo throughout.
 2. Try sharing and backup and restore on a real phone (open issue 1).
 3. Fix the open issues below that bite during those tests.
-4. App icon and splash in BNP branding (navy `#0E1430` and lime `#D4FF3F`). The
+4. App icon and splash in BNP branding (night `#07100C` and neon `#2CF59E`). The
    app still has the default Flutter icon.
 5. A release build (open issue 2), then iOS on a Mac.
 
@@ -90,8 +90,9 @@ In priority order:
 2. **Release builds have no internet permission.** `INTERNET` is only in the debug
    and profile manifests, so a release build cannot download its fonts. Add it to
    the main manifest, or fix issue 9 and bundle the fonts.
-3. **Filter chips may clip long names.** Chip labels on Home looked cut off on a
-   phone ("Monsoon Leagu"), seen mid-tap and not confirmed since.
+3. **Filter chips clip long names.** Seen on a phone: "Monsoon Leagu" mid-tap on
+   2026-11-06, and on 2026-11-10 "Pongal Trophy" with its last letter faded. Not
+   yet investigated.
 4. **Unexplained install stalls.** `adb install` hung twice with the phone locked,
    then once worked while locked. A leftover "Installing" screen from the phone's
    installer was seen. The cause is unknown.
@@ -111,7 +112,7 @@ In priority order:
    backward compatible).
 8. **Closing an innings early** still decides on runs. Use "Abandon match" for a
    game that should have no result. Rain rules such as DLS are not implemented.
-9. **Fonts are fetched at runtime.** Bundle Inter and Space Grotesk (`.ttf` in
+9. **Fonts are fetched at runtime.** Bundle Inter and Barlow Condensed (`.ttf` in
    `assets/google_fonts/`, listed in pubspec) and set
    `GoogleFonts.config.allowRuntimeFetching = false`, so the first launch
    works offline.

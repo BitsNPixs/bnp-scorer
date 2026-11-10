@@ -49,7 +49,27 @@
   finished matches. Home has a Stats button leading to a team table, batting and
   bowling leaderboards, and team and player profiles.
 
+- A bottom bar replaces Home's header buttons and More menu: Matches,
+  Tournaments, Stats and Teams tabs around a raised "+" that starts a match from
+  any tab. Back on another tab returns to Matches.
+- Settings (top of Home): System, Light or Dark, applied at once and remembered
+  (`bnp_scorer.themeMode`), plus the way into Backup.
+- Animations fitted to what they show: match, tournament, team and leader cards
+  slide in; the score rolls up; an overs ring fills on the score card; FOUR!, SIX!
+  and WICKET! burst over it; a wicket shakes it; confetti falls on a win; charts
+  draw in; trophies spring in; tabs fade between each other. All of them are
+  skipped when the phone asks for reduced motion.
+
 ### Changed
+- New look, after a reference the owner chose: a night pitch with neon green,
+  glassy bordered cards, floodlit hero cards in both themes, and Barlow Condensed
+  scoreboard numbers in place of Space Grotesk. Home has a hero card with a
+  "New match" button and number tiles for played, live and tournament matches.
+- Extras are blue (`#1C72D8`) instead of teal, so they never read as runs. Chart
+  colours are unchanged and still pass the palette check against the new cards.
+- Two tests follow the new layout: the demo Home test scrolls down to a finished
+  match, now below the hero card, and the Stats test looks for "Teams" in the
+  stats tabs rather than the bottom bar.
 - A team typed with a saved team's name now uses that team's ids, so a player's
   stats are not split across two identities.
 
@@ -66,8 +86,9 @@
 ### Verified
 - First real run: analyze clean, app and engine tests pass, debug APK installed
   and launched on a phone.
-- Latest run: 146 engine and 161 app tests pass, and existing saved data loaded
-  after every update.
+- Latest run: 146 engine and 184 app tests pass, and existing saved data loaded
+  after every update. The redesigned Home was seen on a phone in dark and light;
+  the rest of the redesign has been checked by tests only.
 - Still unverified: iOS, release builds, a full match scored by hand, and on a real
   phone, sharing, backup and restore, charts, the wagon wheel and the Teams screen.
 

@@ -44,7 +44,7 @@ class PlayerAvatar extends StatelessWidget {
       );
 }
 
-/// Lime badge with team initials, used on dark (ink) backgrounds.
+/// Neon badge with team initials, used on the dark hero cards.
 class TeamBadge extends StatelessWidget {
   const TeamBadge({super.key, required this.name, this.size = 40});
 
@@ -57,12 +57,12 @@ class TeamBadge extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.lime,
+          gradient: AppColors.neonGradient,
           borderRadius: BorderRadius.circular(size * 0.32),
         ),
         child: Text(
           initials(name),
-          style: scoreStyle(size * 0.38, color: AppColors.ink),
+          style: scoreStyle(size * 0.42, color: AppColors.night, weight: FontWeight.w800),
         ),
       );
 }

@@ -180,9 +180,14 @@ class RoundOption extends StatelessWidget {
   final VoidCallback onTap;
   final bool selected;
 
+  /// Text that reads on [color] when selected: white on dark fills, night on
+  /// bright ones such as neon.
+  Color get _onColor =>
+      ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : AppColors.night;
+
   @override
   Widget build(BuildContext context) => Material(
-        color: selected ? color : color.withValues(alpha: 0.14),
+        color: selected ? color : color.withValues(alpha: 0.16),
         shape: const CircleBorder(),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
@@ -192,7 +197,7 @@ class RoundOption extends StatelessWidget {
             child: Center(
               child: Text(
                 label,
-                style: scoreStyle(24, color: selected ? Colors.white : color),
+                style: scoreStyle(26, color: selected ? _onColor : color),
               ),
             ),
           ),

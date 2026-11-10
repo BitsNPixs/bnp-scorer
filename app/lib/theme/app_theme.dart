@@ -1,5 +1,5 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
-import 'package:flutter/foundation.dart' show LicenseEntry, LicenseEntryWithLineBreaks, LicenseRegistry;
+import 'package:flutter/foundation.dart' show LicenseEntry, LicenseEntryWithLineBreaks, LicenseRegistry, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -72,6 +72,39 @@ abstract final class AppFonts {
   static void useBundledFonts() {
     GoogleFonts.config.allowRuntimeFetching = false;
     LicenseRegistry.addLicense(_licenses);
+  }
+
+  /// Every weight the app draws, and so every file in [assetFolder]. A new
+  /// weight or italic needs its file added there too.
+  static const interWeights = [
+    FontWeight.w400,
+    FontWeight.w500,
+    FontWeight.w600,
+    FontWeight.w700,
+    FontWeight.w800,
+    FontWeight.w900,
+  ];
+  static const displayWeights = interWeights;
+  static const displayItalicWeights = [FontWeight.w700, FontWeight.w800, FontWeight.w900];
+
+  /// The longest startup waits for [preload].
+  static const preloadLimit = Duration(seconds: 3);
+
+  /// Loads every bundled font before the first frame, so no text is laid out
+  /// in the narrower fallback font and then swapped. That swap is the likely
+  /// reason chips on Home lost their last letter. Startup waits at most
+  /// [preloadLimit]; a failed or slow load is logged and the app starts
+  /// anyway, with the system font for anything not yet loaded.
+  static Future<void> preload() async {
+    try {
+      await GoogleFonts.pendingFonts([
+        for (final w in interWeights) GoogleFonts.inter(fontWeight: w),
+        for (final w in displayWeights) GoogleFonts.barlowCondensed(fontWeight: w),
+        for (final w in displayItalicWeights) GoogleFonts.barlowCondensed(fontWeight: w, fontStyle: FontStyle.italic),
+      ]).timeout(preloadLimit);
+    } on Object catch (e) {
+      debugPrint('Could not preload the fonts: $e');
+    }
   }
 
   static Stream<LicenseEntry> _licenses() async* {

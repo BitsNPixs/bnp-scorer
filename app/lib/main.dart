@@ -14,6 +14,7 @@ import 'theme/app_theme.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppFonts.useBundledFonts();
+  await AppFonts.preload();
   final prefs = await SharedPreferences.getInstance();
   final repository = LocalMatchRepository(prefs);
   final teams = LocalTeamRepository(prefs);

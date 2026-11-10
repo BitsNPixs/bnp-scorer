@@ -86,6 +86,10 @@
   stats are not split across two identities.
 
 ### Fixed
+- Filter chips on Home lost their last letter ("Pongal Trophy"). The fonts now
+  load before the first frame, so no text is laid out in the narrower fallback
+  font first, the likely cause. Not reproducible in tests; still to be
+  confirmed on a phone.
 - Ball chips stretched across the whole line on the Overs tab. They now size to
   their label, and tests check the size.
 - A tournament with results but no boundaries showed a blank Boundaries tab.

@@ -141,4 +141,5 @@ their OFL licences, shown in Settings > Open-source licences). `AppFonts.useBund
 in `main()` turns off downloading, so the app never needs the internet, even on
 first launch. The files are the ones `google_fonts` would download, checked
 against its SHA-256 hashes. A new weight or style needs its file added there
-(named like `Inter-SemiBold.ttf`) and to `bundled_fonts_test.dart`.
+(named like `Inter-SemiBold.ttf`) and its weight to the lists in `AppFonts`.
+`main()` loads every font before the first frame, waiting at most 3 seconds.

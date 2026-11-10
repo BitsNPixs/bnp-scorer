@@ -87,9 +87,12 @@ In priority order:
 
 1. **Sharing and backup are untested on a phone.** Tests replace the share sheet and
    file picker, so a real WhatsApp share and a real restore have never been run.
-2. **Filter chips clip long names.** Seen on a phone: "Monsoon Leagu" mid-tap on
-   2026-11-06, and on 2026-11-10 "Pongal Trophy" with its last letter faded. Not
-   yet investigated.
+2. **Filter chips clipped long names.** Seen on a phone: "Monsoon Leagu" on
+   2026-11-06 and "Pongal Trophy" with its last letter faded on 2026-11-10. Not
+   reproducible in tests with the fonts loaded. Likely cause: the chips were laid
+   out in the narrower fallback font before Inter arrived. Since 2026-11-10 the
+   fonts load before the first frame (`AppFonts.preload`). **Not yet checked on
+   the phone**; close this once Home's chips look whole there.
 3. **Unexplained install stalls.** `adb install` hung twice with the phone locked,
    then once worked while locked. A leftover "Installing" screen from the phone's
    installer was seen. The cause is unknown.

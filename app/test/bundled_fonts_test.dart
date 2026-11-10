@@ -7,14 +7,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Every weight and style the app draws. A new one needs its file in
-/// assets/google_fonts, or it falls back to the system font.
-const _interWeights = [400, 500, 600, 700, 800, 900];
-const _barlowWeights = [400, 500, 600, 700, 800, 900];
-const _barlowItalicWeights = [700, 800, 900];
-
-FontWeight _weight(int w) => FontWeight.values[w ~/ 100 - 1];
-
 void main() {
   // Unlike the other tests, this one loads the real fonts, from the assets only.
   setUpAll(() {
@@ -22,17 +14,19 @@ void main() {
     AppFonts.useBundledFonts();
   });
 
-  Future<void> drawAndLoad(WidgetTester tester, List<TextStyle> styles) async {
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        home: SingleChildScrollView(
-          child: Column(children: [for (final s in styles) Text('42 Runs', style: s)]),
-        ),
-      ),
-    );
-    await tester.runAsync(GoogleFonts.pendingFonts);
+  /// Runs [body] and returns what it printed. google_fonts reports a failed
+  /// load with debugPrint, and Flutter checks debugPrint is restored before
+  /// tear-down runs, hence try/finally rather than addTearDown.
+  Future<List<String>> printedBy(Future<void> Function() body) async {
+    final logs = <String>[];
+    final original = debugPrint;
+    debugPrint = (message, {wrapWidth}) => logs.add(message ?? '');
+    try {
+      await body();
+    } finally {
+      debugPrint = original;
+    }
+    return logs;
   }
 
   test('nothing is ever downloaded', () {
@@ -40,38 +34,51 @@ void main() {
   });
 
   // A missing file makes google_fonts throw inside the frame, which stalls the
-  // test rather than failing it, hence the short timeout.
+  // test rather than failing it, hence the short timeouts.
   testWidgets(
     'every weight the app draws loads from the bundled files',
     timeout: const Timeout(Duration(seconds: 30)),
     (tester) async {
-      // google_fonts reports a failed load with debugPrint. Flutter checks that
-      // debugPrint is restored before tear-down runs, hence try/finally.
-      final logs = <String>[];
-      final original = debugPrint;
-      debugPrint = (message, {wrapWidth}) => logs.add(message ?? '');
-      try {
-        await drawAndLoad(tester, [
-          for (final w in _interWeights) GoogleFonts.inter(fontWeight: _weight(w)),
-          for (final w in _barlowWeights) scoreStyle(20, weight: _weight(w)),
-          for (final w in _barlowItalicWeights)
-            AppFonts.display(TextStyle(fontWeight: _weight(w), fontStyle: FontStyle.italic)),
-          // The themes themselves, light and dark.
-          ...[AppTheme.light(), AppTheme.dark()].expand(
-            (t) => [
-              t.textTheme.bodyMedium!,
-              t.textTheme.titleMedium!,
-              t.textTheme.labelSmall!,
-              t.textTheme.headlineSmall!,
-              t.textTheme.titleLarge!,
-              t.appBarTheme.titleTextStyle!,
-            ],
+      final logs = await printedBy(() async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: AppTheme.light(),
+            home: SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (final style in [
+                    for (final w in AppFonts.interWeights) GoogleFonts.inter(fontWeight: w),
+                    for (final w in AppFonts.displayWeights) scoreStyle(20, weight: w),
+                    for (final w in AppFonts.displayItalicWeights)
+                      AppFonts.display(TextStyle(fontWeight: w, fontStyle: FontStyle.italic)),
+                    // The themes themselves, light and dark.
+                    for (final t in [AppTheme.light(), AppTheme.dark()]) ...[
+                      t.textTheme.bodyMedium!,
+                      t.textTheme.titleMedium!,
+                      t.textTheme.labelSmall!,
+                      t.textTheme.headlineSmall!,
+                      t.textTheme.titleLarge!,
+                      t.appBarTheme.titleTextStyle!,
+                    ],
+                  ])
+                    Text('42 Runs', style: style),
+                ],
+              ),
+            ),
           ),
-        ]);
-      } finally {
-        debugPrint = original;
-      }
+        );
+        await tester.runAsync(GoogleFonts.pendingFonts);
+      });
       expect(logs.where((l) => l.contains('unable to load font')), isEmpty, reason: logs.join('\n'));
+    },
+  );
+
+  testWidgets(
+    'preload loads every bundled font, so the first frame never uses a fallback',
+    timeout: const Timeout(Duration(seconds: 30)),
+    (tester) async {
+      final logs = await printedBy(() async => tester.runAsync(AppFonts.preload));
+      expect(logs, isEmpty, reason: logs.join('\n'));
     },
   );
 
@@ -103,10 +110,17 @@ void main() {
 }
 
 final _expectedFiles = [
-  for (final w in _interWeights) 'Inter-${_name(w)}.ttf',
-  for (final w in _barlowWeights) 'BarlowCondensed-${_name(w)}.ttf',
-  for (final w in _barlowItalicWeights) 'BarlowCondensed-${_name(w)}Italic.ttf',
+  for (final w in AppFonts.interWeights) 'Inter-${_name(w)}.ttf',
+  for (final w in AppFonts.displayWeights) 'BarlowCondensed-${_name(w)}.ttf',
+  for (final w in AppFonts.displayItalicWeights) 'BarlowCondensed-${_name(w)}Italic.ttf',
 ];
 
-String _name(int weight) =>
-    const {400: 'Regular', 500: 'Medium', 600: 'SemiBold', 700: 'Bold', 800: 'ExtraBold', 900: 'Black'}[weight]!;
+/// google_fonts' file name part for a weight, e.g. 600 → SemiBold.
+String _name(FontWeight weight) => const {
+  400: 'Regular',
+  500: 'Medium',
+  600: 'SemiBold',
+  700: 'Bold',
+  800: 'ExtraBold',
+  900: 'Black',
+}[weight.value]!;

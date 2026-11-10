@@ -61,6 +61,8 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- The app's analyzer is as strict as the engine's (`strict-inference`,
+  `strict-raw-types`), so missing generic types are caught.
 - New look, after a reference the owner chose: a night pitch with neon green,
   glassy bordered cards, floodlit hero cards in both themes, and Barlow Condensed
   scoreboard numbers in place of Space Grotesk. Home has a hero card with a

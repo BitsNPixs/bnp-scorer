@@ -87,7 +87,7 @@ void main() {
     });
 
     test('refuses a backup from a newer app, and says so', () {
-      final raw = jsonEncode({'app': 'bnp_scorer', 'version': 99, 'matches': [], 'teams': [], 'tournaments': []});
+      final raw = jsonEncode({'app': 'bnp_scorer', 'version': 99, 'matches': <Object?>[], 'teams': <Object?>[], 'tournaments': <Object?>[]});
       expect(
         () => Backup.decode(raw),
         throwsA(isA<FormatException>().having((e) => e.message, 'message', contains('newer'))),
@@ -98,12 +98,12 @@ void main() {
       final raw = jsonEncode({
         'app': 'bnp_scorer',
         'version': 1,
-        'matches': [],
+        'matches': <Object?>[],
         'teams': [
           _team('a').toJson(),
           {'id': 'broken'},
         ],
-        'tournaments': [],
+        'tournaments': <Object?>[],
       });
       expect(
         () => Backup.decode(raw),

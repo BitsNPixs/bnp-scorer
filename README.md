@@ -14,7 +14,6 @@ Offline-first: scoring works with no network and every match is stored on the de
 | [AGENTS.md](AGENTS.md) | **Start here** (people and coding agents): rules, current status, reuse map, gotchas |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Product context, stack decisions, next phases, open issues |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Engine, events, rules implemented, app state, screens, design system, tests |
-| [docs/CODE_REVIEW.md](docs/CODE_REVIEW.md) | Review of coding standards, separation of concerns and refactoring roadmap |
 | [CHANGELOG.md](CHANGELOG.md) | What changed |
 | [CLAUDE.md](CLAUDE.md) | Imports AGENTS.md for Claude Code |
 

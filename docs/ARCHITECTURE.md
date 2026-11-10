@@ -33,6 +33,8 @@ app/                            Flutter app (package name bnp_scorer)
   lib/theme/app_theme.dart      AppColors, AppFonts, AppTheme, scoreStyle()
   lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart
   test/                         fakes, unit tests, widget tests per feature
+  tool/                         generate_app_icon_test.dart: draws the app icon and
+                                splash PNGs into android/ (run by hand)
 docs/                           This file and ROADMAP.md
 ```
 

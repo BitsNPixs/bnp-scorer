@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- App icon and splash: the BNP letters in the scoreboard type over a red seam,
+  on night. An adaptive icon with background, foreground and a monochrome layer
+  for themed icons, legacy icons for older Android, and a night splash with the
+  mark on Android 12+ and before, in light and dark. The images are drawn by
+  `app/tool/generate_app_icon_test.dart`, and a test checks their sizes and
+  wiring.
 - Fonts ship with the app (`app/assets/google_fonts/`, about 2.4 MB with their
   OFL licences), and nothing is downloaded. The first launch now works offline
   and release builds need no internet permission. The files are the ones

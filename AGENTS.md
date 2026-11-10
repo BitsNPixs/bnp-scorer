@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-10): analyze clean, 146 engine and 193 app tests passing,
+- Latest run (2026-11-10): analyze clean, 146 engine and 198 app tests passing,
   and a debug demo build installed on a phone (Android 17).
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
@@ -40,6 +40,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   Commit each finished, verified piece of work.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked.
+- App icon and splash: the BNP letters over a red seam on night. The PNGs are
+  drawn by `app/tool/generate_app_icon_test.dart` with the bundled font; edit
+  the art there and run it (`flutter test tool/generate_app_icon_test.dart`),
+  never by hand. `test/app_icon_test.dart` checks sizes and wiring.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline and are edited on the Teams tab.

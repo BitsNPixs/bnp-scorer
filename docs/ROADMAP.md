@@ -34,8 +34,10 @@ Still to do:
    chase, the result and undo throughout.
 2. Try sharing and backup and restore on a real phone (open issue 1).
 3. Fix the open issues below that bite during those tests.
-4. App icon and splash in BNP branding (night `#07100C` and neon `#2CF59E`). The
-   app still has the default Flutter icon.
+4. ~~App icon and splash~~ Done on 2026-11-10: the BNP letters over a red seam
+   on night (option C), as an adaptive icon with a themed-icon layer, and a
+   night splash on every Android version. Seen on the phone's install screen;
+   the home-screen icon and the splash itself are still to be checked there.
 5. A release build, then iOS on a Mac.
 
 **Phase 1: accounts, teams, players**

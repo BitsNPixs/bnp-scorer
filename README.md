@@ -136,6 +136,9 @@ flutter build apk --debug      # and `flutter build ios --no-codesign` on a Mac
 
 ## Fonts and offline first launch
 
-`google_fonts` downloads Inter and Barlow Condensed on first launch and caches
-them. If there's no network on first launch, the system font is used. Bundling
-the fonts is listed in [docs/ROADMAP.md](docs/ROADMAP.md) (open issue 9).
+Inter and Barlow Condensed ship inside the app (`app/assets/google_fonts/`, with
+their OFL licences, shown in Settings > Open-source licences). `AppFonts.useBundledFonts()`
+in `main()` turns off downloading, so the app never needs the internet, even on
+first launch. The files are the ones `google_fonts` would download, checked
+against its SHA-256 hashes. A new weight or style needs its file added there
+(named like `Inter-SemiBold.ttf`) and to `bundled_fonts_test.dart`.

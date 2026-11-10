@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Fonts ship with the app (`app/assets/google_fonts/`, about 2.4 MB with their
+  OFL licences), and nothing is downloaded. The first launch now works offline
+  and release builds need no internet permission. The files are the ones
+  `google_fonts` fetched, checked against its SHA-256 hashes. Settings has an
+  Open-source licences page that lists them.
 - Generated the Android platform folder (`app/android`), label "BNP Scorer".
 - Demo data behind `--dart-define=BNP_DEMO=true` (`app/lib/data/demo_data.dart`):
   a five-match cup and a live friendly for four real squads. Matches are

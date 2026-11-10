@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
+import 'package:flutter/foundation.dart' show LicenseEntry, LicenseEntryWithLineBreaks, LicenseRegistry;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,6 +61,24 @@ abstract final class AppColors {
 /// Widget tests turn this off so fonts are not fetched over the network.
 abstract final class AppFonts {
   static bool useGoogleFonts = true;
+
+  /// Where the font files and their licences ship. File names follow
+  /// google_fonts' `<Family>-<Variant>.ttf`, e.g. `Inter-SemiBold.ttf`.
+  static const assetFolder = 'assets/google_fonts';
+
+  /// The fonts ship with the app, so the first launch works offline and
+  /// nothing is downloaded. A weight missing from [assetFolder] is reported
+  /// by google_fonts and drawn in the system font.
+  static void useBundledFonts() {
+    GoogleFonts.config.allowRuntimeFetching = false;
+    LicenseRegistry.addLicense(_licenses);
+  }
+
+  static Stream<LicenseEntry> _licenses() async* {
+    for (final (family, file) in const [('Inter', 'Inter'), ('Barlow Condensed', 'BarlowCondensed')]) {
+      yield LicenseEntryWithLineBreaks([family], await rootBundle.loadString('$assetFolder/$file-OFL.txt'));
+    }
+  }
 
   /// Barlow Condensed: tall, narrow scoreboard type for scores and headings.
   static TextStyle display(TextStyle style) => useGoogleFonts ? GoogleFonts.barlowCondensed(textStyle: style) : style;

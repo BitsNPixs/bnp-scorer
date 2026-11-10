@@ -221,6 +221,18 @@ void main() {
     });
   });
 
+  testWidgets('Settings lists the open-source licences', (tester) async {
+    await pumpApp(tester);
+    await tester.tap(find.byTooltip('Settings'));
+    await settle(tester);
+    await tester.ensureVisible(find.text('Open-source licences'));
+    await tester.tap(find.text('Open-source licences'));
+    await settle(tester);
+    expect(find.byType(LicensePage), findsOneWidget);
+    expect(find.text('BNP Scorer'), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
   group('AppSettings', () {
     test('defaults to the system theme', () async {
       SharedPreferences.setMockInitialValues({});

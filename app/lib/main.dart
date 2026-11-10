@@ -9,9 +9,11 @@ import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
 import 'data/tournament_repository.dart';
 import 'state/providers.dart';
+import 'theme/app_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AppFonts.useBundledFonts();
   final prefs = await SharedPreferences.getInstance();
   final repository = LocalMatchRepository(prefs);
   final teams = LocalTeamRepository(prefs);

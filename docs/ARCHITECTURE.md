@@ -297,7 +297,9 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - live: `#FF3B5C`.
 - **Type:** Inter for UI. Barlow Condensed, the tall scoreboard face, for
   headings and for numbers with tabular figures, through `scoreStyle()` and
-  `AppFonts.display`.
+  `AppFonts.display`. Both ship in `app/assets/google_fonts/` and are never
+  downloaded (`AppFonts.useBundledFonts()`); their OFL licences show in
+  Settings > Open-source licences.
 - **Motion** (`ui/motion.dart`), skipped when the phone asks for reduced motion:
   - list cards fade and lift in, staggered for the first eight (`EntranceFade`);
   - trophies spring in (`PopIn`);

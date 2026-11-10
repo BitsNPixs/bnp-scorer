@@ -38,6 +38,26 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
             },
           ),
         ),
+        const SizedBox(height: 24),
+        const SectionLabel('About'),
+        const SizedBox(height: 10),
+        SurfacePanel(
+          padding: EdgeInsets.zero,
+          child: ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Open-source licences'),
+            subtitle: const Text('Fonts and libraries BNP Scorer is built with'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              showLicensePage(
+                context: context,
+                applicationName: 'BNP Scorer',
+                applicationLegalese: 'By Bits N Pixs',
+              );
+            },
+          ),
+        ),
       ],
     ),
   ),

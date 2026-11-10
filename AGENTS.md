@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-10): analyze clean, 146 engine and 184 app tests passing,
+- Latest run (2026-11-10): analyze clean, 146 engine and 192 app tests passing,
   and a debug demo build installed on a phone (Android 17).
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
@@ -155,7 +155,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `maxLines` + ellipsis. Widget tests run at 360 dp in the FlutterTest font,
   where every glyph is 1em wide, so long labels overflow and fail the test.
 - **Fonts:** widget tests must set `AppFonts.useGoogleFonts = false`
-  (`setUpAll`). The app fetches Inter / Barlow Condensed at runtime (README).
+  (`setUpAll`). The app ships Inter and Barlow Condensed in
+  `app/assets/google_fonts/` and never downloads them (README "Fonts"). Using a
+  new weight or italic means adding its `.ttf` there and to
+  `bundled_fonts_test.dart`, or it draws in the system font.
 - **Riverpod 3 specifics used here:** `ref.mounted` after `await`;
   `AsyncValue.value` is nullable; tests build
   `ProviderContainer(retry: (_, _) => null)` and keep auto-dispose providers

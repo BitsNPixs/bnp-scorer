@@ -25,3 +25,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    # Inter and Barlow Condensed with their OFL licences (AppFonts.useBundledFonts).
+    - assets/google_fonts/

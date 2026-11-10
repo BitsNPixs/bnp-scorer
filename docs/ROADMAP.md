@@ -36,7 +36,7 @@ Still to do:
 3. Fix the open issues below that bite during those tests.
 4. App icon and splash in BNP branding (night `#07100C` and neon `#2CF59E`). The
    app still has the default Flutter icon.
-5. A release build (open issue 2), then iOS on a Mac.
+5. A release build, then iOS on a Mac.
 
 **Phase 1: accounts, teams, players**
 - Firebase project, `flutterfire configure` (creates `lib/firebase_options.dart`,
@@ -87,50 +87,43 @@ In priority order:
 
 1. **Sharing and backup are untested on a phone.** Tests replace the share sheet and
    file picker, so a real WhatsApp share and a real restore have never been run.
-2. **Release builds have no internet permission.** `INTERNET` is only in the debug
-   and profile manifests, so a release build cannot download its fonts. Add it to
-   the main manifest, or fix issue 9 and bundle the fonts.
-3. **Filter chips clip long names.** Seen on a phone: "Monsoon Leagu" mid-tap on
+2. **Filter chips clip long names.** Seen on a phone: "Monsoon Leagu" mid-tap on
    2026-11-06, and on 2026-11-10 "Pongal Trophy" with its last letter faded. Not
    yet investigated.
-4. **Unexplained install stalls.** `adb install` hung twice with the phone locked,
+3. **Unexplained install stalls.** `adb install` hung twice with the phone locked,
    then once worked while locked. A leftover "Installing" screen from the phone's
    installer was seen. The cause is unknown.
-5. **Tournament edge cases:**
+4. **Tournament edge cases:**
    - changing a league result after knockouts are scheduled shows no notice until
      that game is finished again;
    - a corrected final leaves its old Super Over in the fixture list, though it no
      longer affects the champion;
    - fixture cards keep the name a team had when the tournament was created;
    - groups are split by list order and cannot be arranged by hand.
-6. **Run out off a bye or leg bye.** The wicket sheet only offers legal / wide /
+5. **Run out off a bye or leg bye.** The wicket sheet only offers legal / wide /
    no-ball deliveries, so runs completed go to the batter. Fix: add Bye and LB
    to the sheet's delivery options and map them to `extra` + `extraRuns`. The
    engine already allows it.
-7. **Leg byes off a no-ball** are recorded as byes. Fix: let the no-ball sheet
+6. **Leg byes off a no-ball** are recorded as byes. Fix: let the no-ball sheet
    pick byes or leg byes. The engine needs an extra field (keep the JSON
    backward compatible).
-8. **Closing an innings early** still decides on runs. Use "Abandon match" for a
+7. **Closing an innings early** still decides on runs. Use "Abandon match" for a
    game that should have no result. Rain rules such as DLS are not implemented.
-9. **Fonts are fetched at runtime.** Bundle Inter and Barlow Condensed (`.ttf` in
-   `assets/google_fonts/`, listed in pubspec) and set
-   `GoogleFonts.config.allowRuntimeFetching = false`, so the first launch
-   works offline.
-10. **Two-bowler deadlock.** With strict Law 17.8, a side with only 2 bowlers
+8. **Two-bowler deadlock.** With strict Law 17.8, a side with only 2 bowlers
    that changes bowler mid-over has nobody eligible for the next over. "End
    innings" is the only way out. Consider allowing it with a warning in local
    mode.
-11. **Run-out strike.** After a run out, strike follows the runs completed. If
+9. **Run-out strike.** After a run out, strike follows the runs completed. If
    the batters crossed, the scorer must tap "swap strike". Consider asking
    "who's on strike?" in the wicket sheet.
-12. **Large text / long names.** The "Players · N" label is fixed. Other rows
+10. **Large text / long names.** The "Players · N" label is fixed. Other rows
    have not been checked at 200% text size.
-13. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
+11. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
    counts the extra wicket). Decide the wording with the owner.
-14. **Untested:** the new-match "Start" blocker, including the new bowler-limit
+12. **Untested:** the new-match "Start" blocker, including the new bowler-limit
    check. Add a widget test or extract the validation into a pure function and
    unit test it.
-15. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
+13. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
 
 ## Out of scope for v0.1

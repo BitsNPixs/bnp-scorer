@@ -266,9 +266,19 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `BYE LB OUT Undo`: OUT opens the wicket sheet, which offers only the
     dismissal types the engine allows for the chosen delivery, plus who is out,
     runs completed and the fielder / keeper.
-- **Scorecard:** a tab per innings with batting, extras, total, yet to bat, fall of
-  wickets and bowling, then an Overs tab and a Charts tab. The AppBar shares a
-  picture of the result.
+- **Scorecard:** a tab per innings (`InningsScorecard`), then an Overs tab and a
+  Charts tab. The AppBar shares a picture of the result. Each innings tab has:
+  - `ResultHero`: every innings, the result or the state of play (LIVE), and the
+    Player of the Match; the open innings is marked in neon;
+  - batting, with a run bar under each batter scaled to the top score (neon for
+    the top scorer), `*` for not out, and 4s and 6s in coloured badges;
+  - extras as chips (only kinds that happened) and a floodlit total band;
+  - yet to bat as chips;
+  - the fall of wickets as a horizontal timeline of red markers;
+  - bowling, with the best figures (most wickets, then fewest runs) highlighted
+    and wickets in a red badge.
+  Columns are sized per column (`_battingWidths`, `_bowlingWidths`) so names keep
+  room at 360 dp.
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
 - **Tournaments:** the list, then one tournament with Matches, Table, Batting,

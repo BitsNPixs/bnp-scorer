@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-10): analyze clean, 146 engine and 198 app tests passing,
+- Latest run (2026-11-10): analyze clean, 146 engine and 209 app tests passing,
   and a debug demo build installed on a phone (Android 17).
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
@@ -32,6 +32,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   redesign: Home in dark and light, the Teams tab, the new icon, and the
   release build (screenshots, no taps). The Home chips no longer clip.
 - **Not yet checked on a real phone:** the splash screen's mark, the redesigned
+  Scorecard (seen only in test renders with the real fonts), the redesigned
   scoring screen, the bursts and confetti, the Settings sheet, the Tournaments
   and Stats tabs, sharing to WhatsApp, backup and restore (tests replace the
   share sheet and file picker), charts, the wagon wheel, Super Overs, and a full
@@ -145,6 +146,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
 | Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
 | Match card, number tiles, stumps art | `MatchCard`, `SummaryTiles`, `StumpsArt` (`widgets/`) |
+| Match summary card, one innings' scorecard | `ResultHero` (`widgets/result_hero.dart`), `InningsScorecard` (`widgets/innings_scorecard.dart`) |
 | Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |
 | New ids | `newId()` (`data/ids.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |

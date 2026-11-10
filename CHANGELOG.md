@@ -72,6 +72,13 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- Scorecard redesign: a floodlit result card (every innings, the result or LIVE,
+  and the Player of the Match), run bars under batters scaled to the top score,
+  `*` for not out, coloured badges for 4s, 6s and wickets, extras as chips, a
+  total band, yet-to-bat chips, the fall of wickets as a timeline, and the best
+  bowling figures highlighted. Columns are sized one by one so names stop
+  wrapping onto three lines, and the tab bar no longer touches the screen edge.
+  The result line now lives in the innings tabs, not above Overs and Charts.
 - `home_screen.dart` is split: the shell stays, and the Matches tab, match card,
   number tiles and stumps art have their own files. No behaviour changed.
 - `LocalMatchRepository` now stores through `LocalDocuments`, like teams and

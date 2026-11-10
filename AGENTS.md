@@ -137,6 +137,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Entrance, pop and reduced motion | `EntranceFade`, `PopIn`, `reduceMotion` (`ui/motion.dart`) |
 | Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
 | Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
+| Match card, number tiles, stumps art | `MatchCard`, `SummaryTiles`, `StumpsArt` (`widgets/`) |
 | Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |
 | New ids | `newId()` (`data/ids.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |

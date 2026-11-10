@@ -61,6 +61,8 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- `home_screen.dart` is split: the shell stays, and the Matches tab, match card,
+  number tiles and stumps art have their own files. No behaviour changed.
 - `LocalMatchRepository` now stores through `LocalDocuments`, like teams and
   tournaments, instead of its own copy of the same code. Storage keys are
   unchanged, and a test pins them.

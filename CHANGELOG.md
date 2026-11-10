@@ -127,6 +127,9 @@
 - First release build: installed over the debug build with data kept, opened
   in under 0.2 s with no crash, and drew the bundled fonts with no internet
   permission.
+- The owner scored a match to its result on the redesigned scoring screen (the
+  overs ring, the over strip and the result were seen). The scorecard tabs and
+  Result tab that replaced the result panel are not yet seen on a phone.
 - Still unverified: iOS, release builds, a full match scored by hand, and on a real
   phone, sharing, backup and restore, charts, the wagon wheel and the Teams screen.
 

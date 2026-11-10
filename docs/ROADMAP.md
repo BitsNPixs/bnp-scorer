@@ -31,7 +31,8 @@ Done: Android folder, compile, analyzer and tests green, install on a phone, git
 Still to do:
 1. On a real Android phone, score a full short match: wides, a no-ball and free
    hit, a run out, a mid-over bowler change, retired hurt, the innings break, the
-   chase, the result and undo throughout.
+   chase, the result and undo throughout. On 2026-11-10 the owner scored a match
+   to its result; which of these cases it covered is not known.
 2. Try sharing and backup and restore on a real phone (open issue 1).
 3. Fix the open issues below that bite during those tests.
 4. ~~App icon and splash~~ Done on 2026-11-10: the BNP letters over a red seam

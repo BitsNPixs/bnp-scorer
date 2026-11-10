@@ -20,7 +20,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Current status (keep this section up to date)
 - Latest run (2026-11-10): analyze clean, 146 engine and 217 app tests passing,
-  and a debug demo build installed on a phone (Android 17).
+  and a release demo build installed on a phone (Android 17).
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
   System / Light / Dark switch in Settings, saved on the device. Animations follow
@@ -29,14 +29,14 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   reduced motion.
 - **Checked by hand on the phone so far:** launch, Home and its filter, Stats, a
   tournament's matches, New match with saved teams, the Overs tab. After the
-  redesign: Home in dark and light, the Teams tab, the new icon, and the
-  release build (screenshots, no taps). The Home chips no longer clip.
+  redesign: Home in dark and light, the Teams tab, the new icon, the release
+  build, and the scoring screen through to a result, scored by the owner. The
+  Home chips no longer clip.
 - **Not yet checked on a real phone:** the splash screen's mark, the scorecard
   tabs and Result tab (seen only in test renders with the real fonts), the
   bursts and confetti, the Settings sheet, the Tournaments and Stats tabs,
   sharing to WhatsApp, backup and restore (tests replace the share sheet and
-  file picker), charts, the wagon wheel, and Super Overs. The owner has scored
-  a match to its result on the redesigned scoring screen.
+  file picker), charts, the wagon wheel, and Super Overs.
 - A release build (`flutter build apk --release`) was installed and ran on the
   phone on 2026-11-10. It is signed with the debug key, so it installs over a
   debug build; the Play Store will need a real upload key. iOS is untried.

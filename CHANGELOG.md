@@ -94,8 +94,7 @@
 ### Fixed
 - Filter chips on Home lost their last letter ("Pongal Trophy"). The fonts now
   load before the first frame, so no text is laid out in the narrower fallback
-  font first, the likely cause. Not reproducible in tests; still to be
-  confirmed on a phone.
+  font first. Not reproducible in tests; confirmed fixed on the phone.
 - Ball chips stretched across the whole line on the Overs tab. They now size to
   their label, and tests check the size.
 - A tournament with results but no boundaries showed a blank Boundaries tab.
@@ -111,6 +110,9 @@
 - Latest run: 146 engine and 184 app tests pass, and existing saved data loaded
   after every update. The redesigned Home was seen on a phone in dark and light;
   the rest of the redesign has been checked by tests only.
+- First release build: installed over the debug build with data kept, opened
+  in under 0.2 s with no crash, and drew the bundled fonts with no internet
+  permission.
 - Still unverified: iOS, release builds, a full match scored by hand, and on a real
   phone, sharing, backup and restore, charts, the wagon wheel and the Teams screen.
 

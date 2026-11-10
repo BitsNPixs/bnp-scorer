@@ -29,13 +29,16 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   reduced motion.
 - **Checked by hand on the phone so far:** launch, Home and its filter, Stats, a
   tournament's matches, New match with saved teams, the Overs tab. After the
-  redesign: only the new Home, in dark and in light (screenshots, no taps).
-- **Not yet checked on a real phone:** the redesigned scoring screen, the bursts
-  and confetti, the Settings sheet, the other bottom-bar tabs, sharing to
-  WhatsApp, backup and restore (tests replace the share sheet and file picker),
-  charts, the wagon wheel, the Teams screen, Super Overs, and a full match scored
-  by hand. See ROADMAP "Open issues".
-- Only the debug build has been tried. Release builds and iOS have not.
+  redesign: Home in dark and light, the Teams tab, the new icon, and the
+  release build (screenshots, no taps). The Home chips no longer clip.
+- **Not yet checked on a real phone:** the splash screen's mark, the redesigned
+  scoring screen, the bursts and confetti, the Settings sheet, the Tournaments
+  and Stats tabs, sharing to WhatsApp, backup and restore (tests replace the
+  share sheet and file picker), charts, the wagon wheel, Super Overs, and a full
+  match scored by hand. See ROADMAP "Open issues".
+- A release build (`flutter build apk --release`) was installed and ran on the
+  phone on 2026-11-10. It is signed with the debug key, so it installs over a
+  debug build; the Play Store will need a real upload key. iOS is untried.
 - Work happens on the `dev` branch, which has not been merged to `main` or pushed.
   Commit each finished, verified piece of work.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out

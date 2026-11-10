@@ -30,7 +30,7 @@ class LocalDocuments<T> {
   String _key(String id) => '$_keyPrefix$id';
 
   List<T> readAll() => [
-        for (final id in _ids) ?_read(id),
+        for (final id in _ids) ?read(id),
       ];
 
   Future<void> save(String id, T value) async {
@@ -44,7 +44,8 @@ class LocalDocuments<T> {
     await _prefs.setStringList(_indexKey, [..._ids.where((i) => i != id)]);
   }
 
-  T? _read(String id) {
+  /// One document, or null if it is missing or unreadable.
+  T? read(String id) {
     final raw = _prefs.getString(_key(id));
     if (raw == null) return null;
     try {

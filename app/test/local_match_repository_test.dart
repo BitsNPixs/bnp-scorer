@@ -41,6 +41,22 @@ void main() {
     expect(await repo.load('m1'), isNull);
   });
 
+  test('keeps the storage keys earlier versions wrote', () async {
+    final repo = await _repository();
+    await repo.save(sampleRecord());
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.getStringList('bnp_scorer.matchIds'), ['m1']);
+    expect(prefs.getString('bnp_scorer.match.m1'), contains('Ammapet Kings'));
+  });
+
+  test('loading one corrupt record gives null instead of throwing', () async {
+    final repo = await _repository({
+      'bnp_scorer.matchIds': ['bad'],
+      'bnp_scorer.match.bad': '{not json',
+    });
+    expect(await repo.load('bad'), isNull);
+  });
+
   test('a corrupt record is skipped instead of breaking the list', () async {
     final repo = await _repository({
       'bnp_scorer.matchIds': ['bad'],

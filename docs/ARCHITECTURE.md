@@ -176,9 +176,10 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `withEvents()` returns a copy.
 - `MatchRepository`: `loadAll()` (newest first), `load(id)`, `save(record)`
   (upsert the whole record), `delete(id)`.
-- `LocalDocuments`: generic JSON documents in shared_preferences, used by the team
-  and tournament repositories.
-- `LocalMatchRepository` (shared_preferences):
+- `LocalDocuments`: generic JSON documents in shared_preferences, used by the
+  match, team and tournament repositories. `read(id)` gives one document, or
+  null if it is missing or unreadable.
+- `LocalMatchRepository` (shared_preferences, through `LocalDocuments`):
   - storage layout:
     - `bnp_scorer.matchIds`: a list of ids;
     - `bnp_scorer.match.<id>`: the JSON of one `MatchRecord`;

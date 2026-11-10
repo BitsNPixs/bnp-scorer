@@ -61,6 +61,9 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- `LocalMatchRepository` now stores through `LocalDocuments`, like teams and
+  tournaments, instead of its own copy of the same code. Storage keys are
+  unchanged, and a test pins them.
 - The app's analyzer is as strict as the engine's (`strict-inference`,
   `strict-raw-types`), so missing generic types are caught.
 - New look, after a reference the owner chose: a night pitch with neon green,

@@ -1,5 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:bnp_scorer/app.dart';
+import 'package:bnp_scorer/data/app_info.dart';
 import 'package:bnp_scorer/data/app_settings.dart';
+import 'package:bnp_scorer/data/device_files.dart';
+import 'package:bnp_scorer/data/error_log.dart';
 import 'package:bnp_scorer/screens/backup_screen.dart';
 import 'package:bnp_scorer/screens/new_match_screen.dart';
 import 'package:bnp_scorer/screens/stats_screen.dart';
@@ -18,11 +23,34 @@ import 'fakes.dart';
 
 const _settle = Duration(milliseconds: 400);
 
+class _TextShares implements DeviceFiles {
+  String? text;
+  String? subject;
+  bool fail = false;
+
+  @override
+  Future<void> shareText(String text, {required String subject}) async {
+    if (fail) throw StateError('No apps to share with');
+    this.text = text;
+    this.subject = subject;
+  }
+
+  @override
+  Future<void> shareImage(Uint8List png, {required String caption}) async {}
+
+  @override
+  Future<void> shareTextFile(String name, String contents) async {}
+
+  @override
+  Future<String?> pickTextFile() async => null;
+}
+
 void main() {
   setUpAll(() => AppFonts.useGoogleFonts = false);
 
   late SharedPreferences prefs;
   late InMemoryMatchRepository matches;
+  late _TextShares shares;
 
   Future<void> settle(WidgetTester tester) async {
     for (var i = 0; i < 4; i++) {
@@ -39,10 +67,13 @@ void main() {
     SharedPreferences.setMockInitialValues(stored);
     prefs = await SharedPreferences.getInstance();
     matches = InMemoryMatchRepository();
+    shares = _TextShares();
     await matches.save(sampleRecord());
     await tester.pumpWidget(ProviderScope(
       overrides: [
         appSettingsProvider.overrideWithValue(AppSettings(prefs)),
+        errorLogProvider.overrideWithValue(ErrorLog(prefs)),
+        deviceFilesProvider.overrideWithValue(shares),
         matchRepositoryProvider.overrideWithValue(matches),
         teamRepositoryProvider.overrideWithValue(InMemoryTeamRepository()),
         tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
@@ -231,6 +262,60 @@ void main() {
     expect(find.byType(LicensePage), findsOneWidget);
     expect(find.text('BNP Scorer'), findsWidgets);
     expect(tester.takeException(), isNull);
+  });
+
+  group('Settings › About', () {
+    Future<void> openSettings(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Settings'));
+      await settle(tester);
+    }
+
+    testWidgets('shows the version and the privacy promise without another tap', (tester) async {
+      await pumpApp(tester);
+      await openSettings(tester);
+
+      final version = find.text('Version $appVersionLabel · By Bits N Pixs');
+      await tester.ensureVisible(version);
+      expect(version, findsOneWidget);
+      final privacy = find.textContaining('Your matches stay on this phone');
+      expect(privacy, findsOneWidget);
+      final rect = tester.getRect(privacy);
+      expect(rect.right, lessThanOrEqualTo(360));
+      expect(rect.height, greaterThan(40), reason: 'the promise wraps rather than clipping');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Report a problem shares the version and recent errors', (tester) async {
+      await pumpApp(tester);
+      ErrorLog(prefs).record(StateError('scorecard failed'), StackTrace.fromString('#0 build'));
+      await openSettings(tester);
+
+      await tester.ensureVisible(find.text('Report a problem'));
+      await tester.tap(find.text('Report a problem'));
+      await settle(tester);
+
+      expect(shares.subject, 'BNP Scorer problem report');
+      expect(shares.text, contains('Version $appVersionLabel on '));
+      expect(shares.text, contains('Bad state: scorecard failed\n#0 build'));
+      expect(find.text('Appearance'.toUpperCase()), findsNothing, reason: 'the sheet closes');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a report with no errors still goes, and a failed share is explained', (tester) async {
+      await pumpApp(tester);
+      await openSettings(tester);
+      await tester.ensureVisible(find.text('Report a problem'));
+      await tester.tap(find.text('Report a problem'));
+      await settle(tester);
+      expect(shares.text, contains('No errors were recorded on this phone.'));
+
+      shares.fail = true;
+      await openSettings(tester);
+      await tester.ensureVisible(find.text('Report a problem'));
+      await tester.tap(find.text('Report a problem'));
+      await settle(tester);
+      expect(find.textContaining('Could not open sharing'), findsOneWidget);
+    });
   });
 
   group('AppSettings', () {

@@ -32,6 +32,9 @@ class _RecordingFiles implements DeviceFiles {
   Future<void> shareTextFile(String name, String contents) async {}
 
   @override
+  Future<void> shareText(String text, {required String subject}) async {}
+
+  @override
   Future<String?> pickTextFile() async => null;
 }
 

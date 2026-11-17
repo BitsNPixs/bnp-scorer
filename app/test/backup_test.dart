@@ -34,6 +34,9 @@ class _FakeFiles implements DeviceFiles {
   }
 
   @override
+  Future<void> shareText(String text, {required String subject}) async {}
+
+  @override
   Future<String?> pickTextFile() async => fileToPick;
 }
 

@@ -115,6 +115,9 @@ abstract final class AppFonts {
 
   /// Barlow Condensed: tall, narrow scoreboard type for scores and headings.
   static TextStyle display(TextStyle style) => useGoogleFonts ? GoogleFonts.barlowCondensed(textStyle: style) : style;
+
+  /// Inter, the body face, for text drawn outside the theme.
+  static TextStyle body(TextStyle style) => useGoogleFonts ? GoogleFonts.inter(textStyle: style) : style;
 }
 
 abstract final class AppTheme {

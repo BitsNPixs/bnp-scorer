@@ -16,11 +16,12 @@ packages/cricket_engine/        Pure Dart scoring engine (no Flutter)
   lib/src/tournament.dart       Tournament, Fixture, fixture generation, progressOf
   test/                         Rules, stats, tournament and no-result suites
 app/                            Flutter app (package name bnp_scorer)
-  lib/main.dart                 Loads SharedPreferences, overrides the repositories,
-                                seeds demo data in demo builds
+  lib/main.dart                 Loads SharedPreferences, installs the error handlers,
+                                overrides the repositories, seeds demo data in demo builds
   lib/app.dart                  BnpScorerApp (MaterialApp, light/dark themes, saved theme mode)
   lib/data/                     Records, repositories, LocalDocuments, Backup,
-                                DeviceFiles, AppSettings, demo data, newId
+                                DeviceFiles, AppSettings, ErrorLog, app version,
+                                demo data, newId
   lib/state/                    providers.dart (repositories, lists, stats, theme mode),
                                 live_match.dart
   lib/screens/                  Home (the shell), MatchesTab, NewMatch, Scoring (with the
@@ -31,7 +32,8 @@ app/                            Flutter app (package name bnp_scorer)
                                 bar, settings sheet, floodlight and confetti, match card,
                                 number tiles, stumps art
   lib/theme/app_theme.dart      AppColors, AppFonts, AppTheme, scoreStyle()
-  lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart
+  lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart,
+                                error_handling.dart
   test/                         fakes, unit tests, widget tests per feature
   tool/                         generate_app_icon_test.dart: draws the app icon and
                                 splash PNGs into android/ (run by hand)
@@ -199,7 +201,15 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`.
 - `Backup`: versioned JSON of matches, teams and tournaments. `Backup.decode` checks
   the whole file first, and `restoreBackup` only adds missing records.
-- `DeviceFiles`: the share sheet and file picker, replaced in tests.
+- `DeviceFiles`: the share sheet (image, file or plain text) and file picker,
+  replaced in tests.
+- `ErrorLog`: the last 20 uncaught errors with the top of their stack, in
+  `bnp_scorer.errorLog`. A repeat of the newest error raises its count instead
+  of adding an entry. `installErrorHandlers` (in `main()`) feeds it from
+  `FlutterError.onError` and `PlatformDispatcher.onError`, still printing to the
+  console, and replaces Flutter's error box with `FriendlyErrorPanel`. Nothing
+  leaves the phone: Settings > Report a problem puts `problemReport` text (version,
+  platform, a space to write, the errors) on the share sheet.
 
 ### State (Riverpod 3)
 - `matchRepositoryProvider`: overridden in `main()` and in tests. It throws if
@@ -231,8 +241,9 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   Tournaments, Stats, Teams) and a raised neon "+" that opens New match from any
   tab. Tabs live in an `IndexedStack`, are built on first visit and fade in when
   chosen. Back on another tab returns to Matches.
-- **Matches tab:** brand header with a Settings button (System / Light / Dark and
-  Backup), a floodlit hero card with a "New match" button and stumps art, three
+- **Matches tab:** brand header with a Settings button (System / Light / Dark,
+  Backup, then About: version and privacy note inline, Report a problem and the
+  licences), a floodlit hero card with a "New match" button and stumps art, three
   number tiles (played, live, tournaments), filter chips, match cards (live pill
   with an overs bar and a neon edge, or a result tag with the winner's trophy),
   long-press to delete with a warning for tournament matches, empty state.

@@ -44,6 +44,30 @@ Still to do:
    signed with the debug key; the Play Store needs a real upload key. Then iOS
    on a Mac.
 
+**Beta readiness (before testers outside the owner's circle)**
+Done on 2026-11-17: release signing setup, byes and leg byes on run outs and
+no-balls, Report a problem, version and privacy note in Settings.
+
+Still to do, all free unless noted:
+1. Create the upload key and `key.properties` (README "Release signing"), and
+   back the key up twice. Testers on debug-signed builds back up, uninstall and
+   reinstall once.
+2. Push the repo to a private GitHub repository: today it exists on one disk.
+3. Score full matches on the phone covering the cases in Phase 0 step 1, plus
+   the open issues below that a real match will hit (two-bowler deadlock,
+   run-out strike).
+4. Replace the real names in `demo_data.dart` before any public screenshot, or
+   get consent.
+5. Privacy policy page for the store listing (Google Sites, or a public repo with
+   only the policy). GitHub Pages on a private repo needs a paid plan.
+6. First beta by sharing the APK or through Firebase App Distribution (free).
+   The Play Store needs a one-time $25 developer account; a new personal account
+   must run a closed test with about 12 testers for 14 days before going public.
+7. For the store: `flutter build appbundle --release --obfuscate
+   --split-debug-info=build/symbols` (keep the symbols), screenshots, a 1024x500
+   feature graphic, content rating, target audience not children, and Data
+   safety "no data collected". Bump the version first (AGENTS "Version").
+
 **Phase 1: accounts, teams, players**
 - Firebase project, `flutterfire configure` (creates `lib/firebase_options.dart`,
   which is gitignored), and phone OTP sign-in.

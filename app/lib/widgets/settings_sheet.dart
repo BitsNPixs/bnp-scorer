@@ -1,9 +1,14 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/app_info.dart';
+import '../data/error_log.dart';
 import '../screens/backup_screen.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
+import '../ui/feedback.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
 
@@ -41,6 +46,24 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
         const SizedBox(height: 24),
         const SectionLabel('About'),
         const SizedBox(height: 10),
+        const _AboutPanel(),
+        const SizedBox(height: 10),
+        SurfacePanel(
+          padding: EdgeInsets.zero,
+          child: Consumer(
+            builder: (_, ref, _) => ListTile(
+              leading: const Icon(Icons.bug_report_outlined),
+              title: const Text('Report a problem'),
+              subtitle: const Text('Tell us what went wrong, with recent error details'),
+              trailing: const Icon(Icons.send_rounded),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                _reportProblem(context, ref);
+              },
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
         SurfacePanel(
           padding: EdgeInsets.zero,
           child: ListTile(
@@ -62,6 +85,57 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
     ),
   ),
 );
+
+/// Opens the share sheet with a problem report. Reads everything it needs
+/// before the first await, as the sheet that called it is closing.
+Future<void> _reportProblem(BuildContext context, WidgetRef ref) async {
+  final errors = ref.read(errorLogProvider).entries;
+  final files = ref.read(deviceFilesProvider);
+  final report = problemReport(
+    errors: errors,
+    version: appVersionLabel,
+    platform: '${Platform.operatingSystem} ${Platform.operatingSystemVersion}',
+    now: DateTime.now(),
+  );
+  try {
+    await files.shareText(report, subject: 'BNP Scorer problem report');
+  } on Object catch (e) {
+    if (context.mounted) showMessage(context, 'Could not open sharing: $e', isError: true);
+  }
+}
+
+/// Version and the privacy promise, inline so nobody has to dig for them.
+class _AboutPanel extends StatelessWidget {
+  const _AboutPanel();
+
+  static const privacy = 'Your matches stay on this phone. No account, no internet, nothing '
+      'collected. Sharing sends only what you see, to the app you pick.';
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Theme.of(context).textTheme;
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+    return SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('BNP Scorer', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 2),
+          Text('Version $appVersionLabel · By Bits N Pixs', style: text.bodySmall?.copyWith(color: muted)),
+          const SizedBox(height: 12),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lock_outline_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(child: Text(privacy, style: text.bodyMedium)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _ThemePicker extends ConsumerWidget {
   const _ThemePicker();

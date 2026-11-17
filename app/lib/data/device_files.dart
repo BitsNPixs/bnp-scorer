@@ -11,6 +11,9 @@ abstract interface class DeviceFiles {
 
   Future<void> shareTextFile(String name, String contents);
 
+  /// Plain text, for a message in WhatsApp or an email.
+  Future<void> shareText(String text, {required String subject});
+
   /// The contents of a file the user picks, or null if they cancel.
   Future<String?> pickTextFile();
 }
@@ -33,6 +36,11 @@ class PlatformDeviceFiles implements DeviceFiles {
       files: [XFile.fromData(utf8.encode(contents), mimeType: 'application/json')],
       fileNameOverrides: [name],
     ));
+  }
+
+  @override
+  Future<void> shareText(String text, {required String subject}) async {
+    await SharePlus.instance.share(ShareParams(text: text, subject: subject));
   }
 
   @override

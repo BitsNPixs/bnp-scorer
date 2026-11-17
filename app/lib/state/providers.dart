@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/app_settings.dart';
 import '../data/device_files.dart';
+import '../data/error_log.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
 import '../data/team_repository.dart';
@@ -38,6 +39,11 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     }
   }
 }
+
+/// Overridden in `main()` with the log the error handlers write to.
+final errorLogProvider = Provider<ErrorLog>(
+  (ref) => throw UnimplementedError('errorLogProvider must be overridden'),
+);
 
 /// The share sheet and file picker. Tests override this.
 final deviceFilesProvider = Provider<DeviceFiles>((ref) => const PlatformDeviceFiles());

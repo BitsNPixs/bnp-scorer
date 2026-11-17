@@ -46,6 +46,8 @@ Offline-first: scoring works with no network and every match is stored on the de
   this or another phone. Restoring only adds what is missing.
 - **Share:** send any scorecard to WhatsApp or anywhere else as a branded picture
   with a caption.
+- **Report a problem:** Settings sends a short report with recent error details
+  to any app. Errors are kept on the phone and nothing is sent by itself.
 - **Awards:** Player of the Match on every result, MVP rankings, and Player of the
   Tournament for each champion.
 - **Stats:** team table with points, net run rate and form, batting, bowling, MVP

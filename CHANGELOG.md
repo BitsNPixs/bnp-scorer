@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Added
+- Report a problem: uncaught errors are kept on the phone (`ErrorLog`, last 20,
+  repeats counted), and Settings shares a report with the version, platform and
+  those errors through the share sheet. Needs no internet permission and no new
+  dependency.
+- A failed widget shows a calm "Something went wrong here" panel instead of
+  Flutter's grey or red box (`FriendlyErrorPanel`).
+- Settings > About shows the version and a privacy note inline: no account, no
+  internet, nothing collected. A test keeps the version in step with pubspec.
 - App icon and splash: the BNP letters in the scoreboard type over a red seam,
   on night. An adaptive icon with background, foreground and a monochrome layer
   for themed icons, legacy icons for older Android, and a night splash with the

@@ -197,8 +197,9 @@ Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
   it optional (only when signed in), encrypted in transit, and deletable on
   request. Collected: Personal info > Name, Email address and User IDs (account
   management; the name is shown publicly as "Scored by"); App activity > Other
-  user-generated content (published matches, including player names; app
-  functionality). Not collected: location, contacts, photos, files, crash logs
+  user-generated content (published matches, tournaments and scheduled
+  matches, including player names; app functionality). Entry fee payments are
+  not collected: they stay on the phone. Not collected: location, contacts, photos, files, crash logs
   or diagnostics (problem reports are sent by the user through the share sheet),
   device ids. Not shared with third parties; Firebase is a processor. No ads.
 
@@ -209,28 +210,28 @@ and updates install over the top as long as every build is signed with the same
 upload key ("Release signing").
 
 1. Bump `version:` in `app/pubspec.yaml` and `app/lib/data/app_info.dart` together,
-   e.g. `0.9.0-beta.2+3`. The number after `+` must always go up.
+   e.g. `0.9.0-beta.3+4`. The number after `+` must always go up.
 2. Build and copy it out (PowerShell, from `app/`):
 
    ```powershell
    flutter build apk --release
    New-Item -ItemType Directory -Force ..\dist | Out-Null
-   Copy-Item build\app\outputs\flutter-apk\app-release.apk ..\dist\bnp-scorer-0.9.0-beta.2.apk
+   Copy-Item build\app\outputs\flutter-apk\app-release.apk ..\dist\bnp-scorer-0.9.0-beta.3.apk
    ```
 
    No `BNP_DEMO`, so testers start empty. No `--obfuscate` either, so the stack
    traces in Settings > Report a problem stay readable. `dist/` is gitignored.
 3. Check it is signed with the upload key, not the debug key:
-   `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.2.apk`
+   `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.3.apk`
    (in the Android SDK's `build-tools`) should not say `CN=Android Debug`.
 4. Send the file with the tester message below. In WhatsApp, attach it as a
    **Document**, so it arrives as a file.
 
 Tester message (edit the version):
 
-> BNP Scorer beta 0.9.0-beta.2 is attached. New: follow matches live under
-> Matches > Everyone, and sign in from Settings if you want others to follow
-> yours (it tells you what becomes public first). To install: tap the file, allow
+> BNP Scorer beta 0.9.0-beta.3 is attached. New: knockout cups with a bracket,
+> prizes and entry fees, upcoming matches you can schedule and share on
+> WhatsApp, and cups and upcoming matches under Matches > Everyone. To install: tap the file, allow
 > "install unknown apps" for WhatsApp (or Files) when asked, then Install. Updates
 > come the same way and keep your matches. Please back up from Settings now and
 > then. If anything goes wrong, use Settings > Report a problem and send it to me.

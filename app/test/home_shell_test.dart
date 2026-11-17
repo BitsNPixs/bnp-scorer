@@ -335,7 +335,8 @@ void main() {
 
       expect(find.text('Publish your matches?'), findsOneWidget);
       expect(find.textContaining('including the player names'), findsOneWidget);
-      expect(find.textContaining('Your email is never shown'), findsOneWidget);
+      expect(find.textContaining('Your email and who has paid entry fees are never shared'), findsOneWidget);
+      expect(find.textContaining('tournament and scheduled match'), findsOneWidget);
       expect(accounts.signInCalls, 0, reason: 'nothing happens before the scorer agrees');
 
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
@@ -343,7 +344,7 @@ void main() {
       expect(accounts.signInCalls, 1);
       expect(find.text('Signed in as Asha Scorer'), findsOneWidget);
       expect(find.text('Asha Scorer'), findsOneWidget);
-      expect(find.text('New matches you score are public'), findsOneWidget);
+      expect(find.text('New matches and tournaments you create are public'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

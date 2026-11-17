@@ -94,9 +94,10 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
 class _AccountSection extends ConsumerWidget {
   const _AccountSection();
 
-  static const publicNotice = "While you're signed in, every new match you score is public: anyone "
-      'with BNP Scorer can follow it, including the player names and your Google name. Your email '
-      'is never shown. Deleting a match unpublishes it. Matches already on this phone stay private.';
+  static const publicNotice = "While you're signed in, every new match, tournament and scheduled "
+      'match you create is public: anyone with BNP Scorer can follow it, including the player names '
+      'and your Google name. Your email and who has paid entry fees are never shared. Deleting '
+      'unpublishes it. What is already on this phone stays private.';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -122,7 +123,7 @@ class _AccountSection extends ConsumerWidget {
               : ListTile(
                   leading: PlayerAvatar(name: scorer.name, radius: 18),
                   title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: const Text('New matches you score are public'),
+                  subtitle: const Text('New matches and tournaments you create are public'),
                   trailing: TextButton(
                     onPressed: () => _signOut(context, accounts),
                     child: const Text('Sign out'),

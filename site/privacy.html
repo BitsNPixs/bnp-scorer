@@ -17,22 +17,27 @@
   <header class="hero">
     <span class="mark">BNP</span>
     <h1>Privacy policy</h1>
-    <p>BNP Scorer, by Bits N Pixs. Effective 17 November 2026. Updated the same day for sign-in and live matches.</p>
+    <p>BNP Scorer, by Bits N Pixs. Effective 17 November 2026. Updated the same day for sign-in, live matches,
+    tournaments and scheduled matches.</p>
   </header>
 
   <section>
     <h2>The short version</h2>
     <p>BNP Scorer keeps your matches on your phone. You can use all of it without
-    an account. If you choose to sign in with Google, the new matches you score
-    are published so anyone with the app can follow them live. No ads, no
-    analytics, no tracking, and we never sell anything.</p>
+    an account. If you choose to sign in with Google, the new matches,
+    tournaments and scheduled matches you create are published so anyone with
+    the app can follow them live. Entry fee payments never leave your phone. No
+    ads, no analytics, no tracking, and we never sell anything.</p>
   </section>
 
   <section>
     <h2>What the app stores on your phone</h2>
     <ul>
-      <li>Matches you score, ball by ball, and the tournaments you create.</li>
+      <li>Matches you score, ball by ball, the tournaments you create, and the
+        matches you schedule for later.</li>
       <li>Team and player names you type in.</li>
+      <li>For a tournament: its prizes, rules, entry fee, and what each team has
+        paid, if you record it.</li>
       <li>Your choice of light or dark theme.</li>
       <li>A short list of recent app errors, so you can send them to us if you
         choose (see "Problem reports" below).</li>
@@ -49,38 +54,48 @@
     <p><strong>When you sign in with Google</strong>, Google tells the app your
     name, email address and an account id. We use Google's Firebase
     Authentication to keep you signed in.</p>
-    <p><strong>While you are signed in</strong>, every new match you score is
-    published to our database (Google Cloud Firestore, in Mumbai, India) as you
-    score it. A published match contains:</p>
+    <p><strong>While you are signed in</strong>, every new match you score,
+    tournament you create and match you schedule for later is published to our
+    database (Google Cloud Firestore, in Mumbai, India), and kept up to date as
+    it changes.</p>
     <ul>
-      <li>the two teams and their player names, the toss, the overs and the
-        ground, if you entered one;</li>
-      <li>every ball, as scored, with the time it was recorded;</li>
-      <li>your name from your Google account, shown as "Scored by", and your
-        account id.</li>
+      <li><strong>A match:</strong> the two teams and their player names, the
+        toss, the overs and the ground, if you entered one; every ball, as
+        scored, with the time it was recorded.</li>
+      <li><strong>A tournament:</strong> its name, teams and player names, the
+        format and draw, fixtures with their dates and grounds, and the prizes,
+        entry fee and rules you wrote.</li>
+      <li><strong>A scheduled match:</strong> the two teams and their player
+        names, the overs, the time and the ground.</li>
+      <li>With each: your name from your Google account, shown as "Scored by" or
+        "Organised by", and your account id.</li>
     </ul>
-    <p><strong>Published matches are public.</strong> Anyone with BNP Scorer can
-    see and follow them, without signing in. Your email address is never
-    published or shown to anyone.</p>
-    <p>Matches you scored before signing in, and matches you score after signing
-    out, stay on your phone. Only you can change or remove a match you
-    published.</p>
+    <p><strong>Who has paid the entry fee is never published.</strong> It stays
+    on your phone, and our database refuses a tournament that carries it.</p>
+    <p><strong>What you publish is public.</strong> Anyone with BNP Scorer can
+    see and follow it, without signing in. Your email address is never published
+    or shown to anyone.</p>
+    <p>What you created before signing in, or create after signing out, stays on
+    your phone. Only you can change or remove what you published.</p>
   </section>
 
   <section>
     <h2>Removing what you published</h2>
     <ul>
-      <li><strong>One match:</strong> delete it in the app (hold it on the Matches
-        tab). That removes it from our database too.</li>
+      <li><strong>One match or tournament:</strong> delete it in the app (hold it
+        on the Matches or Tournaments tab). That removes it from our database
+        too.</li>
+      <li><strong>A scheduled match:</strong> cancel it, or start it; either
+        removes it.</li>
       <li><strong>Stop publishing:</strong> sign out in <em>Settings ›
-        Account</em>. Matches you already published stay public until you delete
-        them.</li>
+        Account</em>. What you already published stays public until you delete
+        it.</li>
       <li><strong>Your account and everything you published:</strong> ask us (see
         "Contact"), and we delete them within 30 days. Please do not post your
         email address in a public issue.</li>
     </ul>
-    <p>We keep a published match until it is deleted. We do not keep copies of
-    deleted matches.</p>
+    <p>We keep what you published until it is deleted. We do not keep copies of
+    anything deleted.</p>
   </section>
 
   <section>
@@ -106,7 +121,10 @@
     <ul>
       <li><strong>Scorecards:</strong> a picture of a scorecard with a caption.</li>
       <li><strong>Backups:</strong> a file with your matches, teams and
-        tournaments, for keeping safe or moving to a new phone.</li>
+        tournaments, including the entry fee payments you recorded, for keeping
+        safe or moving to a new phone.</li>
+      <li><strong>Invites:</strong> a message with the teams, time and ground of
+        an upcoming match.</li>
       <li><strong>Problem reports:</strong> the app version, your phone's
         operating-system version, recent error messages and anything you write.
         You see the full text before you send it.</li>
@@ -129,8 +147,9 @@
 
   <section>
     <h2>Other people's names</h2>
-    <p>Matches contain the names of the players you enter. If you are signed in,
-    those names are published with your matches, so let your players know. A
+    <p>Matches, tournaments and scheduled matches contain the names of the
+    players you enter. If you are signed in, those names are published with
+    them, so let your players know. A
     player who wants their name removed can ask the scorer to delete the match,
     or ask us.</p>
   </section>

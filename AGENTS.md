@@ -20,9 +20,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Current status (keep this section up to date)
 - Latest run (2026-11-17): analyze clean, 182 engine and 307 app tests passing,
-  beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
-  (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
-  an earlier cloud test build.
+  beta 0.9.0-beta.3 (build 4) built with Firebase and upload-signed
+  (`dist/bnp-scorer-0.9.0-beta.3.apk`), with cups, prizes, upcoming matches and
+  their cloud. Not yet sent to testers or installed; the site must be pushed
+  and the new `firestore.rules` pasted first. The owner's phone runs beta.2.
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
   cover sign-in and publishing, and the scorer name never falls back to the
   email. Beta.2 may go to testers once the site is pushed, so the policy link

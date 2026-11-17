@@ -2,7 +2,15 @@
 
 ## Unreleased
 
+## 0.9.0-beta.3 — 2026-11-17
+
+Cups, prizes and upcoming matches, public for everyone to follow.
+
 ### Added
+- Privacy policy, website and the sign-in notice cover tournaments and
+  scheduled matches: what each contains when published, that entry fee
+  payments never leave the phone, and how to remove them. A website FAQ on
+  running a cup.
 - Engine, for cups (not in the app yet): a straight knockout cup of 3 to 64
   teams, paired in draw order, with byes for the first teams when the number is
   not a power of two; quarter-finals after a league (1 v 8, 4 v 5, 2 v 7, 3 v 6)

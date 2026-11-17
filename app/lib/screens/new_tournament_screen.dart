@@ -162,6 +162,8 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
       fixtures: _fixturesOf(teams),
       createdAt: DateTime.now(),
       venue: venue.isEmpty ? null : venue,
+      // A signed-in organiser publishes the tournament for everyone to follow.
+      publishedBy: ref.read(accountsProvider).current?.uid,
     );
     try {
       await ref.read(tournamentRepositoryProvider).save(tournament);

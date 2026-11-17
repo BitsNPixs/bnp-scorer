@@ -944,6 +944,15 @@ void main() {
       expect(Tournament.fromJson(public).paid, isEmpty);
     });
 
+    test('who publishes it is kept on the phone and through every change', () {
+      final t = Tournament.fromJson({..._tournament(['a', 'b', 'c']).toJson(), 'publishedBy': 'u1'});
+      expect(t.publishedBy, 'u1');
+      final changed = t.withMatch('f1', 'm1').withPaid('a', 100).withFixtureDate('f2', DateTime.utc(2026));
+      expect(changed.publishedBy, 'u1');
+      expect(Tournament.fromJson(changed.toJson()).publishedBy, 'u1');
+      expect(changed.toPublicJson().containsKey('publishedBy'), isFalse);
+    });
+
     test('a cup and its quarter-finals survive a round trip', () {
       final cup = _cup(['a', 'b', 'c', 'd', 'e']);
       expect(Tournament.fromJson(cup.toJson()).isKnockout, isTrue);
@@ -954,7 +963,7 @@ void main() {
 
     test('a plain league is stored exactly as before these fields existed', () {
       final json = _tournament(['a', 'b', 'c']).toJson();
-      for (final key in ['format', 'hasQuarterFinals', 'prizes', 'entryFee', 'paid', 'rules']) {
+      for (final key in ['format', 'hasQuarterFinals', 'prizes', 'entryFee', 'paid', 'rules', 'publishedBy']) {
         expect(json.containsKey(key), isFalse, reason: key);
       }
       expect((json['fixtures']! as List<Object?>).every((f) => !(f! as Json).containsKey('venue')), isTrue);

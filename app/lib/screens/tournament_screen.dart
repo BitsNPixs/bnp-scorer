@@ -16,6 +16,7 @@ import '../widgets/upcoming.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
 import 'stats_screen.dart';
+import 'watch_match_screen.dart';
 
 class TournamentScreen extends ConsumerWidget {
   const TournamentScreen({super.key, required this.tournamentId});
@@ -35,6 +36,22 @@ class TournamentScreen extends ConsumerWidget {
             : const StatsEmpty(message: 'This tournament is no longer here.'),
       );
     }
+    return TournamentView(progress: progress);
+  }
+}
+
+/// One tournament's tabs. With an [organiser], it is someone else's published
+/// tournament, watched: nothing can be started, set up or edited, and
+/// payments are not there at all.
+class TournamentView extends StatelessWidget {
+  const TournamentView({super.key, required this.progress, this.organiser});
+
+  final TournamentProgress progress;
+  final String? organiser;
+
+  @override
+  Widget build(BuildContext context) {
+    final watching = organiser != null;
     final book = progress.book;
     final tournament = progress.tournament;
     const noResults = StatsEmpty(message: 'Stats appear here once a match has finished.');
@@ -63,10 +80,10 @@ class TournamentScreen extends ConsumerWidget {
         ),
         body: TabBarView(
           children: [
-            _MatchesTab(progress: progress),
-            if (hasBracket) _BracketTab(progress: progress),
+            _MatchesTab(progress: progress, organiser: organiser),
+            if (hasBracket) _BracketTab(progress: progress, watching: watching),
             if (hasTable) _TableTab(progress: progress),
-            PrizesTab(tournament: tournament),
+            PrizesTab(tournament: tournament, watching: watching),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
             if (book.isEmpty) noResults else MvpTab(book: book),
@@ -79,9 +96,12 @@ class TournamentScreen extends ConsumerWidget {
 }
 
 class _MatchesTab extends ConsumerWidget {
-  const _MatchesTab({required this.progress});
+  const _MatchesTab({required this.progress, this.organiser});
 
   final TournamentProgress progress;
+
+  /// Set when watching someone else's tournament.
+  final String? organiser;
 
   Future<void> _scheduleNextRound(BuildContext context, WidgetRef ref) async {
     final repository = ref.read(tournamentRepositoryProvider);
@@ -128,9 +148,27 @@ class _MatchesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tournament = progress.tournament;
     final champion = progress.championId;
+    final watching = organiser != null;
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        if (organiser case final name?) ...[
+          Row(
+            children: [
+              Icon(Icons.visibility_outlined, size: 18, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Organised by $name. Results update as each match is scored.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+        ],
         if (champion != null) ...[
           _ChampionBanner(
             name: tournament.teamById(champion).name,
@@ -139,7 +177,8 @@ class _MatchesTab extends ConsumerWidget {
           ),
           const SizedBox(height: 12),
         ],
-        for (final fixture in progress.outdated) ...[
+        if (!watching)
+          for (final fixture in progress.outdated) ...[
           _OutdatedFixture(
             fixture: fixture,
             tournament: tournament,
@@ -154,15 +193,16 @@ class _MatchesTab extends ConsumerWidget {
           _FixtureCard(
             item: item,
             tournament: tournament,
-            onTap: () => _openFixture(context, ref, progress.tournament, item),
+            watching: watching,
+            onTap: () => _openFixture(context, ref, progress.tournament, item, watching: watching),
             // Time, ground and invite, until it starts.
-            onLongPress: item.match == null
+            onLongPress: item.match == null && !watching
                 ? () => showUpcomingSheet(context, ref, UpcomingMatch.fixture(tournament, item.fixture))
                 : null,
           ),
           const SizedBox(height: 10),
         ],
-        if (progress.nextRound.isNotEmpty)
+        if (progress.nextRound.isNotEmpty && !watching)
           FilledButton.icon(
             onPressed: () => _scheduleNextRound(context, ref),
             icon: const Icon(Icons.emoji_events_rounded),
@@ -181,10 +221,23 @@ class _MatchesTab extends ConsumerWidget {
 /// "Quarter-finals", or "Final" and "Round of 16" as they are.
 String _roundTitle(String round, int games) => games == 1 || round.startsWith('Round of') ? round : '${round}s';
 
-/// Opens a fixture's match, or starts it through New match, filled in.
-Future<void> _openFixture(BuildContext context, WidgetRef ref, Tournament tournament, FixtureProgress item) async {
+/// Opens a fixture's match, or starts it through New match, filled in. When
+/// [watching], a played match opens read-only and an unplayed one does nothing.
+Future<void> _openFixture(
+  BuildContext context,
+  WidgetRef ref,
+  Tournament tournament,
+  FixtureProgress item, {
+  bool watching = false,
+}) async {
   final navigator = Navigator.of(context);
   final match = item.match;
+  if (watching) {
+    if (match != null) {
+      await navigator.push(MaterialPageRoute<void>(builder: (_) => WatchMatchScreen(matchId: match.setup.id)));
+    }
+    return;
+  }
   if (match != null) {
     await navigator.push(
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: match.setup.id)),
@@ -198,9 +251,10 @@ Future<void> _openFixture(BuildContext context, WidgetRef ref, Tournament tourna
 /// Every knockout game, round by round, with the teams known so far and who
 /// went through. A game that is set up opens like it does on Matches.
 class _BracketTab extends ConsumerWidget {
-  const _BracketTab({required this.progress});
+  const _BracketTab({required this.progress, required this.watching});
 
   final TournamentProgress progress;
+  final bool watching;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -222,7 +276,8 @@ class _BracketTab extends ConsumerWidget {
               progress: progress,
               // In a cup, a team drawn straight into a later round had a bye.
               byeRound: tournament.isKnockout && round != opening,
-              onOpen: (item) => _openFixture(context, ref, tournament, item),
+              watching: watching,
+              onOpen: (item) => _openFixture(context, ref, tournament, item, watching: watching),
             ),
             const SizedBox(height: 10),
           ],
@@ -239,11 +294,13 @@ class _BracketGameCard extends StatelessWidget {
     required this.progress,
     required this.byeRound,
     required this.onOpen,
+    this.watching = false,
   });
 
   final BracketGame game;
   final TournamentProgress progress;
   final bool byeRound;
+  final bool watching;
   final ValueChanged<FixtureProgress> onOpen;
 
   @override
@@ -257,10 +314,10 @@ class _BracketGameCard extends StatelessWidget {
     final match = item?.match;
     final date = item?.fixture.scheduledAt;
     final status = switch (item) {
-      null when teamA != null && teamB != null => 'Ready: set up on Matches',
+      null when teamA != null && teamB != null => watching ? 'Teams known' : 'Ready: set up on Matches',
       null => null,
       _ when winner != null => null,
-      _ when match == null => date == null ? 'Tap to start' : fixtureDate(date),
+      _ when match == null => date == null ? (watching ? 'Not started' : 'Tap to start') : fixtureDate(date),
       _ when item.isFinished => 'Super Over to come',
       _ => 'Live',
     };
@@ -489,8 +546,10 @@ class _FixtureCard extends StatelessWidget {
     required this.tournament,
     required this.onTap,
     required this.onLongPress,
+    this.watching = false,
   });
 
+  final bool watching;
   final FixtureProgress item;
   final Tournament tournament;
   final VoidCallback onTap;
@@ -544,7 +603,7 @@ class _FixtureCard extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                match == null ? 'Tap to start' : matchStatus(match),
+                match == null ? (watching ? 'Not started' : 'Tap to start') : matchStatus(match),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: text.bodySmall?.copyWith(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../screens/new_match_screen.dart';
+import '../screens/watch_tournament_screen.dart';
 import '../state/providers.dart';
 import '../state/upcoming.dart';
 import '../theme/app_theme.dart';
@@ -11,11 +12,13 @@ import '../ui/pickers.dart';
 import 'surface_panel.dart';
 
 /// Upcoming matches as a row of cards, soonest first. Tapping one opens what
-/// can be done with it.
+/// can be done with it: everything for this phone's own, or an invite and the
+/// cup when [watching] other people's.
 class UpcomingStrip extends ConsumerWidget {
-  const UpcomingStrip({super.key, required this.matches});
+  const UpcomingStrip({super.key, required this.matches, this.watching = false});
 
   final List<UpcomingMatch> matches;
+  final bool watching;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -30,7 +33,7 @@ class UpcomingStrip extends ConsumerWidget {
         itemBuilder: (context, i) => _UpcomingCard(
           match: matches[i],
           now: now,
-          onTap: () => showUpcomingSheet(context, ref, matches[i]),
+          onTap: () => showUpcomingSheet(context, ref, matches[i], watching: watching),
         ),
       ),
     );
@@ -109,19 +112,21 @@ class _UpcomingCard extends StatelessWidget {
 }
 
 /// Start, time, ground, invite and cancel for a fixture or scheduled friendly.
-Future<void> showUpcomingSheet(BuildContext context, WidgetRef ref, UpcomingMatch match) =>
+/// When [watching] someone else's, only the invite and the cup.
+Future<void> showUpcomingSheet(BuildContext context, WidgetRef ref, UpcomingMatch match, {bool watching = false}) =>
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (_) => _UpcomingSheet(match: match, ref: ref, host: context),
+      builder: (_) => _UpcomingSheet(match: match, ref: ref, host: context, watching: watching),
     );
 
 class _UpcomingSheet extends StatelessWidget {
-  const _UpcomingSheet({required this.match, required this.ref, required this.host});
+  const _UpcomingSheet({required this.match, required this.ref, required this.host, required this.watching});
 
   final UpcomingMatch match;
+  final bool watching;
 
   /// From the screen that opened the sheet, which outlives it.
   final WidgetRef ref;
@@ -145,6 +150,14 @@ class _UpcomingSheet extends StatelessWidget {
       }
     } on Object catch (e) {
       if (host.mounted) showMessage(host, 'Could not save it: $e', isError: true);
+    }
+  }
+
+  Future<void> _invite() async {
+    try {
+      await ref.read(deviceFilesProvider).shareText(inviteText(match), subject: 'Match invite');
+    } on Object catch (e) {
+      if (host.mounted) showMessage(host, 'Could not open sharing: $e', isError: true);
     }
   }
 
@@ -181,76 +194,99 @@ class _UpcomingSheet extends StatelessWidget {
             style: text.bodyMedium?.copyWith(color: muted),
           ),
           const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: () async {
-              close();
-              if (match.schedule case final s?) {
-                await startScheduledMatch(host, ref, s);
-              } else {
-                await startFixtureMatch(host, ref, match.tournament!, match.fixture!);
-              }
-              if (host.mounted) ref.invalidate(matchListProvider);
-            },
-            icon: const Icon(Icons.play_arrow_rounded),
-            label: const Text('Start match'),
-          ),
-          const SizedBox(height: 8),
-          SurfacePanel(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.event_rounded),
-                  title: Text(when == null ? 'Set a time' : 'Change time'),
-                  onTap: () async {
-                    close();
-                    final picked = await pickDateTime(host, initial: when);
-                    if (picked != null) await _change(startsAt: picked);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.place_outlined),
-                  title: const Text('Change ground'),
-                  onTap: () async {
-                    close();
-                    final ground = await askGround(host, current: match.venue);
-                    if (ground != null) await _change(ground: ground);
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.share_rounded),
-                  title: const Text('Send invite'),
-                  subtitle: const Text('On WhatsApp or any app'),
-                  onTap: () async {
-                    close();
-                    try {
-                      await ref.read(deviceFilesProvider).shareText(inviteText(match), subject: 'Match invite');
-                    } on Object catch (e) {
-                      if (host.mounted) showMessage(host, 'Could not open sharing: $e', isError: true);
-                    }
-                  },
-                ),
-                if (match.schedule != null)
+          if (watching) ...[
+            if (match.tournament case final tournament?)
+              FilledButton.icon(
+                onPressed: () {
+                  close();
+                  Navigator.of(host).push(
+                    MaterialPageRoute<void>(builder: (_) => WatchTournamentScreen(tournamentId: tournament.id)),
+                  );
+                },
+                icon: const Icon(Icons.emoji_events_rounded),
+                label: const Text('Open the cup'),
+              ),
+            const SizedBox(height: 8),
+            SurfacePanel(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ListTile(
+                leading: const Icon(Icons.share_rounded),
+                title: const Text('Send invite'),
+                subtitle: const Text('On WhatsApp or any app'),
+                onTap: () async {
+                  close();
+                  await _invite();
+                },
+              ),
+            ),
+          ] else ...[
+            FilledButton.icon(
+              onPressed: () async {
+                close();
+                if (match.schedule case final s?) {
+                  await startScheduledMatch(host, ref, s);
+                } else {
+                  await startFixtureMatch(host, ref, match.tournament!, match.fixture!);
+                }
+                if (host.mounted) ref.invalidate(matchListProvider);
+              },
+              icon: const Icon(Icons.play_arrow_rounded),
+              label: const Text('Start match'),
+            ),
+            const SizedBox(height: 8),
+            SurfacePanel(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Column(
+                children: [
                   ListTile(
-                    leading: Icon(Icons.event_busy_rounded, color: Theme.of(context).colorScheme.error),
-                    title: const Text('Cancel this match'),
+                    leading: const Icon(Icons.event_rounded),
+                    title: Text(when == null ? 'Set a time' : 'Change time'),
                     onTap: () async {
                       close();
-                      await _cancel();
-                    },
-                  )
-                else if (when != null)
-                  ListTile(
-                    leading: const Icon(Icons.event_busy_rounded),
-                    title: const Text('Remove the time'),
-                    onTap: () async {
-                      close();
-                      await _change(clearDate: true);
+                      final picked = await pickDateTime(host, initial: when);
+                      if (picked != null) await _change(startsAt: picked);
                     },
                   ),
-              ],
+                  ListTile(
+                    leading: const Icon(Icons.place_outlined),
+                    title: const Text('Change ground'),
+                    onTap: () async {
+                      close();
+                      final ground = await askGround(host, current: match.venue);
+                      if (ground != null) await _change(ground: ground);
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.share_rounded),
+                    title: const Text('Send invite'),
+                    subtitle: const Text('On WhatsApp or any app'),
+                    onTap: () async {
+                      close();
+                      await _invite();
+                    },
+                  ),
+                  if (match.schedule != null)
+                    ListTile(
+                      leading: Icon(Icons.event_busy_rounded, color: Theme.of(context).colorScheme.error),
+                      title: const Text('Cancel this match'),
+                      onTap: () async {
+                        close();
+                        await _cancel();
+                      },
+                    )
+                  else if (when != null)
+                    ListTile(
+                      leading: const Icon(Icons.event_busy_rounded),
+                      title: const Text('Remove the time'),
+                      onTap: () async {
+                        close();
+                        await _change(clearDate: true);
+                      },
+                    ),
+                ],
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

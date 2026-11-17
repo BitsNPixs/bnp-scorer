@@ -260,6 +260,20 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   - `SyncingMatchRepository`: wraps the local repository. Saves locally first,
     then publishes the match if `MatchRecord.publishedBy` is the signed-in
     scorer, without awaiting the cloud (Firestore queues writes offline).
+    `publisherOf` and `sendInBackground` are shared with the two below.
+  - `CloudCups` (`data/cloud_cups.dart`): `tournaments/{id}` holds
+    `Tournament.toPublicJson` (never `paid`), `schedules/{id}` a
+    `ScheduledMatch` without `publishedBy`, each plus `ownerUid`, `ownerName`,
+    `schema` and `savedAt`. `recentTournaments` (newest 20), `watchTournament`,
+    and `upcomingSchedules(from:)` (a range on the ISO `startsAt`, soonest
+    first). `SyncingTournamentRepository` and `SyncingScheduleRepository`
+    (`data/syncing_cups.dart`) publish one created while signed in
+    (`Tournament.publishedBy`, `ScheduledMatch.publishedBy`), by that account.
+  - `publicTournamentsProvider`, `publicSchedulesProvider`,
+    `publicUpcomingProvider` (both joined by `upcomingMatches`), and
+    `publicTournamentProgressProvider`, which builds a watched tournament's
+    progress from the published matches of its fixtures (one listener each; a
+    match scored signed out counts as not played).
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,
     which `app/build.gradle.kts` applies only when the file exists.
@@ -319,7 +333,10 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   ground, Send invite (a WhatsApp-ready message, `inviteText`), and Cancel this
   match (a friendly) or Remove the time (a fixture). In
   cloud builds a "My matches / Everyone" switch sits under the header; Everyone
-  shows published matches, live, with who scores each, and opens them to watch.
+  shows, when there are any, Upcoming (public fixtures and friendlies; the
+  sheet offers only Send invite and Open the cup) and Cups (cards with teams,
+  format and organiser, opening Watch tournament), then published matches,
+  live, with who scores each, opening them to watch.
 - **New match:**
   - teams and players (type names, "Fill to 11", or pick a saved team, with extra
     squad members sitting out);
@@ -405,6 +422,11 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **Tournament details:** prizes, entry fee per team and rules, saved together.
 - **Teams and Team edit:** squads, roles, captain, vice-captain, keeper.
 - **Backup:** create a backup file, or restore from one.
+- **Watch tournament:** someone else's published tournament, read-only and
+  live: `TournamentView` with an organiser, so "Organised by X", no set-up
+  button, corrections, long press or edit, "Not started" instead of "Tap to
+  start", played matches opening in Watch match, and Prizes without payments.
+  Opened from Everyone > Cups or "Open the cup" on a public upcoming fixture.
 - **Watch match:** someone else's published match, read-only and live. Same
   frame as scoring (`MatchTabsView`), with the score, this over and the crease on
   the Live tab, who scores it, and Share; no pad, undo or scoring menu. A match

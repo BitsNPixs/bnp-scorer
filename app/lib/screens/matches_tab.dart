@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/cloud_cups.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/motion.dart';
@@ -15,6 +16,7 @@ import '../widgets/summary_tiles.dart';
 import '../widgets/surface_panel.dart';
 import '../widgets/upcoming.dart';
 import 'watch_match_screen.dart';
+import 'watch_tournament_screen.dart';
 
 const _allMatches = 'all';
 const _friendlies = 'friendlies';
@@ -91,6 +93,8 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
                   ),
                 ),
               if (everyone) ...const [
+                _EveryoneUpcoming(),
+                _EveryoneCups(),
                 SliverToBoxAdapter(
                   child: Padding(padding: EdgeInsets.fromLTRB(20, 14, 20, 4), child: SectionTitle('Live and recent')),
                 ),
@@ -169,6 +173,119 @@ class _MatchFilter extends StatelessWidget {
           chip(_friendlies, 'Friendlies'),
           for (final p in tournaments) chip(p.tournament.id, p.tournament.name),
         ],
+      ),
+    );
+  }
+}
+
+/// Everyone's upcoming fixtures and friendlies. Nothing when there are none.
+class _EveryoneUpcoming extends ConsumerWidget {
+  const _EveryoneUpcoming();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final upcoming = ref.watch(publicUpcomingProvider);
+    if (upcoming.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(padding: EdgeInsets.fromLTRB(20, 14, 20, 10), child: SectionTitle('Upcoming')),
+          UpcomingStrip(matches: upcoming, watching: true),
+        ],
+      ),
+    );
+  }
+}
+
+/// Everyone's published tournaments, newest first. Nothing when there are none.
+class _EveryoneCups extends ConsumerWidget {
+  const _EveryoneCups();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cups = ref.watch(publicTournamentsProvider).value ?? const [];
+    if (cups.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
+    return SliverToBoxAdapter(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(padding: EdgeInsets.fromLTRB(20, 18, 20, 10), child: SectionTitle('Cups')),
+          SizedBox(
+            height: 112,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: cups.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 10),
+              itemBuilder: (context, i) => _CupCard(published: cups[i]),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CupCard extends StatelessWidget {
+  const _CupCard({required this.published});
+
+  final PublishedTournament published;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final tournament = published.tournament;
+    final format = tournament.isKnockout
+        ? 'Knockout cup'
+        : (tournament.groups.length == 2 ? 'Two groups' : 'League');
+    return SizedBox(
+      width: 240,
+      child: Material(
+        color: scheme.surfaceContainerLowest,
+        shape: cardShape(context, radius: 20),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(builder: (_) => WatchTournamentScreen(tournamentId: tournament.id)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
+              children: [
+                const Icon(Icons.emoji_events_rounded, color: AppColors.four, size: 32),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tournament.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                      ),
+                      Text(
+                        '${tournament.teams.length} teams · $format',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                      Text(
+                        'By ${published.ownerName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

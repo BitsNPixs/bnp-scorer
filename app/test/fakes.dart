@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/cloud_cups.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
@@ -226,6 +227,81 @@ class FakeCloudMatches implements CloudMatches {
     yield current();
     await for (final _ in _changes.stream) {
       yield current();
+    }
+  }
+}
+
+/// Published tournaments and friendlies, in memory, updating live. Keeps what
+/// was sent ([sentTournaments]) so tests can check nothing private left.
+class FakeCloudCups implements CloudCups {
+  final tournaments = <String, PublishedTournament>{};
+  final schedules = <String, PublishedSchedule>{};
+  final sentTournaments = <String, Json>{};
+
+  /// Ids whose [watchTournament] reports an error, as for a newer format.
+  final unreadable = <String>{};
+
+  final _changes = StreamController<void>.broadcast();
+
+  Map<String, Object?> _owned(Json json, Scorer owner) =>
+      {...json, 'ownerUid': owner.uid, 'ownerName': owner.name, 'schema': 1};
+
+  @override
+  Future<void> publishTournament(Tournament tournament, Scorer owner) async {
+    final json = tournament.toPublicJson();
+    sentTournaments[tournament.id] = json;
+    tournaments[tournament.id] = parsePublishedTournament(_owned(json, owner));
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> unpublishTournament(String id) async {
+    tournaments.remove(id);
+    _changes.add(null);
+  }
+
+  @override
+  Stream<List<PublishedTournament>> recentTournaments({int limit = 20}) async* {
+    yield tournaments.values.take(limit).toList();
+    await for (final _ in _changes.stream) {
+      yield tournaments.values.take(limit).toList();
+    }
+  }
+
+  @override
+  Stream<PublishedTournament?> watchTournament(String id) async* {
+    PublishedTournament? current() {
+      if (unreadable.contains(id)) throw const FormatException('Cannot read this tournament');
+      return tournaments[id];
+    }
+
+    yield current();
+    await for (final _ in _changes.stream) {
+      yield current();
+    }
+  }
+
+  @override
+  Future<void> publishSchedule(ScheduledMatch schedule, Scorer owner) async {
+    schedules[schedule.id] = parsePublishedSchedule(_owned(schedule.toJson()..remove('publishedBy'), owner));
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> unpublishSchedule(String id) async {
+    schedules.remove(id);
+    _changes.add(null);
+  }
+
+  @override
+  Stream<List<PublishedSchedule>> upcomingSchedules({required DateTime from, int limit = 30}) async* {
+    List<PublishedSchedule> list() => (schedules.values.where((p) => !p.schedule.startsAt.isBefore(from)).toList()
+          ..sort((a, b) => a.schedule.startsAt.compareTo(b.schedule.startsAt)))
+        .take(limit)
+        .toList();
+    yield list();
+    await for (final _ in _changes.stream) {
+      yield list();
     }
   }
 }

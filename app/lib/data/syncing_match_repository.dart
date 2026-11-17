@@ -30,28 +30,29 @@ class SyncingMatchRepository implements MatchRepository {
   @override
   Future<void> save(MatchRecord record) async {
     await _local.save(record);
-    final owner = _ownerOf(record);
-    if (owner != null) _inBackground(_cloud.publish(record, owner), 'Publishing match ${record.id}');
+    final owner = publisherOf(_accounts, record.publishedBy);
+    if (owner != null) sendInBackground(_cloud.publish(record, owner), 'Publishing match ${record.id}');
   }
 
   @override
   Future<void> delete(String id) async {
     final record = await _local.load(id);
     await _local.delete(id);
-    if (record != null && _ownerOf(record) != null) {
-      _inBackground(_cloud.unpublish(id), 'Unpublishing match $id');
+    if (record != null && publisherOf(_accounts, record.publishedBy) != null) {
+      sendInBackground(_cloud.unpublish(id), 'Unpublishing match $id');
     }
   }
+}
 
-  /// The signed-in scorer, if this is their published match. A match is never
-  /// sent by someone else's account, or while signed out.
-  Scorer? _ownerOf(MatchRecord record) {
-    final scorer = _accounts.current;
-    if (scorer == null || record.publishedBy != scorer.uid) return null;
-    return scorer;
-  }
+/// The signed-in scorer, if they published what is marked [publishedBy].
+/// Nothing is ever sent by someone else's account, or while signed out.
+Scorer? publisherOf(Accounts accounts, String? publishedBy) {
+  final scorer = accounts.current;
+  return scorer != null && publishedBy == scorer.uid ? scorer : null;
+}
 
-  static void _inBackground(Future<void> write, String what) {
-    unawaited(write.catchError((Object error) => debugPrint('$what failed: $error')));
-  }
+/// Starts a cloud write without waiting: offline, Firestore keeps it and sends
+/// it later, and every save sends the whole document again.
+void sendInBackground(Future<void> write, String what) {
+  unawaited(write.catchError((Object error) => debugPrint('$what failed: $error')));
 }

@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 181 engine and 298 app tests passing,
+- Latest run (2026-11-17): analyze clean, 182 engine and 307 app tests passing,
   beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
   an earlier cloud test build.
@@ -116,6 +116,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   sheet to start, change the time or ground, send a WhatsApp invite, or cancel.
   A long press on a fixture opens the same sheet. Tests and real-font renders
   only so far.
+- **Cloud, cups (2026-11-17):** in cloud builds, a tournament created and a
+  friendly scheduled while signed in are published (`firestore.rules` now has
+  `tournaments` and `schedules`; payments are never sent, and the rules refuse
+  them). Everyone gains Upcoming and Cups, and a cup opens read-only in
+  `WatchTournamentScreen`. **The new rules must be pasted into the console**;
+  not yet tried against the real Firestore.
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.
@@ -170,8 +176,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (14 screens, with `WatchMatchScreen` and
-  `TournamentDetailsScreen`). `HomeScreen` is the shell:
+- **Navigation:** plain `Navigator` (15 screens, with `WatchMatchScreen`,
+  `WatchTournamentScreen` and `TournamentDetailsScreen`). `HomeScreen` is the shell:
   a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
   `IndexedStack`, built on first visit. Every other screen is pushed over it.
   Back on a tab other than Matches returns to Matches. Add go_router only with
@@ -218,7 +224,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
 | Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
-| Published matches | `CloudMatches`, `PublishedMatch`, `parsePublishedMatch` (`data/cloud_matches.dart`), `SyncingMatchRepository`, `cloudMatchesProvider`, `publicMatchesProvider`, `publishedMatchProvider`; `FakeCloudMatches` in tests |
+| Published matches | `CloudMatches`, `PublishedMatch`, `parsePublishedMatch` (`data/cloud_matches.dart`), `SyncingMatchRepository`, `publisherOf`, `sendInBackground`, `cloudMatchesProvider`, `publicMatchesProvider`, `publishedMatchProvider`; `FakeCloudMatches` in tests |
+| Published tournaments and friendlies | `CloudCups`, `PublishedTournament`, `PublishedSchedule` (`data/cloud_cups.dart`), `SyncingTournamentRepository`, `SyncingScheduleRepository` (`data/syncing_cups.dart`), `cloudCupsProvider`, `publicTournamentsProvider`, `publicUpcomingProvider`, `publicTournamentProgressProvider`; `FakeCloudCups` in tests |
+| A tournament's tabs, own or watched | `TournamentView` (`screens/tournament_screen.dart`) |
+| Gone or unreadable notice | `ScreenMessage` (`screens/watch_match_screen.dart`) |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `knockoutFixtures`, `knockoutBracket`, `Tournament.bracket`, `sideName`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |

@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'data/accounts.dart';
 import 'data/app_settings.dart';
+import 'data/cloud_cups.dart';
 import 'data/cloud_matches.dart';
 import 'data/demo_data.dart';
 import 'data/error_log.dart';
@@ -15,6 +16,7 @@ import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
 import 'data/match_repository.dart';
 import 'data/scheduled_match.dart';
+import 'data/syncing_cups.dart';
 import 'data/syncing_match_repository.dart';
 import 'data/tournament_repository.dart';
 import 'state/providers.dart';
@@ -30,15 +32,22 @@ Future<void> main() async {
   installErrorHandlers(errors);
   final local = LocalMatchRepository(prefs);
   final accounts = await _startCloud();
-  final cloud = accounts is FirebaseAccounts ? FirestoreCloudMatches(FirebaseFirestore.instance) : null;
+  final hasCloud = accounts is FirebaseAccounts;
+  final cloud = hasCloud ? FirestoreCloudMatches(FirebaseFirestore.instance) : null;
+  final cups = hasCloud ? FirestoreCloudCups(FirebaseFirestore.instance) : null;
   final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
   final teams = LocalTeamRepository(prefs);
-  final tournaments = LocalTournamentRepository(prefs);
+  final localTournaments = LocalTournamentRepository(prefs);
+  final localSchedules = LocalScheduleRepository(prefs);
+  final TournamentRepository tournaments =
+      cups == null ? localTournaments : SyncingTournamentRepository(localTournaments, cups, accounts);
+  final ScheduleRepository schedules =
+      cups == null ? localSchedules : SyncingScheduleRepository(localSchedules, cups, accounts);
   if (demoMode) {
     // Straight to the phone: demo matches are never published.
     await seedDemoMatches(local);
     await seedDemoTeams(teams);
-    await seedDemoTournaments(tournaments);
+    await seedDemoTournaments(localTournaments);
   }
   runApp(
     ProviderScope(
@@ -47,10 +56,11 @@ Future<void> main() async {
         errorLogProvider.overrideWithValue(errors),
         accountsProvider.overrideWithValue(accounts),
         cloudMatchesProvider.overrideWithValue(cloud),
+        cloudCupsProvider.overrideWithValue(cups),
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),
-        scheduleRepositoryProvider.overrideWithValue(LocalScheduleRepository(prefs)),
+        scheduleRepositoryProvider.overrideWithValue(schedules),
       ],
       child: const BnpScorerApp(),
     ),

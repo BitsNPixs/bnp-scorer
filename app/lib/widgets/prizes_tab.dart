@@ -13,11 +13,15 @@ import 'avatars.dart';
 import 'surface_panel.dart';
 
 /// A tournament's prizes, house rules and entry fees, with who has paid.
-/// Payments are the organiser's own record and never leave this phone.
+/// Payments are the organiser's own record and never leave this phone. When
+/// [watching] someone else's tournament, it only shows what they published.
 class PrizesTab extends ConsumerWidget {
-  const PrizesTab({super.key, required this.tournament});
+  const PrizesTab({super.key, required this.tournament, this.watching = false});
 
   final Tournament tournament;
+  final bool watching;
+
+  static const noneListed = 'No prizes or rules listed yet.';
 
   static const privateNote = 'Only on this phone. Never published.';
 
@@ -59,6 +63,7 @@ class PrizesTab extends ConsumerWidget {
     final fee = tournament.entryFee;
     final rules = tournament.rules;
     final nothingYet = tournament.prizes.isEmpty && fee == null && rules == null;
+    if (nothingYet && watching) return const Center(child: Text(noneListed));
     if (nothingYet) {
       return ListView(
         padding: const EdgeInsets.all(16),
@@ -135,7 +140,12 @@ class PrizesTab extends ConsumerWidget {
           SurfacePanel(child: Text(rules, style: text.bodyLarge)),
           const SizedBox(height: 20),
         ],
-        if (fee != null) ...[
+        if (fee != null && watching) ...[
+          const SectionTitle('Entry fee'),
+          const SizedBox(height: 4),
+          Text('${rupees(fee)} a team', style: text.bodyLarge?.copyWith(fontWeight: FontWeight.w700)),
+        ],
+        if (fee != null && !watching) ...[
           const SectionTitle('Entry fees'),
           const SizedBox(height: 4),
           Text(
@@ -162,11 +172,12 @@ class PrizesTab extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
         ],
-        OutlinedButton.icon(
-          onPressed: () => _edit(context, ref),
-          icon: const Icon(Icons.edit_rounded),
-          label: const Text('Edit prizes, fee and rules'),
-        ),
+        if (!watching)
+          OutlinedButton.icon(
+            onPressed: () => _edit(context, ref),
+            icon: const Icon(Icons.edit_rounded),
+            label: const Text('Edit prizes, fee and rules'),
+          ),
       ],
     );
   }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/accounts.dart';
 import '../data/app_settings.dart';
+import '../data/cloud_cups.dart';
 import '../data/cloud_matches.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
@@ -98,6 +99,65 @@ final publishedMatchProvider = StreamProvider.autoDispose.family<PublishedMatch?
   },
   retry: _noRetry,
 );
+
+/// Published tournaments and friendlies. Null without the cloud, like
+/// [cloudMatchesProvider].
+final cloudCupsProvider = Provider<CloudCups?>((ref) => null);
+
+/// The latest published tournaments, live. Empty without the cloud.
+final publicTournamentsProvider = StreamProvider.autoDispose<List<PublishedTournament>>(
+  (ref) => ref.watch(cloudCupsProvider)?.recentTournaments() ?? Stream.value(const []),
+  retry: _noRetry,
+);
+
+/// Published friendlies still to come, live. Empty without the cloud.
+final publicSchedulesProvider = StreamProvider.autoDispose<List<PublishedSchedule>>(
+  (ref) =>
+      ref.watch(cloudCupsProvider)?.upcomingSchedules(from: DateTime.now().subtract(upcomingGrace)) ??
+      Stream.value(const []),
+  retry: _noRetry,
+);
+
+/// Everyone's upcoming fixtures and friendlies, soonest first. Empty while
+/// loading or offline.
+final publicUpcomingProvider = Provider.autoDispose<List<UpcomingMatch>>((ref) {
+  final tournaments = ref.watch(publicTournamentsProvider).value ?? const [];
+  final schedules = ref.watch(publicSchedulesProvider).value ?? const [];
+  return upcomingMatches(
+    [for (final p in tournaments) p.tournament],
+    [for (final p in schedules) p.schedule],
+    DateTime.now(),
+  );
+});
+
+/// One published tournament as it changes. Null once unpublished.
+final publishedTournamentProvider = StreamProvider.autoDispose.family<PublishedTournament?, String>(
+  (ref, id) => ref.watch(cloudCupsProvider)?.watchTournament(id) ?? Stream.value(null),
+  retry: _noRetry,
+);
+
+/// A published tournament with its table, bracket and stats, from the matches
+/// its organiser published. A match not published (scored signed out) counts
+/// as not played yet.
+final publicTournamentProgressProvider =
+    Provider.autoDispose.family<AsyncValue<(TournamentProgress, String)?>, String>((ref, id) {
+  return ref.watch(publishedTournamentProvider(id)).whenData((published) {
+    if (published == null) return null;
+    final states = <String, MatchState>{};
+    for (final fixture in published.tournament.fixtures) {
+      final matchId = fixture.matchId;
+      if (matchId == null) continue;
+      final match = ref.watch(publishedMatchProvider(matchId)).value;
+      if (match == null) continue;
+      try {
+        states[matchId] = ScoringEngine.replay(match.record.setup, match.record.events);
+      } on Object catch (e) {
+        debugPrint('Leaving out published match $matchId: $e');
+      }
+    }
+    return (progressOf(published.tournament, states), published.ownerName);
+  });
+});
 
 /// Overridden in `main()` with the log the error handlers write to.
 final errorLogProvider = Provider<ErrorLog>(

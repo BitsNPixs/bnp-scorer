@@ -170,7 +170,10 @@ Order of work (each step tested and committed):
    matches, "Schedule for later" for friendlies, and a WhatsApp invite. Done
    2026-11-17, with a ground per fixture on the same sheet.
 4. Cloud: publish cups (without paid status) and scheduled friendlies; Everyone
-   gains Upcoming and Cups.
+   gains Upcoming and Cups. Done in code 2026-11-17, tested with a fake cloud.
+   The owner must paste the new `firestore.rules` (tournaments and schedules)
+   into the console before it works for real; until then those writes are
+   refused and nothing else breaks.
 5. Then update the privacy policy for cups and schedules (organiser name,
    prizes; never amounts paid) and ship beta.3.
 

@@ -28,14 +28,14 @@ class WatchMatchScreen extends ConsumerWidget {
     final match = ref.watch(publishedMatchProvider(matchId));
     return match.when(
       loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (error, _) => const _Message(icon: Icons.report_outlined, text: unreadableMessage),
+      error: (error, _) => const ScreenMessage(icon: Icons.report_outlined, text: unreadableMessage),
       data: (published) {
-        if (published == null) return const _Message(icon: Icons.cloud_off_rounded, text: goneMessage);
+        if (published == null) return const ScreenMessage(icon: Icons.cloud_off_rounded, text: goneMessage);
         final MatchState state;
         try {
           state = ScoringEngine.replay(published.record.setup, published.record.events);
         } on Object {
-          return const _Message(icon: Icons.report_outlined, text: unreadableMessage);
+          return const ScreenMessage(icon: Icons.report_outlined, text: unreadableMessage);
         }
         return MatchTabsView(
           state: state,
@@ -98,8 +98,10 @@ class _WatchLiveTab extends StatelessWidget {
   }
 }
 
-class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.text});
+/// A full-screen notice with a back button: a match or tournament that is
+/// gone, or cannot be read.
+class ScreenMessage extends StatelessWidget {
+  const ScreenMessage({super.key, required this.icon, required this.text});
 
   final IconData icon;
   final String text;

@@ -194,6 +194,7 @@ class Tournament {
     this.entryFee,
     Map<String, int> paid = const {},
     String? rules,
+    this.publishedBy,
   })  : teams = List.unmodifiable(teams),
         fixtures = List.unmodifiable(fixtures),
         groups = List.unmodifiable(groups ?? [for (final t in teams) t.id].asGroup),
@@ -294,6 +295,11 @@ class Tournament {
   /// House rules and notes from the organiser, shown with the tournament.
   final String? rules;
 
+  /// The account id of the signed-in organiser who publishes it for everyone.
+  /// Null for one that stays on this phone. Not part of [toPublicJson]: the
+  /// published copy names its owner itself.
+  final String? publishedBy;
+
   bool get isKnockout => format == TournamentFormat.knockout;
 
   Iterable<Fixture> get leagueFixtures => fixtures.where((f) => !f.knockout);
@@ -362,6 +368,7 @@ class Tournament {
         entryFee: identical(entryFee, _keep) ? this.entryFee : entryFee as int?,
         paid: paid ?? this.paid,
         rules: identical(rules, _keep) ? this.rules : rules as String?,
+        publishedBy: publishedBy,
       );
 
   Tournament withMatch(String fixtureId, String matchId) => _with(fixtures: [
@@ -408,6 +415,7 @@ class Tournament {
   Json toJson() => {
         ...toPublicJson(),
         if (paid.isNotEmpty) 'paid': paid,
+        'publishedBy': ?publishedBy,
       };
 
   /// Everything except who has paid what, which stays with the organiser.
@@ -462,6 +470,7 @@ class Tournament {
             key: value! as int,
         },
         rules: json['rules'] as String?,
+        publishedBy: json['publishedBy'] as String?,
       );
 }
 

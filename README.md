@@ -186,8 +186,9 @@ Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
   `keytool -list -v -keystore <file>`, or from an APK with
   `apksigner verify --print-certs`.
 - **Security rules:** `firestore.rules` in the repo root. After changing it, paste
-  it into Firestore Database > Rules and Publish. Anyone may read; only a match's
-  owner may write it.
+  it into Firestore Database > Rules and Publish. Anyone may read matches,
+  tournaments and schedules; only each one's owner may write it, and a
+  tournament carrying `paid` is refused.
 - **Privacy:** a cloud build uses the internet and publishes match content,
   including player names and the scorer's Google name (never the email,
   `publicScorerName`). `site/privacy.html` says so; update it before a build

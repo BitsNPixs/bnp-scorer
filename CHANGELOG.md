@@ -36,6 +36,14 @@
   A long press on a tournament fixture opens the same sheet, which is where a
   fixture's own ground is set.
 
+- Cloud, cups: a tournament created, or a friendly scheduled, while signed in
+  is published for everyone, and kept up to date as it changes. Entry fee
+  payments never leave the phone (`toPublicJson`), and the security rules
+  refuse a tournament that carries them. Everyone gains Upcoming (public
+  fixtures and friendlies, with an invite and the cup to open) and Cups, and a
+  cup opens read-only with its matches, bracket, table, prizes and stats, live.
+  `firestore.rules` gains `tournaments` and `schedules`.
+
 ### Changed
 - Every knockout game now comes from one bracket (`Tournament.bracket`), and a
   game is offered as soon as both its teams are known. Leagues with a final or

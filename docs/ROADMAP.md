@@ -162,6 +162,9 @@ Order of work (each step tested and committed):
    new; a cup's draw pairs teams in list order with byes to the first teams.
 2. App: format choice and draw order on New tournament, a bracket tab, prizes
    and entry fees (organiser-only paid status), prizes on the champion card.
+   2a done 2026-11-17: format choice, Quarters, the cup draw with Shuffle, and
+   the Bracket tab. 2b: prizes, entry fee and payments, rules, a ground per
+   fixture, and the prize on the champion banner.
 3. Upcoming: fixture start times shown and editable, an Upcoming strip on My
    matches, "Schedule for later" for friendlies, and a WhatsApp invite.
 4. Cloud: publish cups (without paid status) and scheduled friendlies; Everyone

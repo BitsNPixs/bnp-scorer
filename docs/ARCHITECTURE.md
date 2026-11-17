@@ -365,10 +365,20 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   room at 360 dp.
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
-- **Tournaments:** the list, then one tournament with Matches, Table, Batting,
-  Bowling, MVP and Boundaries tabs. The Matches tab offers the next round in one
-  tap and flags knockout games that a changed result has made wrong.
-- **New tournament:** name, venue, teams, overs, optional dates, format.
+- **Tournaments:** the list, then one tournament with Matches, Bracket (when it
+  has knockout games), Table (not for a cup), Batting, Bowling, MVP and
+  Boundaries tabs. The Matches tab offers the next games in one tap ("Set up the
+  quarter-finals", "Set up Semi-final 1: A v B") and flags knockout games that a
+  changed result has made wrong. Bracket shows every knockout game round by
+  round: known teams with badges, unknown ones as "Winner of Quarter-final 2",
+  the winner ticked (a trophy in the final, which has a gold edge), "bye" for a
+  cup team drawn past round one, and a game ready to add as "Ready: set up on
+  Matches". A game already set up opens like it does on Matches.
+- **New tournament:** name, venue, teams, overs, optional dates, then Format:
+  League (two groups, home and away, and Knockouts as chips: None, Final, Semis,
+  Quarters, each offered once there are enough teams) or Knockout cup (the draw
+  is the order teams were ticked, previewed as first-round games and byes, with
+  Shuffle draw).
 - **Teams and Team edit:** squads, roles, captain, vice-captain, keeper.
 - **Backup:** create a backup file, or restore from one.
 - **Watch match:** someone else's published match, read-only and live. Same

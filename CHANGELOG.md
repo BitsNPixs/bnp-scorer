@@ -11,6 +11,16 @@
   house rules, and a ground per fixture. All new JSON fields are optional and
   written only when set.
 
+- New tournament: a Format choice, League or Knockout cup. A cup's draw is the
+  order teams are ticked, previewed as first-round games and byes, with Shuffle
+  draw. Leagues gain Quarters (from 8 teams); the knockout choices are now
+  chips, each shown once there are enough teams.
+- A Bracket tab on tournaments with knockout games: every game round by round,
+  teams still to be decided named ("Winner of Quarter-final 2"), winners
+  ticked, byes marked, and games ready to add pointed to Matches. Cups have no
+  Table tab. The next-games button names any round ("Set up the
+  quarter-finals", "Set up Semi-final 1: A v B").
+
 ### Changed
 - Every knockout game now comes from one bracket (`Tournament.bracket`), and a
   game is offered as soon as both its teams are known. Leagues with a final or

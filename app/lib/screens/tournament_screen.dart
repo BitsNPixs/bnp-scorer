@@ -7,6 +7,7 @@ import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/motion.dart';
+import '../widgets/avatars.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
 import 'new_match_screen.dart';
@@ -32,29 +33,35 @@ class TournamentScreen extends ConsumerWidget {
       );
     }
     final book = progress.book;
+    final tournament = progress.tournament;
     const noResults = StatsEmpty(message: 'Stats appear here once a match has finished.');
+    // A cup has no table; a league without knockouts has no bracket.
+    final hasTable = !tournament.isKnockout;
+    final hasBracket = tournament.bracket.isNotEmpty;
     return DefaultTabController(
-      length: 6,
+      length: 4 + (hasTable ? 1 : 0) + (hasBracket ? 1 : 0) + 1,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(progress.tournament.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-          bottom: const TabBar(
+          title: Text(tournament.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+          bottom: TabBar(
             isScrollable: true,
             tabAlignment: TabAlignment.start,
             tabs: [
-              Tab(text: 'Matches'),
-              Tab(text: 'Table'),
-              Tab(text: 'Batting'),
-              Tab(text: 'Bowling'),
-              Tab(text: 'MVP'),
-              Tab(text: 'Boundaries'),
+              const Tab(text: 'Matches'),
+              if (hasBracket) const Tab(text: 'Bracket'),
+              if (hasTable) const Tab(text: 'Table'),
+              const Tab(text: 'Batting'),
+              const Tab(text: 'Bowling'),
+              const Tab(text: 'MVP'),
+              const Tab(text: 'Boundaries'),
             ],
           ),
         ),
         body: TabBarView(
           children: [
             _MatchesTab(progress: progress),
-            _TableTab(progress: progress),
+            if (hasBracket) _BracketTab(progress: progress),
+            if (hasTable) _TableTab(progress: progress),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
             if (book.isEmpty) noResults else MvpTab(book: book),
@@ -70,41 +77,6 @@ class _MatchesTab extends ConsumerWidget {
   const _MatchesTab({required this.progress});
 
   final TournamentProgress progress;
-
-  Future<void> _open(BuildContext context, WidgetRef ref, FixtureProgress item) async {
-    final navigator = Navigator.of(context);
-    final match = item.match;
-    if (match != null) {
-      await navigator.push(
-        MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: match.setup.id)),
-      );
-    } else {
-      await _startFixture(context, ref, item.fixture);
-    }
-    if (context.mounted) ref.invalidate(matchListProvider);
-  }
-
-  /// Fills the setup from the latest saved squads, falling back to the squad
-  /// the tournament started with if a team has since been deleted.
-  Future<void> _startFixture(BuildContext context, WidgetRef ref, Fixture fixture) async {
-    final tournament = progress.tournament;
-    final navigator = Navigator.of(context);
-    final saved = await ref.read(teamRepositoryProvider).loadAll();
-    Team latest(String id) =>
-        saved.where((t) => t.id == id).firstOrNull ?? tournament.teamById(id);
-    await navigator.push(
-      MaterialPageRoute<void>(
-        builder: (_) => NewMatchScreen(
-          fixture: FixtureMatch(
-            tournament: tournament,
-            fixture: fixture,
-            home: latest(fixture.teamAId),
-            away: latest(fixture.teamBId),
-          ),
-        ),
-      ),
-    );
-  }
 
   Future<void> _scheduleNextRound(BuildContext context, WidgetRef ref) async {
     final repository = ref.read(tournamentRepositoryProvider);
@@ -150,14 +122,23 @@ class _MatchesTab extends ConsumerWidget {
     if (context.mounted) ref.invalidate(tournamentsProvider);
   }
 
+  /// "Set up the final: A v B", "Set up the quarter-finals", "Set up 3 games".
   String _nextRoundLabel() {
     final next = progress.nextRound;
-    final first = next.first;
-    if (next.length > 1) return 'Set up the semi-finals';
     final tournament = progress.tournament;
-    final teams = '${tournament.teamById(first.teamAId).name} v '
-        '${tournament.teamById(first.teamBId).name}';
-    return first.isDecider ? 'Set up the Super Over: $teams' : 'Set up the final: $teams';
+    if (next.length == 1) {
+      final game = next.single;
+      final teams = '${tournament.teamById(game.teamAId).name} v ${tournament.teamById(game.teamBId).name}';
+      if (game.isDecider) return 'Set up the Super Over: $teams';
+      return game.id == finalFixtureId ? 'Set up the final: $teams' : 'Set up ${game.label}: $teams';
+    }
+    final rounds = {
+      for (final f in next) tournament.bracket.where((g) => g.id == f.id).firstOrNull?.round,
+    };
+    if (rounds.length == 1 && rounds.single != null) {
+      return 'Set up the ${_roundTitle(rounds.single!, next.length).toLowerCase()}';
+    }
+    return 'Set up ${next.length} games';
   }
 
   @override
@@ -189,7 +170,7 @@ class _MatchesTab extends ConsumerWidget {
           _FixtureCard(
             item: item,
             tournament: tournament,
-            onTap: () => _open(context, ref, item),
+            onTap: () => _openFixture(context, ref, progress.tournament, item),
             onLongPress: () => _reschedule(context, ref, item.fixture),
           ),
           const SizedBox(height: 10),
@@ -206,6 +187,204 @@ class _MatchesTab extends ConsumerWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// "Quarter-finals", or "Final" and "Round of 16" as they are.
+String _roundTitle(String round, int games) => games == 1 || round.startsWith('Round of') ? round : '${round}s';
+
+/// Opens a fixture's match, or starts it through New match, filled in.
+Future<void> _openFixture(BuildContext context, WidgetRef ref, Tournament tournament, FixtureProgress item) async {
+  final navigator = Navigator.of(context);
+  final match = item.match;
+  if (match != null) {
+    await navigator.push(
+      MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: match.setup.id)),
+    );
+  } else {
+    await _startFixture(context, ref, tournament, item.fixture);
+  }
+  if (context.mounted) ref.invalidate(matchListProvider);
+}
+
+/// Fills the setup from the latest saved squads, falling back to the squad
+/// the tournament started with if a team has since been deleted.
+Future<void> _startFixture(BuildContext context, WidgetRef ref, Tournament tournament, Fixture fixture) async {
+  final navigator = Navigator.of(context);
+  final saved = await ref.read(teamRepositoryProvider).loadAll();
+  Team latest(String id) => saved.where((t) => t.id == id).firstOrNull ?? tournament.teamById(id);
+  await navigator.push(
+    MaterialPageRoute<void>(
+      builder: (_) => NewMatchScreen(
+        fixture: FixtureMatch(
+          tournament: tournament,
+          fixture: fixture,
+          home: latest(fixture.teamAId),
+          away: latest(fixture.teamBId),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Every knockout game, round by round, with the teams known so far and who
+/// went through. A game that is set up opens like it does on Matches.
+class _BracketTab extends ConsumerWidget {
+  const _BracketTab({required this.progress});
+
+  final TournamentProgress progress;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tournament = progress.tournament;
+    final rounds = <String, List<BracketGame>>{};
+    for (final game in tournament.bracket) {
+      (rounds[game.round] ??= []).add(game);
+    }
+    final opening = tournament.bracket.first.round;
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      children: [
+        for (final MapEntry(key: round, value: games) in rounds.entries) ...[
+          SectionTitle(_roundTitle(round, games.length)),
+          const SizedBox(height: 10),
+          for (final game in games) ...[
+            _BracketGameCard(
+              game: game,
+              progress: progress,
+              // In a cup, a team drawn straight into a later round had a bye.
+              byeRound: tournament.isKnockout && round != opening,
+              onOpen: (item) => _openFixture(context, ref, tournament, item),
+            ),
+            const SizedBox(height: 10),
+          ],
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
+}
+
+class _BracketGameCard extends StatelessWidget {
+  const _BracketGameCard({
+    required this.game,
+    required this.progress,
+    required this.byeRound,
+    required this.onOpen,
+  });
+
+  final BracketGame game;
+  final TournamentProgress progress;
+  final bool byeRound;
+  final ValueChanged<FixtureProgress> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final tournament = progress.tournament;
+    final item = progress.fixtures.where((f) => f.fixture.id == game.id).firstOrNull;
+    final (teamA, teamB) = progress.bracketTeams[game.id] ?? (null, null);
+    final winner = progress.winners[game.id];
+    final match = item?.match;
+    final date = item?.fixture.scheduledAt;
+    final status = switch (item) {
+      null when teamA != null && teamB != null => 'Ready: set up on Matches',
+      null => null,
+      _ when winner != null => null,
+      _ when match == null => date == null ? 'Tap to start' : fixtureDate(date),
+      _ when item.isFinished => 'Super Over to come',
+      _ => 'Live',
+    };
+    final isFinal = game.id == finalFixtureId;
+
+    Widget side(BracketSide from, String? teamId) {
+      final known = teamId != null;
+      final won = known && winner == teamId;
+      final lost = known && winner != null && !won;
+      final name = known ? tournament.teamById(teamId).name : tournament.sideName(from);
+      return Row(
+        children: [
+          if (known)
+            TeamBadge(name: name, size: 28)
+          else
+            Container(
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: scheme.outlineVariant),
+              ),
+            ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: text.bodyLarge?.copyWith(
+                fontWeight: won ? FontWeight.w800 : FontWeight.w600,
+                fontStyle: known ? null : FontStyle.italic,
+                color: won ? scheme.primary : (known && !lost ? null : scheme.onSurfaceVariant),
+              ),
+            ),
+          ),
+          if (byeRound && from is DrawnTeam) ...[
+            const SizedBox(width: 8),
+            Text('bye', style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant)),
+          ],
+          if (won) ...[
+            const SizedBox(width: 8),
+            Icon(
+              isFinal ? Icons.emoji_events_rounded : Icons.check_circle_rounded,
+              size: 20,
+              color: isFinal ? AppColors.four : scheme.primary,
+            ),
+          ],
+        ],
+      );
+    }
+
+    return SurfacePanel(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        onTap: item == null ? null : () => onOpen(item),
+        child: Container(
+          decoration: isFinal
+              ? const BoxDecoration(border: Border(left: BorderSide(color: AppColors.four, width: 4)))
+              : null,
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: SectionLabel(game.label)),
+                  if (status != null) ...[
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        status,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.labelSmall?.copyWith(
+                          color: status == 'Live' ? scheme.primary : scheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 10),
+              side(game.a, teamA),
+              const SizedBox(height: 8),
+              side(game.b, teamB),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

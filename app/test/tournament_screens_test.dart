@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:bnp_scorer/data/demo_data.dart';
 import 'package:bnp_scorer/data/ids.dart';
 import 'package:bnp_scorer/data/match_record.dart';
@@ -17,6 +19,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'fakes.dart';
 
 const _settle = Duration(milliseconds: 400);
+const _names = ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo', 'Foxtrot', 'Golf', 'Hotel'];
+
+(String, String) _pair(Fixture f) => (f.teamAId, f.teamBId);
 
 Team _squad(String id, String name) => Team(
       id: id,
@@ -72,6 +77,28 @@ void main() {
       venue: 'Oval',
       teams: list,
       fixtures: roundRobinFixtures(list),
+      createdAt: DateTime.utc(2026),
+    );
+  }
+
+  /// Saves the first [count] of [_names] as squads with ids a, b, c...
+  Future<void> saveTeams(int count) async {
+    for (var i = 0; i < count; i++) {
+      await teams.save(_squad(String.fromCharCode(97 + i), _names[i]));
+    }
+  }
+
+  /// A knockout cup of the first [count] of [_names], in that draw order.
+  Tournament cupOf(int count) {
+    final list = [for (var i = 0; i < count; i++) _squad(String.fromCharCode(97 + i), _names[i])];
+    return Tournament(
+      id: 't',
+      name: 'Cup',
+      oversPerInnings: 4,
+      hasFinal: true,
+      format: TournamentFormat.knockout,
+      teams: list,
+      fixtures: knockoutFixtures([for (final t in list) t.id]),
       createdAt: DateTime.utc(2026),
     );
   }
@@ -211,6 +238,7 @@ void main() {
       for (final name in ['Alpha', 'Bravo', 'Charlie', 'Delta']) {
         await tester.tap(find.text(name));
       }
+      await tester.pump(_settle); // Semis is offered once there are 4 teams.
       await tester.tap(find.text('Semis'));
       await tester.pump(_settle);
       await tester.tap(find.text('Two groups'));
@@ -227,6 +255,91 @@ void main() {
       expect(saved.groups, hasLength(1));
       expect(saved.hasSemiFinals, isFalse);
       expect(saved.hasFinal, isTrue);
+    });
+
+    testWidgets('a knockout cup shows its draw, with byes, and saves in that order', (tester) async {
+      await saveTeams(5);
+      await pump(tester, const NewTournamentScreen());
+      await tester.enterText(find.byType(TextField).first, 'Night Cup');
+      for (final name in ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo']) {
+        await tester.tap(find.text(name));
+      }
+      await tester.tap(find.text('Knockout cup'));
+      await tester.pump(_settle);
+
+      expect(find.text('Two groups'), findsNothing, reason: 'league options are hidden for a cup');
+      expect(find.text('4 matches · 3 byes'), findsOneWidget);
+      expect(find.text('Delta v Echo'), findsOneWidget);
+      expect(find.text('Byes: Alpha, Bravo, Charlie'), findsOneWidget);
+
+      await tester.tap(find.text('Create tournament'));
+      await settle(tester);
+      final saved = tournaments.tournaments.values.single;
+      expect(saved.isKnockout, isTrue);
+      expect([for (final t in saved.teams) t.name], ['Alpha', 'Bravo', 'Charlie', 'Delta', 'Echo']);
+      expect([for (final f in saved.fixtures) f.label], ['Quarter-final', 'Semi-final 2']);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('Shuffle draw reorders the cup, keeping the same teams', (tester) async {
+      await saveTeams(4);
+      await pump(tester, NewTournamentScreen(random: Random(1)));
+      await tester.enterText(find.byType(TextField).first, 'Shuffled');
+      for (final name in ['Alpha', 'Bravo', 'Charlie', 'Delta']) {
+        await tester.tap(find.text(name));
+      }
+      await tester.tap(find.text('Knockout cup'));
+      await tester.pump(_settle);
+      expect(find.text('Alpha v Bravo'), findsOneWidget);
+      expect(find.text('3 matches'), findsOneWidget);
+
+      await tester.tap(find.text('Shuffle draw'));
+      await tester.pump(_settle);
+      await tester.tap(find.text('Create tournament'));
+      await settle(tester);
+      final saved = tournaments.tournaments.values.single;
+      final order = [for (final t in saved.teams) t.id];
+      expect(order.toSet(), {'a', 'b', 'c', 'd'});
+      expect(order, isNot(['a', 'b', 'c', 'd']));
+      expect(_pair(saved.fixtures.first), (order[0], order[1]));
+    });
+
+    testWidgets('a cup needs three teams', (tester) async {
+      await saveTeams(2);
+      await pump(tester, const NewTournamentScreen());
+      await tester.enterText(find.byType(TextField).first, 'Tiny');
+      await tester.tap(find.text('Alpha'));
+      await tester.tap(find.text('Bravo'));
+      await tester.tap(find.text('Knockout cup'));
+      await tester.pump(_settle);
+      expect(find.text('A cup needs at least 3 teams'), findsOneWidget);
+      await tester.tap(find.text('Create tournament'));
+      await settle(tester);
+      expect(tournaments.tournaments, isEmpty);
+    });
+
+    testWidgets('quarter-finals are offered from eight teams', (tester) async {
+      await saveTeams(8);
+      await pump(tester, const NewTournamentScreen());
+      await tester.enterText(find.byType(TextField).first, 'Big League');
+      for (final name in _names.take(7)) {
+        await tester.tap(find.text(name));
+      }
+      await tester.pump(_settle);
+      expect(find.text('Quarters'), findsNothing);
+
+      await tester.tap(find.text('Hotel'));
+      await tester.pump(_settle);
+      await tester.tap(find.text('Quarters'));
+      await tester.pump(_settle);
+      expect(find.text('28 matches + quarter-finals + semi-finals + final'), findsOneWidget);
+
+      await tester.tap(find.text('Create tournament'));
+      await settle(tester);
+      final saved = tournaments.tournaments.values.single;
+      expect(saved.hasQuarterFinals, isTrue);
+      expect(saved.hasSemiFinals, isTrue);
+      expect(saved.bracket.first.label, 'Quarter-final 1');
     });
 
     testWidgets('a failed save stays on the form with a message', (tester) async {
@@ -375,6 +488,70 @@ void main() {
       await settle(tester);
       expect(find.text('GROUP A'), findsOneWidget);
       expect(find.text('GROUP B'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a cup has a bracket instead of a table, and moves winners on', (tester) async {
+      final t = cupOf(5);
+      await tournaments.save(t);
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      expect(find.text('Table'), findsNothing);
+
+      await tester.tap(find.text('Bracket'));
+      await settle(tester);
+      expect(find.text('QUARTER-FINAL'), findsOneWidget);
+      expect(find.text('Winner of Quarter-final'), findsOneWidget);
+      expect(find.text('Winner of Semi-final 1'), findsOneWidget);
+      expect(find.text('bye'), findsNWidgets(3), reason: 'Alpha, Bravo and Charlie skip the first round');
+      expect(tester.takeException(), isNull);
+
+      await playFixture(t, 'qf1', 'd');
+      await tester.pumpWidget(const SizedBox());
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await tester.tap(find.text('Bracket'));
+      await settle(tester);
+      expect(find.text('Ready: set up on Matches'), findsOneWidget);
+      await tester.tap(find.text('Matches'));
+      await settle(tester);
+      await tester.tap(find.text('Set up Semi-final 1: Alpha v Delta'));
+      await settle(tester);
+      expect(tournaments.tournaments['t']!.fixtures.map((f) => f.id), containsAll(['qf1', 'sf1', 'sf2']));
+
+      await tester.tap(find.text('Bracket'));
+      await settle(tester);
+      expect(find.text('Winner of Quarter-final'), findsNothing);
+      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget, reason: 'Delta won the quarter-final');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('quarter-finals after a league are set up in one tap', (tester) async {
+      final list = [for (var i = 0; i < 8; i++) _squad(String.fromCharCode(97 + i), _names[i])];
+      final t = Tournament(
+        id: 't',
+        name: 'League',
+        oversPerInnings: 4,
+        hasFinal: true,
+        hasSemiFinals: true,
+        hasQuarterFinals: true,
+        teams: list,
+        fixtures: roundRobinFixtures(list),
+        createdAt: DateTime.utc(2026),
+      );
+      await tournaments.save(t);
+      for (final f in t.fixtures) {
+        await playFixture(t, f.id, f.teamAId.compareTo(f.teamBId) < 0 ? f.teamAId : f.teamBId);
+      }
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await tester.dragUntilVisible(
+          find.text('Set up the quarter-finals'), find.byType(ListView), const Offset(0, -400));
+      await tester.tap(find.text('Set up the quarter-finals'));
+      await settle(tester);
+      expect(tournaments.tournaments['t']!.fixtures, hasLength(28 + 4));
+
+      await tester.tap(find.text('Bracket'));
+      await settle(tester);
+      expect(find.text('Quarter-finals'), findsOneWidget);
+      expect(find.text('Winner of Quarter-final 1'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

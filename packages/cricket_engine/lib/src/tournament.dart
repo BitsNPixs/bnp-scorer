@@ -660,6 +660,7 @@ class TournamentProgress {
     required this.book,
     required this.nextRound,
     required this.bracketTeams,
+    required this.winners,
     required this.outdated,
     required this.championId,
   });
@@ -680,6 +681,10 @@ class TournamentProgress {
   /// The teams known so far for each game in [Tournament.bracket], by game id.
   /// Null for a side still to be decided.
   final Map<String, (String?, String?)> bracketTeams;
+
+  /// The side through from each decided game in [Tournament.bracket], after
+  /// any Super Over, by game id.
+  final Map<String, String> winners;
 
   /// Scheduled knockout games, with the teams the results now call for, whose
   /// stored teams no longer match. A corrected result upstream causes this.
@@ -753,9 +758,11 @@ TournamentProgress progressOf(Tournament tournament, Map<String, MatchState> mat
   final nextRound = <Fixture>[];
   final outdated = <Fixture>[];
   final bracketTeams = <String, (String?, String?)>{};
+  final winners = <String, String>{};
   for (final game in tournament.bracket) {
     final (a, b) = (teamFor(game.a), teamFor(game.b));
     bracketTeams[game.id] = (a, b);
+    if (winnerOf(game.id) case final winner?) winners[game.id] = winner;
     if (a == null || b == null) continue;
     final stored = tournament.fixtures.where((f) => f.id == game.id).firstOrNull;
     if (stored == null) {
@@ -787,6 +794,7 @@ TournamentProgress progressOf(Tournament tournament, Map<String, MatchState> mat
     book: book,
     nextRound: nextRound,
     bracketTeams: bracketTeams,
+    winners: winners,
     outdated: outdated,
     championId: championId,
   );

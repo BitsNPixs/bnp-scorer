@@ -779,6 +779,7 @@ void main() {
       (t, matches) = _win(t, matches, finalFixtureId, 'f');
       p = progressOf(t, matches);
       expect(p.championId, 'f');
+      expect(p.winners, {'qf1': 'c', 'qf2': 'f', 'sf1': 'a', 'sf2': 'f', finalFixtureId: 'f'});
       expect(p.finishedCount, 5);
       expect(p.totalCount, 5);
       expect(p.nextRound, isEmpty);
@@ -797,6 +798,7 @@ void main() {
       (t, matches) = _win(t, matches, superOver.id, 'c');
       p = progressOf(t, matches);
       expect(_pair(p.nextRound.single), ('a', 'c'));
+      expect(p.winners['sf1'], 'c', reason: 'the Super Over decides who went through');
     });
 
     test('a corrected result flags the next game', () {

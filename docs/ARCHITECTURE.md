@@ -171,8 +171,34 @@ per group (league games only, including teams yet to play), a `StatsBook` of eve
 game, `nextRound` (fixtures ready to schedule) and the champion. A deleted match
 reopens its fixture.
 
-Knockouts: one group pairs 1 v 4 and 2 v 3, or 1 v 2 for a final. Two groups pair
-A1 v B2 and B1 v A2, or the group winners for a final. A tied knockout game gets a
+Formats (`TournamentFormat`): a league (one group or two, then optionally a
+final, semi-finals or quarter-finals), or a straight knockout cup.
+
+Knockouts come from `Tournament.bracket`: every knockout game, known from the
+start, each side a `BracketSide` saying where its team comes from: a
+`DrawnTeam`, a `TablePlace` once the league is done, or the `WinnerOf` an earlier
+game. `progressOf` offers a game in `nextRound` as soon as both its teams are
+known (a cup's semi-final need not wait for the other quarter-final), and gives
+the teams known so far per game in `bracketTeams`; `Tournament.sideName` names an
+unknown side ("Winner of Quarter-final 2"). Ids are stable: `final`, `sf1`,
+`qf1`, then `r16-1` and so on.
+- After a league: one group plays 1 v 8, 4 v 5, 2 v 7, 3 v 6 (quarter-finals),
+  1 v 4 and 2 v 3 (semi-finals) or 1 v 2 (final). Two groups cross over (A1 v B4,
+  B2 v A3, B1 v A4, A2 v B3; or A1 v B2, B1 v A2; or the group winners), so a
+  group's top two meet only in the final.
+- A cup (`knockoutBracket`, `knockoutFixtures` for its first round): teams in
+  the draw order (`teams`) pair in order. When the number is not a power of two,
+  the first teams get byes and each meets a first-round winner in round two. A
+  round with one game has no number ("Semi-final"). At most 64 teams.
+
+Organiser details: `prizes` (a title and free text, "Rs 25,000 + trophy"),
+`entryFee` in whole rupees, `paid` (each team's total so far; `dueFrom`), `rules`
+(free text), and a `venue` per fixture that overrides the tournament's in
+`titleOf`. `toPublicJson` is everything except `paid`, for anything that leaves
+the phone. New JSON fields are written only when set, so a plain league stores
+exactly what it did before.
+
+A tied knockout game gets a
 decider fixture (`deciderOf`) played as a one-over match with
 `MatchRules.superOver`, so an innings ends at two wickets and the side that batted
 second bats first. A tied Super Over gets another. If a result changes after a knockout game is
@@ -391,7 +417,7 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `engine_test`: toss, phases, runs and strike, extras, wickets, retirements,
     bowling, innings and result, event log, `allowedDismissals`, `formatOvers`;
   - `stats_test`: batting, bowling, fielding, teams, no result, overs, MVP;
-  - `tournament_test`: fixtures, formats, scheduling, progress, tied and abandoned
+  - `tournament_test`: fixtures, formats, knockout cups and quarter-finals, prizes and payments, scheduling, progress, tied and abandoned
     knockouts, corrected results, storage;
   - `no_result_test`: abandoning a match and shot direction.
 - **App** (`flutter test`, 161 tests):

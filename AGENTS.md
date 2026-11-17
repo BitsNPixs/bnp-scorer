@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 161 engine and 274 app tests passing,
+- Latest run (2026-11-17): analyze clean, 181 engine and 274 app tests passing,
   beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
   an earlier cloud test build.
@@ -100,10 +100,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Abandoned matches give a point each, stay out of team run rates and totals, and
   still count for player stats.
 - Tournament formats: one league or two groups (no more), one or two legs, and no
-  knockouts, a final, or semi-finals and a final. Groups are split by the order of
-  the team list and cannot be arranged by hand. League ties share a point and only
-  knockout games go to a Super Over. Knockout rounds are offered by
-  `TournamentProgress.nextRound`, and the scorer confirms them with one tap.
+  knockouts, a final, semi-finals or quarter-finals; or (engine only so far,
+  2026-11-17) a straight knockout cup of up to 64 teams with byes. Groups are
+  split by the order of the team list and cannot be arranged by hand. League ties
+  share a point and only knockout games go to a Super Over. Every knockout game
+  is in `Tournament.bracket`; `TournamentProgress.nextRound` offers each as soon
+  as its teams are known, and the scorer confirms with one tap. Prizes, entry
+  fee, amounts paid (never published: `toPublicJson`), rules and a ground per
+  fixture are in the engine, not yet in the app (docs/ROADMAP.md "Cups, prizes
+  and upcoming matches", step 2).
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.
@@ -203,7 +208,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
 | Published matches | `CloudMatches`, `PublishedMatch`, `parsePublishedMatch` (`data/cloud_matches.dart`), `SyncingMatchRepository`, `cloudMatchesProvider`, `publicMatchesProvider`, `publishedMatchProvider`; `FakeCloudMatches` in tests |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
-| Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
+| Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `knockoutFixtures`, `knockoutBracket`, `Tournament.bracket`, `sideName`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |

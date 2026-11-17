@@ -136,10 +136,17 @@ Decisions:
   final), with byes for numbers that are not a power of two. And quarter-finals
   as a third knockout option after a league or groups (top 8; top 4 of each of
   two groups).
-- **Prizes and entry fees.** Prize amounts (winner, runner-up, player of the
-  series, and so on) shown on the tournament page and the champion's share card.
-  An entry fee per team and who has paid it, for the organiser's own tracking.
-  The app never handles money. Amounts default to rupees.
+- **Prizes and entry fees.** Prizes (winner, runner-up, player of the series,
+  and so on) shown on the tournament page and the champion's share card. An
+  entry fee per team and how much each team has paid, for the organiser's own
+  tracking. The app never handles money. Amounts default to rupees.
+- **After comparing with CricHeroes and real cash-prize listings (owner agreed,
+  2026-11-17):** a prize is a title plus free text ("Rs 3000 & trophy"), not
+  just a number; the organiser records the amount paid, so deposits show
+  ("Rs 10,000 of Rs 37,000"); a rules and notes box on the cup (ball, fees not
+  refundable, invitation only); and a ground per fixture. Left out for now:
+  player availability polls, sponsors, registration forms, spreadsheet
+  upload.
 - **Upcoming: cup fixtures and friendlies.** Fixtures get a start time and show
   as upcoming. Friendlies get "Schedule for later" on New match. A scheduled
   match is a fixture, not a match: the toss is set when it starts, through New
@@ -151,6 +158,8 @@ Decisions:
 Order of work (each step tested and committed):
 1. Engine: straight knockout with byes and round names, quarter-finals after
    groups, prizes and entry fees on `Tournament` (optional JSON fields), tests.
+   Done 2026-11-17: one bracket model now drives every knockout game, old and
+   new; a cup's draw pairs teams in list order with byes to the first teams.
 2. App: format choice and draw order on New tournament, a bracket tab, prizes
    and entry fees (organiser-only paid status), prizes on the champion card.
 3. Upcoming: fixture start times shown and editable, an Upcoming strip on My

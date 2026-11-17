@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Added
+- Engine, for cups (not in the app yet): a straight knockout cup of 3 to 64
+  teams, paired in draw order, with byes for the first teams when the number is
+  not a power of two; quarter-finals after a league (1 v 8, 4 v 5, 2 v 7, 3 v 6)
+  or two groups (crossed); prizes as free text, an entry fee, what each team has
+  paid (left out of `Tournament.toPublicJson`, so it never leaves the phone),
+  house rules, and a ground per fixture. All new JSON fields are optional and
+  written only when set.
+
+### Changed
+- Every knockout game now comes from one bracket (`Tournament.bracket`), and a
+  game is offered as soon as both its teams are known. Leagues with a final or
+  semi-finals behave exactly as before, with the same fixture ids.
+
 ## 0.9.0-beta.2 — 2026-11-17
 
 The first beta with the cloud: sign in to publish, and follow anyone's match

@@ -13,6 +13,7 @@ Tournament _tournament(
   List<String> ids, {
   bool hasFinal = false,
   bool hasSemiFinals = false,
+  bool hasQuarterFinals = false,
   bool twoGroups = false,
   int legs = 1,
   String? venue,
@@ -25,6 +26,7 @@ Tournament _tournament(
     oversPerInnings: 1,
     hasFinal: hasFinal,
     hasSemiFinals: hasSemiFinals,
+    hasQuarterFinals: hasQuarterFinals,
     groups: groups,
     legs: legs,
     teams: teams,
@@ -92,6 +94,33 @@ MatchState _won(Team firstBatting, Team other) {
     ...innings(other, firstBatting, 0),
   ]);
 }
+
+/// A straight knockout cup of [ids], in that draw order.
+Tournament _cup(List<String> ids) => Tournament(
+      id: 'cup',
+      name: 'Cup',
+      oversPerInnings: 1,
+      hasFinal: true,
+      format: TournamentFormat.knockout,
+      teams: [for (final id in ids) _team(id)],
+      fixtures: knockoutFixtures(ids),
+      createdAt: DateTime.utc(2026),
+    );
+
+/// Plays the stored knockout fixture [fixtureId], won by [winnerId].
+(Tournament, Map<String, MatchState>) _win(
+  Tournament t,
+  Map<String, MatchState> matches,
+  String fixtureId,
+  String winnerId,
+) {
+  final f = t.fixtures.firstWhere((f) => f.id == fixtureId);
+  final loserId = winnerId == f.teamAId ? f.teamBId : f.teamAId;
+  return _record(t, matches, fixtureId, _won(t.teamById(winnerId), t.teamById(loserId)));
+}
+
+/// The alphabetically first team of a fixture, so league tables run a, b, c.
+String _better(Fixture f) => f.teamAId.compareTo(f.teamBId) < 0 ? f.teamAId : f.teamBId;
 
 /// Plays [winners] in fixture order, linking each match to its fixture.
 (Tournament, Map<String, MatchState>) _play(Tournament start, List<String> winners) {
@@ -651,6 +680,304 @@ void main() {
       final json = MatchRules(oversPerInnings: 5).toJson()..remove('superOver');
       expect(MatchRules.fromJson(json).superOver, isFalse);
       expect(MatchRules.fromJson(MatchRules(oversPerInnings: 1, superOver: true).toJson()).superOver, isTrue);
+    });
+  });
+
+  group('knockout cup', () {
+    List<(String, String)> sides(List<BracketGame> games, Tournament t) =>
+        [for (final g in games) (t.sideName(g.a), t.sideName(g.b))];
+
+    test('eight teams pair in draw order, then winners meet', () {
+      final t = _cup(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']);
+      expect([for (final g in t.bracket) g.id], ['qf1', 'qf2', 'qf3', 'qf4', 'sf1', 'sf2', 'final']);
+      expect([for (final f in t.fixtures) _pair(f)], [('a', 'b'), ('c', 'd'), ('e', 'f'), ('g', 'h')]);
+      expect(t.fixtures.every((f) => f.knockout), isTrue);
+      expect(sides(t.bracket.skip(4).toList(), t), [
+        ('Winner of Quarter-final 1', 'Winner of Quarter-final 2'),
+        ('Winner of Quarter-final 3', 'Winner of Quarter-final 4'),
+        ('Winner of Semi-final 1', 'Winner of Semi-final 2'),
+      ]);
+    });
+
+    test('twelve teams: the first four get byes, each to meet a first-round winner', () {
+      final t = _cup([for (var i = 0; i < 12; i++) String.fromCharCode(97 + i)]);
+      final opening = t.bracket.where((g) => g.round == 'Round of 16').toList();
+      expect([for (final g in opening) g.label], [
+        'Round of 16 Match 1',
+        'Round of 16 Match 2',
+        'Round of 16 Match 3',
+        'Round of 16 Match 4',
+      ]);
+      expect([for (final f in t.fixtures) _pair(f)], [('e', 'f'), ('g', 'h'), ('i', 'j'), ('k', 'l')]);
+      expect(sides(t.bracket.where((g) => g.round == 'Quarter-final').toList(), t), [
+        ('Team A', 'Winner of Round of 16 Match 1'),
+        ('Team B', 'Winner of Round of 16 Match 2'),
+        ('Team C', 'Winner of Round of 16 Match 3'),
+        ('Team D', 'Winner of Round of 16 Match 4'),
+      ]);
+    });
+
+    test('a round with one game has no number', () {
+      final three = _cup(['a', 'b', 'c']);
+      expect([for (final g in three.bracket) g.label], ['Semi-final', 'Final']);
+      expect(sides(three.bracket, three), [('Team B', 'Team C'), ('Team A', 'Winner of Semi-final')]);
+
+      final five = _cup(['a', 'b', 'c', 'd', 'e']);
+      expect([for (final g in five.bracket) g.label], ['Quarter-final', 'Semi-final 1', 'Semi-final 2', 'Final']);
+      expect(sides(five.bracket, five).sublist(1, 3), [
+        ('Team A', 'Winner of Quarter-final'),
+        ('Team B', 'Team C'),
+      ]);
+    });
+
+    test('any size: every team is drawn once and every winner goes on once', () {
+      for (var n = 3; n <= maxKnockoutTeams; n++) {
+        final ids = [for (var i = 0; i < n; i++) 't$i'];
+        final games = knockoutBracket(ids);
+        expect(games, hasLength(n - 1), reason: '$n teams');
+        expect(games.map((g) => g.id).toSet(), hasLength(n - 1));
+        expect(games.last.id, finalFixtureId);
+        final drawn = [
+          for (final g in games)
+            for (final side in [g.a, g.b])
+              if (side case DrawnTeam(:final teamId)) teamId,
+        ];
+        expect(drawn..sort(), [...ids]..sort(), reason: '$n teams');
+        final fed = [
+          for (final g in games)
+            for (final side in [g.a, g.b])
+              if (side case WinnerOf(:final fixtureId)) fixtureId,
+        ];
+        expect(fed..sort(), [for (final g in games.take(n - 2)) g.id]..sort(), reason: '$n teams');
+      }
+    });
+
+    test('each game opens as soon as its two teams are known, through to a champion', () {
+      var t = _cup(['a', 'b', 'c', 'd', 'e', 'f']);
+      var matches = <String, MatchState>{};
+      var p = progressOf(t, matches);
+      expect(p.nextRound, isEmpty);
+      expect(p.totalCount, 5);
+      expect(p.bracketTeams['sf1'], ('a', null));
+      expect(p.tables.single.teams, hasLength(6), reason: 'a cup has no league, but stats list every team');
+
+      (t, matches) = _win(t, matches, 'qf1', 'c');
+      p = progressOf(t, matches);
+      expect([for (final f in p.nextRound) (f.id, _pair(f))], [('sf1', ('a', 'c'))],
+          reason: 'the semi-final need not wait for the other quarter-final');
+
+      t = t.withFixtures(p.nextRound);
+      (t, matches) = _win(t, matches, 'qf2', 'f');
+      t = t.withFixtures(progressOf(t, matches).nextRound);
+      (t, matches) = _win(t, matches, 'sf1', 'a');
+      (t, matches) = _win(t, matches, 'sf2', 'f');
+      p = progressOf(t, matches);
+      expect(p.championId, isNull);
+      expect(_pair(p.nextRound.single), ('a', 'f'));
+
+      t = t.withFixtures(p.nextRound);
+      (t, matches) = _win(t, matches, finalFixtureId, 'f');
+      p = progressOf(t, matches);
+      expect(p.championId, 'f');
+      expect(p.finishedCount, 5);
+      expect(p.totalCount, 5);
+      expect(p.nextRound, isEmpty);
+    });
+
+    test('a tied game goes to a Super Over, and its winner goes on', () {
+      var t = _cup(['a', 'b', 'c']);
+      var matches = <String, MatchState>{};
+      (t, matches) = _record(t, matches, 'sf1', _tied(_team('b'), _team('c')));
+      var p = progressOf(t, matches);
+      final superOver = p.nextRound.single;
+      expect(superOver.deciderOf, 'sf1');
+      expect(superOver.label, 'Semi-final Super Over');
+
+      t = t.withFixtures(p.nextRound);
+      (t, matches) = _win(t, matches, superOver.id, 'c');
+      p = progressOf(t, matches);
+      expect(_pair(p.nextRound.single), ('a', 'c'));
+    });
+
+    test('a corrected result flags the next game', () {
+      var t = _cup(['a', 'b', 'c']);
+      var matches = <String, MatchState>{};
+      (t, matches) = _win(t, matches, 'sf1', 'b');
+      t = t.withFixtures(progressOf(t, matches).nextRound);
+      final changed = {...matches, 'ko-sf1': _won(_team('c'), _team('b'))};
+      expect(_pair(progressOf(t, changed).outdated.single), ('a', 'c'));
+    });
+
+    test('rejects shapes a cup cannot have', () {
+      final teams = [for (final id in ['a', 'b', 'c', 'd']) _team(id)];
+      Tournament cup({bool hasFinal = true, bool semis = false, int legs = 1, List<List<String>>? groups}) =>
+          Tournament(
+            id: 'c',
+            name: 'C',
+            oversPerInnings: 1,
+            hasFinal: hasFinal,
+            hasSemiFinals: semis,
+            legs: legs,
+            groups: groups,
+            format: TournamentFormat.knockout,
+            teams: teams,
+            fixtures: const [],
+            createdAt: DateTime.utc(2026),
+          );
+      expect(cup, returnsNormally);
+      expect(() => cup(hasFinal: false), throwsArgumentError);
+      expect(() => cup(semis: true), throwsArgumentError);
+      expect(() => cup(legs: 2), throwsArgumentError);
+      expect(() => cup(groups: splitIntoTwoGroups(teams)), throwsArgumentError);
+      expect(() => _cup([for (var i = 0; i <= maxKnockoutTeams; i++) 't$i']), throwsArgumentError);
+    });
+  });
+
+  group('quarter-finals after a league', () {
+    final eight = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+    test('one league sends the top eight: 1 v 8, 4 v 5, 2 v 7, 3 v 6', () {
+      final start = _tournament(eight, hasFinal: true, hasSemiFinals: true, hasQuarterFinals: true);
+      var (t, matches) = _play(start, [for (final f in start.fixtures) _better(f)]);
+      final p = progressOf(t, matches);
+      expect([for (final f in p.nextRound) (f.label, _pair(f))], [
+        ('Quarter-final 1', ('a', 'h')),
+        ('Quarter-final 2', ('d', 'e')),
+        ('Quarter-final 3', ('b', 'g')),
+        ('Quarter-final 4', ('c', 'f')),
+      ]);
+      expect(p.totalCount, 28 + 7);
+      expect(start.sideName(start.bracket.first.b), '8th in the table');
+
+      t = t.withFixtures(p.nextRound);
+      for (final (id, winner) in [('qf1', 'a'), ('qf2', 'd'), ('qf3', 'b'), ('qf4', 'c')]) {
+        (t, matches) = _win(t, matches, id, winner);
+      }
+      expect([for (final f in progressOf(t, matches).nextRound) _pair(f)], [('a', 'd'), ('b', 'c')]);
+    });
+
+    test('two groups cross over, so a group\'s top two meet only in the final', () {
+      final start = _tournament(eight,
+          hasFinal: true, hasSemiFinals: true, hasQuarterFinals: true, twoGroups: true);
+      final (t, matches) = _play(start, [for (final f in start.fixtures) _better(f)]);
+      // Group A is a, c, e, g and group B is b, d, f, h, each in that order.
+      expect([for (final f in progressOf(t, matches).nextRound) _pair(f)], [
+        ('a', 'h'),
+        ('d', 'e'),
+        ('b', 'g'),
+        ('c', 'f'),
+      ]);
+      expect(start.sideName(start.bracket.first.b), 'Group B 4th');
+    });
+
+    test('rejects quarter-finals without semi-finals or enough teams', () {
+      expect(() => _tournament(eight, hasFinal: true, hasQuarterFinals: true), throwsArgumentError);
+      expect(
+        () => _tournament(eight.take(7).toList(), hasFinal: true, hasSemiFinals: true, hasQuarterFinals: true),
+        throwsArgumentError,
+      );
+      expect(
+        () => _tournament(eight.take(7).toList(),
+            hasFinal: true, hasSemiFinals: true, hasQuarterFinals: true, twoGroups: true),
+        throwsArgumentError,
+        reason: 'a group of 3 has no 4th place',
+      );
+    });
+
+    test('a league without a final has no bracket', () {
+      final t = _tournament(['a', 'b', 'c']);
+      expect(t.bracket, isEmpty);
+      expect(progressOf(t, const {}).bracketTeams, isEmpty);
+    });
+  });
+
+  group('prizes, entry fees and notes', () {
+    Tournament withMoney() => _tournament(['a', 'b', 'c']).withDetails(
+          prizes: const [
+            Prize(title: 'Winner', reward: 'Rs 25,000 + trophy'),
+            Prize(title: 'Player of the series', reward: 'Bat'),
+          ],
+          entryFee: 2500,
+          rules: '  Tennis ball. Fees not refundable.  ',
+        );
+
+    test('what each team has paid and still owes', () {
+      final t = withMoney().withPaid('a', 1000).withPaid('b', 3000);
+      expect(t.paidBy('a'), 1000);
+      expect(t.dueFrom('a'), 1500);
+      expect(t.dueFrom('b'), 0, reason: 'paying more never shows a negative balance');
+      expect(t.dueFrom('c'), 2500);
+      expect(t.withPaid('a', 0).paid.containsKey('a'), isFalse);
+      expect(_tournament(['a', 'b']).dueFrom('a'), isNull, reason: 'no entry fee');
+    });
+
+    test('notes are trimmed, and details can be cleared', () {
+      final t = withMoney();
+      expect(t.rules, 'Tennis ball. Fees not refundable.');
+      final cleared = t.withDetails(prizes: const [], entryFee: null, rules: '   ');
+      expect(cleared.prizes, isEmpty);
+      expect(cleared.entryFee, isNull);
+      expect(cleared.rules, isNull);
+    });
+
+    test('rejects a blank prize, a zero fee, and payments that make no sense', () {
+      final t = _tournament(['a', 'b']);
+      expect(() => t.withDetails(prizes: const [Prize(title: 'Winner', reward: ' ')], entryFee: null, rules: null),
+          throwsArgumentError);
+      expect(() => t.withDetails(prizes: const [], entryFee: 0, rules: null), throwsArgumentError);
+      expect(() => t.withPaid('zz', 100), throwsArgumentError);
+      expect(() => t.withPaid('a', -1), throwsArgumentError);
+    });
+
+    test('everything survives a round trip, and the public copy leaves out payments', () {
+      final t = withMoney().withPaid('a', 1000);
+      final back = Tournament.fromJson(t.toJson());
+      expect(back.toJson(), t.toJson());
+      expect(back.prizes.first.reward, 'Rs 25,000 + trophy');
+      expect(back.paidBy('a'), 1000);
+
+      final public = t.toPublicJson();
+      expect(public.containsKey('paid'), isFalse);
+      expect(public['entryFee'], 2500);
+      expect(Tournament.fromJson(public).paid, isEmpty);
+    });
+
+    test('a cup and its quarter-finals survive a round trip', () {
+      final cup = _cup(['a', 'b', 'c', 'd', 'e']);
+      expect(Tournament.fromJson(cup.toJson()).isKnockout, isTrue);
+      final league = _tournament(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'],
+          hasFinal: true, hasSemiFinals: true, hasQuarterFinals: true);
+      expect(Tournament.fromJson(league.toJson()).hasQuarterFinals, isTrue);
+    });
+
+    test('a plain league is stored exactly as before these fields existed', () {
+      final json = _tournament(['a', 'b', 'c']).toJson();
+      for (final key in ['format', 'hasQuarterFinals', 'prizes', 'entryFee', 'paid', 'rules']) {
+        expect(json.containsKey(key), isFalse, reason: key);
+      }
+      expect((json['fixtures']! as List<Object?>).every((f) => !(f! as Json).containsKey('venue')), isTrue);
+    });
+  });
+
+  group('a ground per fixture', () {
+    test('names the match, and a blank one falls back to the tournament\'s', () {
+      final t = _tournament(['a', 'b'], venue: 'Oval');
+      final moved = t.withFixtureVenue('f1', ' Park ');
+      expect(moved.titleOf(moved.fixtures.single), 'Cup Match 1 · Park');
+      final back = moved.withFixtureVenue('f1', '  ');
+      expect(back.titleOf(back.fixtures.single), 'Cup Match 1 · Oval');
+    });
+
+    test('is kept when the match starts or the date moves, and survives storage', () {
+      final t = _tournament(['a', 'b'])
+          .withFixtureVenue('f1', 'Park')
+          .withMatch('f1', 'm1')
+          .withFixtureDate('f1', DateTime.utc(2026, 12, 1, 9));
+      final f = Tournament.fromJson(t.toJson()).fixtures.single;
+      expect(f.venue, 'Park');
+      expect(f.matchId, 'm1');
+      expect(f.scheduledAt, DateTime.utc(2026, 12, 1, 9));
+      expect(f.withDate(null).venue, 'Park');
     });
   });
 

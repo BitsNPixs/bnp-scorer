@@ -147,7 +147,7 @@ Create the upload key once (free; `keytool` comes with the JDK). Keep it
 outside the repo:
 
 ```sh
-keytool -genkeypair -v -keystore ~/bnp-upload-keystore.jks -storetype JKS   -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+keytool -genkeypair -v -keystore C:/Users/<you>/bnp-upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
 ```
 
 Then write `app/android/key.properties`:

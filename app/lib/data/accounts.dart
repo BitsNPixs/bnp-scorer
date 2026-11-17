@@ -110,7 +110,14 @@ class FirebaseAccounts implements Accounts {
 
   static Scorer? _scorerOf(User? user) {
     if (user == null) return null;
-    final name = user.displayName;
-    return Scorer(uid: user.uid, name: name == null || name.isEmpty ? (user.email ?? 'Scorer') : name);
+    return Scorer(uid: user.uid, name: publicScorerName(user.displayName));
   }
+}
+
+/// The name published with a scorer's matches: their Google display name, or
+/// "Scorer". Never the email address, which stays private, even when an
+/// account uses it as its display name.
+String publicScorerName(String? displayName) {
+  final name = displayName?.trim() ?? '';
+  return name.isEmpty || name.contains('@') ? 'Scorer' : name;
 }

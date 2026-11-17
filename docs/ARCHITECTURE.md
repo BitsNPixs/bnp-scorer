@@ -275,7 +275,7 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   tab. Tabs live in an `IndexedStack`, are built on first visit and fade in when
   chosen. Back on another tab returns to Matches.
 - **Matches tab:** brand header with a Settings button (System / Light / Dark,
-  Account with Google sign-in in cloud builds, Backup, then About: version and privacy note inline, Report a problem and the
+  Account with Google sign-in in cloud builds, Backup, then About: version and privacy note inline (in cloud builds: public only once signed in, and the policy address), Report a problem and the
   licences), a floodlit hero card with a "New match" button and stumps art, three
   number tiles (played, live, tournaments), filter chips, match cards (live pill
   with an overs bar and a neon edge, or a result tag with the winner's trophy),

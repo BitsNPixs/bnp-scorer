@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## 0.9.0-beta.2 — 2026-11-17
+
+The first beta with the cloud: sign in to publish, and follow anyone's match
+live.
+
+### Changed
+- Privacy policy rewritten for sign-in and publishing: what Google sign-in
+  gives the app, what a published match contains (teams, player names, every
+  ball, the scorer's Google name), that published matches are public, how to
+  unpublish or have everything deleted, Firebase as processor, and why the
+  internet, network-state, biometric and fingerprint permissions are listed.
+  The website's privacy block and FAQ say the same.
+- Settings > About in cloud builds says matches stay on the phone unless you
+  sign in, and gives the policy's address. The sign-in notice adds that the
+  Google name is shown, the email never is, and deleting a match unpublishes it.
+
+### Fixed
+- A Google account with no display name (or an email as its name) published
+  the email address as "Scored by". It is now "Scorer"; the email is never
+  published.
+
 ### Added
 - Cloud, step 3: a "My matches / Everyone" switch on the Matches tab in cloud
   builds. Everyone lists the latest 30 published matches, live, with who scores
@@ -18,8 +39,6 @@
   anyone read and only the owner write. Adds `firebase_core`, `firebase_auth`,
   `cloud_firestore` and `google_sign_in`, and the internet permission. Builds
   without `google-services.json` have no sign-in and work as before.
-
-### Added
 - A full home page for the website: a live scoreboard whose over is bowled ball
   by ball on load, the match day from squads to the points table beside real
   screens of the app, house rules, privacy, how to get the beta, and questions.

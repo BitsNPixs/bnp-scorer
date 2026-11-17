@@ -95,8 +95,8 @@ class _AccountSection extends ConsumerWidget {
   const _AccountSection();
 
   static const publicNotice = "While you're signed in, every new match you score is public: anyone "
-      'with BNP Scorer can follow it, including the player names. Matches already on this phone '
-      'stay private.';
+      'with BNP Scorer can follow it, including the player names and your Google name. Your email '
+      'is never shown. Deleting a match unpublishes it. Matches already on this phone stay private.';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -187,14 +187,20 @@ Future<void> _reportProblem(BuildContext context, WidgetRef ref) async {
 }
 
 /// Version and the privacy promise, inline so nobody has to dig for them.
-class _AboutPanel extends StatelessWidget {
+class _AboutPanel extends ConsumerWidget {
   const _AboutPanel();
 
   static const privacy = 'Your matches stay on this phone. No account, no internet, nothing '
       'collected. Sharing sends only what you see, to the app you pick.';
 
+  /// The promise in a build with sign-in.
+  static const cloudPrivacy = 'Your matches stay on this phone unless you sign in. Signed in, the '
+      'new matches you score are public. No ads, no tracking. Full policy: '
+      'bitsnpixs.github.io/bnp-scorer/privacy.html';
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final promise = ref.watch(accountsProvider).available ? cloudPrivacy : privacy;
     final text = Theme.of(context).textTheme;
     final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return SurfacePanel(
@@ -210,7 +216,7 @@ class _AboutPanel extends StatelessWidget {
             children: [
               Icon(Icons.lock_outline_rounded, size: 18, color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 8),
-              Expanded(child: Text(privacy, style: text.bodyMedium)),
+              Expanded(child: Text(promise, style: text.bodyMedium)),
             ],
           ),
         ],

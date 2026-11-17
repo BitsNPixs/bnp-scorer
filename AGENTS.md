@@ -19,14 +19,19 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 161 engine and 270 app tests passing,
-  release APK built with Firebase (upload-signed). Since 19:10 the owner's
-  phone runs this cloud build (still numbered 0.9.0-beta.1, build 2).
+- Latest run (2026-11-17): analyze clean, 161 engine and 274 app tests passing,
+  beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
+  (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
+  an earlier cloud test build.
+- **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
+  cover sign-in and publishing, and the scorer name never falls back to the
+  email. Beta.2 may go to testers once the site is pushed, so the policy link
+  shows the new text. Before the Play upload: Data safety answers (README
+  "Cloud"), in-app account deletion and a private contact for privacy requests
+  (docs/ROADMAP.md "Cloud: shared matches").
 - **Cloud, step 1 (2026-11-17):** Google sign-in in Settings and publishing a
   signed-in scorer's matches to Firestore (README "Cloud", docs/ROADMAP.md
-  "Cloud: shared matches"). **`main` now has the internet permission and
-  publishes data: do not give a build from it to testers until the privacy
-  policy and Play Data safety are updated (Cloud step 4).**
+  "Cloud: shared matches").
 - **Cloud, step 3 (2026-11-17):** in cloud builds the Matches tab has a "My
   matches / Everyone" switch; Everyone lists the latest 30 published matches
   live, and tapping one opens `WatchMatchScreen`, a read-only view with the same

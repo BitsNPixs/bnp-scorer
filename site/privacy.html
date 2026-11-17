@@ -4,10 +4,10 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BNP Scorer Privacy</title>
-  <meta name="description" content="How the BNP Scorer cricket scoring app handles your data: it keeps everything on your phone.">
+  <meta name="description" content="How the BNP Scorer cricket scoring app handles your data: on your phone by default, and public only for matches you publish after signing in.">
   <meta name="theme-color" content="#07100c">
   <meta property="og:title" content="BNP Scorer privacy policy">
-  <meta property="og:description" content="BNP Scorer keeps everything on your phone: no account, no internet access, nothing collected.">
+  <meta property="og:description" content="Your matches stay on your phone unless you sign in to publish them. No ads, no tracking.">
   <meta property="og:image" content="https://bitsnpixs.github.io/bnp-scorer/img/share.png">
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="style.css">
@@ -17,18 +17,19 @@
   <header class="hero">
     <span class="mark">BNP</span>
     <h1>Privacy policy</h1>
-    <p>BNP Scorer, by Bits N Pixs. Effective 17 November 2026.</p>
+    <p>BNP Scorer, by Bits N Pixs. Effective 17 November 2026. Updated the same day for sign-in and live matches.</p>
   </header>
 
   <section>
     <h2>The short version</h2>
-    <p>BNP Scorer keeps everything on your phone. It has no account, no internet
-    access, no ads and no analytics. Bits N Pixs never receives your matches,
-    teams or any personal information.</p>
+    <p>BNP Scorer keeps your matches on your phone. You can use all of it without
+    an account. If you choose to sign in with Google, the new matches you score
+    are published so anyone with the app can follow them live. No ads, no
+    analytics, no tracking, and we never sell anything.</p>
   </section>
 
   <section>
-    <h2>What the app stores, and where</h2>
+    <h2>What the app stores on your phone</h2>
     <ul>
       <li>Matches you score, ball by ball, and the tournaments you create.</li>
       <li>Team and player names you type in.</li>
@@ -41,6 +42,57 @@
   </section>
 
   <section>
+    <h2>Signing in and publishing (optional)</h2>
+    <p>Signing in is optional and off until you turn it on in
+    <em>Settings › Account</em>. Before you sign in, the app tells you what
+    becomes public.</p>
+    <p><strong>When you sign in with Google</strong>, Google tells the app your
+    name, email address and an account id. We use Google's Firebase
+    Authentication to keep you signed in.</p>
+    <p><strong>While you are signed in</strong>, every new match you score is
+    published to our database (Google Cloud Firestore, in Mumbai, India) as you
+    score it. A published match contains:</p>
+    <ul>
+      <li>the two teams and their player names, the toss, the overs and the
+        ground, if you entered one;</li>
+      <li>every ball, as scored, with the time it was recorded;</li>
+      <li>your name from your Google account, shown as "Scored by", and your
+        account id.</li>
+    </ul>
+    <p><strong>Published matches are public.</strong> Anyone with BNP Scorer can
+    see and follow them, without signing in. Your email address is never
+    published or shown to anyone.</p>
+    <p>Matches you scored before signing in, and matches you score after signing
+    out, stay on your phone. Only you can change or remove a match you
+    published.</p>
+  </section>
+
+  <section>
+    <h2>Removing what you published</h2>
+    <ul>
+      <li><strong>One match:</strong> delete it in the app (hold it on the Matches
+        tab). That removes it from our database too.</li>
+      <li><strong>Stop publishing:</strong> sign out in <em>Settings ›
+        Account</em>. Matches you already published stay public until you delete
+        them.</li>
+      <li><strong>Your account and everything you published:</strong> ask us (see
+        "Contact"), and we delete them within 30 days. Please do not post your
+        email address in a public issue.</li>
+    </ul>
+    <p>We keep a published match until it is deleted. We do not keep copies of
+    deleted matches.</p>
+  </section>
+
+  <section>
+    <h2>Who else handles your data</h2>
+    <p>Google runs our sign-in and database (Firebase), and handles that data
+    for us under the
+    <a href="https://firebase.google.com/support/privacy">Firebase privacy and security terms</a>.
+    Like any web service, it sees the network address of the phone connecting to
+    it. Data travels encrypted. We share it with no one else.</p>
+  </section>
+
+  <section>
     <h2>Your phone's own backup</h2>
     <p>If you have turned on backup in your phone's settings, Android may include
     BNP Scorer's data in your phone's backup to your Google account. That backup
@@ -48,9 +100,9 @@
   </section>
 
   <section>
-    <h2>When something leaves your phone</h2>
-    <p>Only when you choose to send it, through your phone's share sheet, to the
-    app and people you pick:</p>
+    <h2>When you share something</h2>
+    <p>These leave your phone only when you choose to send them, through your
+    phone's share sheet, to the app and people you pick:</p>
     <ul>
       <li><strong>Scorecards:</strong> a picture of a scorecard with a caption.</li>
       <li><strong>Backups:</strong> a file with your matches, teams and
@@ -63,35 +115,47 @@
 
   <section>
     <h2>Permissions</h2>
-    <p>BNP Scorer asks for no special permissions: no internet, location,
-    contacts, camera, microphone or phone storage. When you restore a backup, it
-    reads only the file you pick.</p>
+    <ul>
+      <li><strong>Internet and network state:</strong> to sign in, publish your
+        matches and show other people's. Scoring works without a connection;
+        published matches catch up when you are back online.</li>
+      <li><strong>Biometric and fingerprint:</strong> listed because Google's
+        sign-in library includes them. BNP Scorer never asks for or uses your
+        fingerprint or face.</li>
+    </ul>
+    <p>No location, contacts, camera, microphone or phone storage. When you
+    restore a backup, the app reads only the file you pick.</p>
   </section>
 
   <section>
     <h2>Other people's names</h2>
-    <p>The player names you enter stay on your phone, unless you share a
-    scorecard or backup that contains them.</p>
+    <p>Matches contain the names of the players you enter. If you are signed in,
+    those names are published with your matches, so let your players know. A
+    player who wants their name removed can ask the scorer to delete the match,
+    or ask us.</p>
   </section>
 
   <section>
     <h2>Children</h2>
-    <p>BNP Scorer is not directed at children under 13. It collects no data from
-    anyone, of any age.</p>
+    <p>BNP Scorer is not directed at children under 13, and signing in is not
+    meant for them. If you believe a child has published a match, contact us
+    and we will remove it.</p>
   </section>
 
   <section>
     <h2>Changes</h2>
-    <p>If a future version adds online features, such as live scores or
-    accounts, we will update this policy before that version is released, and
-    the app will tell you. The effective date above shows the latest change.</p>
+    <p>If we change what the app collects or publishes, we update this policy
+    before that version is released, and the app tells you. The effective date
+    above shows the latest change.</p>
   </section>
 
   <section>
     <h2>Contact</h2>
     <p>Questions about privacy: open an issue at
     <a href="https://github.com/BitsNPixs/bnp-scorer/issues">github.com/BitsNPixs/bnp-scorer/issues</a>,
-    or use <em>Settings › Report a problem</em> in the app.</p>
+    or use <em>Settings › Report a problem</em> in the app. For a deletion
+    request, give the name shown as "Scored by" and one of the matches; never
+    your email address.</p>
   </section>
 
   <footer>

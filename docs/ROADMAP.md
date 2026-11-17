@@ -114,8 +114,16 @@ Order of work:
    2026-11-17, with `firestore.rules` published in the console.
 3. The public list and the read-only live view. Done on 2026-11-17 and seen
    updating live on a second phone.
-4. Privacy policy, in-app notice before publishing, beta.2 to testers. Moved
-   after "Cups, prizes and upcoming matches", so one update covers everything.
+4. Privacy policy, in-app notice before publishing, beta.2 to testers. Done in
+   code on 2026-11-17 (brought forward, owner's call, so testers get live
+   watching sooner; cups ship as beta.3). Still owed before the Play upload:
+   - the Play Data safety form (answers in README "Cloud");
+   - an in-app "Delete my account" that removes the scorer's published matches
+     and the Firebase user, plus a web page for the same request: Play requires
+     both for apps with sign-in;
+   - a private contact for privacy requests (a role address such as
+     privacy@, not a personal email) in the policy instead of public GitHub
+     issues.
 5. Teams and tournaments in the cloud; handing a match to another scorer.
 
 **Cups, prizes and upcoming matches (decided with the owner on 2026-11-17)**
@@ -149,8 +157,8 @@ Order of work (each step tested and committed):
    matches, "Schedule for later" for friendlies, and a WhatsApp invite.
 4. Cloud: publish cups (without paid status) and scheduled friendlies; Everyone
    gains Upcoming and Cups.
-5. Then "Cloud" step 4 (privacy policy, Data safety) covering all of it, and
-   beta.2 to testers.
+5. Then update the privacy policy for cups and schedules (organiser name,
+   prizes; never amounts paid) and ship beta.3.
 
 **Phase 3: push**
 - FCM pushes for wickets, milestones and results. Share a match link that opens

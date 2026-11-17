@@ -189,8 +189,17 @@ Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
   it into Firestore Database > Rules and Publish. Anyone may read; only a match's
   owner may write it.
 - **Privacy:** a cloud build uses the internet and publishes match content,
-  including player names. Update `site/privacy.html` and the Play Data safety
-  answers before such a build reaches testers.
+  including player names and the scorer's Google name (never the email,
+  `publicScorerName`). `site/privacy.html` says so; update it before a build
+  that publishes anything new reaches testers.
+- **Play Data safety answers** (for the cloud build): data is collected, all of
+  it optional (only when signed in), encrypted in transit, and deletable on
+  request. Collected: Personal info > Name, Email address and User IDs (account
+  management; the name is shown publicly as "Scored by"); App activity > Other
+  user-generated content (published matches, including player names; app
+  functionality). Not collected: location, contacts, photos, files, crash logs
+  or diagnostics (problem reports are sent by the user through the share sheet),
+  device ids. Not shared with third parties; Firebase is a processor. No ads.
 
 ## Beta builds
 
@@ -218,7 +227,9 @@ upload key ("Release signing").
 
 Tester message (edit the version):
 
-> BNP Scorer beta 0.9.0-beta.1 is attached. To install: tap the file, allow
+> BNP Scorer beta 0.9.0-beta.2 is attached. New: follow matches live under
+> Matches > Everyone, and sign in from Settings if you want others to follow
+> yours (it tells you what becomes public first). To install: tap the file, allow
 > "install unknown apps" for WhatsApp (or Files) when asked, then Install. Updates
 > come the same way and keep your matches. Please back up from Settings now and
 > then. If anything goes wrong, use Settings > Report a problem and send it to me.

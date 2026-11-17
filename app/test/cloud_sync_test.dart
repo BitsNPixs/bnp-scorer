@@ -109,6 +109,21 @@ void main() {
     });
   });
 
+  group('publicScorerName', () {
+    test('uses the Google display name, trimmed', () {
+      expect(publicScorerName('  Asha Rao '), 'Asha Rao');
+    });
+
+    test('never publishes an email address, even as the display name', () {
+      expect(publicScorerName('asha.rao@example.com'), 'Scorer');
+    });
+
+    test('falls back to "Scorer" with no name', () {
+      expect(publicScorerName(null), 'Scorer');
+      expect(publicScorerName('   '), 'Scorer');
+    });
+  });
+
   group('LocalOnlyAccounts', () {
     test('offers no sign-in and explains why', () async {
       const accounts = LocalOnlyAccounts();

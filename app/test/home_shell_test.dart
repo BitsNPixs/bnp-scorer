@@ -332,6 +332,18 @@ void main() {
       await settle(tester);
     }
 
+    testWidgets('a cloud build says when matches become public, with a link to the policy', (tester) async {
+      await pumpApp(tester, accounts: FakeAccounts());
+      await openSettings(tester);
+      final promise = find.textContaining('unless you sign in');
+      await tester.ensureVisible(promise);
+      expect(promise, findsOneWidget);
+      expect(find.textContaining('No account, no internet'), findsNothing);
+      expect(find.textContaining('bitsnpixs.github.io/bnp-scorer/privacy.html'), findsOneWidget);
+      expect(tester.getRect(promise).right, lessThanOrEqualTo(360));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('a build without the cloud offers no sign-in', (tester) async {
       await pumpApp(tester);
       await openSettings(tester);
@@ -347,6 +359,7 @@ void main() {
 
       expect(find.text('Publish your matches?'), findsOneWidget);
       expect(find.textContaining('including the player names'), findsOneWidget);
+      expect(find.textContaining('Your email is never shown'), findsOneWidget);
       expect(accounts.signInCalls, 0, reason: 'nothing happens before the scorer agrees');
 
       await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));

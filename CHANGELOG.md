@@ -158,6 +158,10 @@ upload key. Everything below since 0.1.0 is in it.
   cache and project were on different drives, which is the suspected cause.
 
 ### Verified
+- 2026-11-17, on the owner's phone: the old demo build was backed up and
+  uninstalled, beta 0.9.0-beta.1 installed and launched without errors, and the
+  restore brought back every match, team and tournament. First real backup and
+  restore.
 - First real run: analyze clean, app and engine tests pass, debug APK installed
   and launched on a phone.
 - Latest run: 146 engine and 184 app tests pass, and existing saved data loaded

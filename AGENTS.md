@@ -43,14 +43,16 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   tournament's matches, New match with saved teams, the Overs tab. After the
   redesign: Home in dark and light, the Teams tab, the new icon, the release
   build, and the scoring screen through to a result, scored by the owner. The
-  Home chips no longer clip.
+  Home chips no longer clip. On 2026-11-17: the beta (upload-signed) installed
+  after an uninstall and launched cleanly, and a backup made on the old build
+  restored everything on it.
 - **Not yet checked on a real phone:** the splash screen's mark, the scorecard
   tabs and Result tab (seen only in test renders with the real fonts), the
   bursts and confetti, the Settings sheet and its Report a problem, the new
   wicket and no-ball sheet choices, the run-out end and the eased-rule note in
   the bowler picker, and the error panel (test renders only), the Tournaments and Stats tabs,
-  sharing to WhatsApp, backup and restore (tests replace the share sheet and
-  file picker), charts, the wagon wheel, and Super Overs.
+  sharing a scorecard image to WhatsApp (the tests replace the share sheet),
+  charts, the wagon wheel, and Super Overs.
 - A release build (`flutter build apk --release`) was installed and ran on the
   phone on 2026-11-10. Until `key.properties` exists it is signed with the debug
   key, so it installs over a debug build. Once a real key is used, phones must

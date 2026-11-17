@@ -33,7 +33,8 @@ Still to do:
    hit, a run out, a mid-over bowler change, retired hurt, the innings break, the
    chase, the result and undo throughout. On 2026-11-10 the owner scored a match
    to its result; which of these cases it covered is not known.
-2. Try sharing and backup and restore on a real phone (open issue 1).
+2. Try sharing a scorecard on a real phone (open issue 1). Backup and restore
+   were confirmed on 2026-11-17.
 3. Fix the open issues below that bite during those tests.
 4. ~~App icon and splash~~ Done on 2026-11-10: the BNP letters over a red seam
    on night (option C), as an adaptive icon with a themed-icon layer, and a
@@ -52,8 +53,9 @@ upload key, and the privacy policy at https://bitsnpixs.github.io/bnp-scorer/pri
 The real names in `demo_data.dart` are fine to show (owner).
 
 Still to do, all free unless noted:
-1. Testers and the owner's phone, if on a debug-signed build, back up,
-   uninstall and reinstall once to move to the upload-signed build.
+1. Testers on an early debug-signed build back up, uninstall and install the
+   beta once. The owner's phone made this move on 2026-11-17, and the restore
+   brought everything back.
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
 3. Share 0.9.0-beta.1 over WhatsApp or Drive (the owner's choice, free;
@@ -112,8 +114,9 @@ Still to do, all free unless noted:
 ## Open issues (not yet fixed)
 In priority order:
 
-1. **Sharing and backup are untested on a phone.** Tests replace the share sheet and
-   file picker, so a real WhatsApp share and a real restore have never been run.
+1. **Scorecard sharing is untested on a phone.** Tests replace the share sheet,
+   so sharing a scorecard image to WhatsApp has never been run. Backup and
+   restore were confirmed on the owner's phone on 2026-11-17.
 2. **Unexplained install stalls.** `adb install` hung twice with the phone locked,
    then once worked while locked. A leftover "Installing" screen from the phone's
    installer was seen. The cause is unknown.

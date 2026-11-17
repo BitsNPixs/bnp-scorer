@@ -87,6 +87,17 @@ String signedDecimal(double? value) {
   return '${value >= 0 ? '+' : ''}${value.toStringAsFixed(2)}';
 }
 
+/// Whole rupees with Indian grouping: "₹2,500", "₹1,00,000".
+String rupees(int amount) {
+  final digits = amount.abs().toString();
+  final split = digits.length > 3 ? digits.length - 3 : 0;
+  final groups = [digits.substring(split)];
+  for (var end = split; end > 0; end -= 2) {
+    groups.insert(0, digits.substring(end < 2 ? 0 : end - 2, end));
+  }
+  return '${amount < 0 ? '-' : ''}₹${groups.join(',')}';
+}
+
 /// "48*" for a not-out score.
 String highScoreText(HighScore? high) =>
     high == null ? '—' : '${high.runs}${high.notOut ? '*' : ''}';

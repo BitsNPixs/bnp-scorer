@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 181 engine and 280 app tests passing,
+- Latest run (2026-11-17): analyze clean, 181 engine and 286 app tests passing,
   beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
   an earlier cloud test build.
@@ -103,14 +103,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   knockouts, a final, semi-finals or quarter-finals; or a straight knockout cup
   of up to 64 teams with byes, drawn in the order teams are ticked (Shuffle
   draw on New tournament). Cups and quarter-finals, the Bracket tab and the
-  draw are seen only in tests and real-font renders, not on a phone yet. Groups are
+  draw, and the Prizes tab with entry fees, are seen only in tests and
+  real-font renders, not on a phone yet. Groups are
   split by the order of the team list and cannot be arranged by hand. League ties
   share a point and only knockout games go to a Super Over. Every knockout game
   is in `Tournament.bracket`; `TournamentProgress.nextRound` offers each as soon
   as its teams are known, and the scorer confirms with one tap. Prizes, entry
-  fee, amounts paid (never published: `toPublicJson`), rules and a ground per
-  fixture are in the engine, not yet in the app (docs/ROADMAP.md "Cups, prizes
-  and upcoming matches", step 2b).
+  fee, amounts paid (never published: `toPublicJson`) and rules are on the
+  Prizes tab. A ground per fixture is in the engine only, for step 3
+  (docs/ROADMAP.md "Cups, prizes and upcoming matches").
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.
@@ -165,7 +166,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (13 screens, with `WatchMatchScreen`). `HomeScreen` is the shell:
+- **Navigation:** plain `Navigator` (14 screens, with `WatchMatchScreen` and
+  `TournamentDetailsScreen`). `HomeScreen` is the shell:
   a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
   `IndexedStack`, built on first visit. Every other screen is pushed over it.
   Back on a tab other than Matches returns to Matches. Add go_router only with
@@ -188,7 +190,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Live indicator | `LivePill` (`widgets/score_header.dart`) |
 | Coloured notice strip (failed save, free hit, eased rule) | `NoticeBanner` (`widgets/surface_panel.dart`) |
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
-| Names, scores, figures, dismissal text, result line | `ui/format.dart` |
+| Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Colours, fonts, numbers | `AppColors`, `AppTheme`, `AppFonts.display`, `AppFonts.body` (outside the theme), `scoreStyle()` (`theme/app_theme.dart`) |

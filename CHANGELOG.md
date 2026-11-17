@@ -21,6 +21,13 @@
   Table tab. The next-games button names any round ("Set up the
   quarter-finals", "Set up Semi-final 1: A v B").
 
+- A Prizes tab on every tournament: prizes written as announced ("Rs 25,000 +
+  trophy"), house rules and notes, and the entry fee with what each team has
+  paid and the total collected. Payments stay on this phone and are marked so.
+  Edited on a new Tournament details screen. The champions banner shows the
+  winner's prize.
+- `rupees()`: whole rupees with Indian grouping (Rs 1,00,000).
+
 ### Changed
 - Every knockout game now comes from one bracket (`Tournament.bracket`), and a
   game is offered as soon as both its teams are known. Leagues with a final or

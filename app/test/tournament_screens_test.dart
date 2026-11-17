@@ -6,10 +6,12 @@ import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/tournament_repository.dart';
 import 'package:bnp_scorer/screens/home_screen.dart';
 import 'package:bnp_scorer/screens/new_tournament_screen.dart';
+import 'package:bnp_scorer/screens/tournament_details_screen.dart';
 import 'package:bnp_scorer/screens/tournament_screen.dart';
 import 'package:bnp_scorer/screens/tournaments_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
+import 'package:bnp_scorer/widgets/prizes_tab.dart';
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -674,6 +676,115 @@ void main() {
 
       expect(tournaments.tournaments, isEmpty);
       expect(matches.records, hasLength(1));
+    });
+  });
+
+  group('prizes and entry fees', () {
+    Future<void> openPrizes(WidgetTester tester) async {
+      final tab = find.descendant(of: find.byType(TabBar), matching: find.text('Prizes'));
+      await tester.ensureVisible(tab);
+      await tester.tap(tab);
+      await settle(tester);
+    }
+
+    Tournament withFee() => threeTeams().withDetails(
+          prizes: const [Prize(title: 'Winner', reward: '₹25,000 + trophy')],
+          entryFee: 2500,
+          rules: null,
+        );
+
+    testWidgets('start empty, then show what the organiser adds', (tester) async {
+      await tournaments.save(threeTeams());
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await openPrizes(tester);
+      await tester.tap(find.text('Add details'));
+      await settle(tester);
+
+      expect(find.text('Winner'), findsOneWidget, reason: 'the usual prizes are ready to fill in');
+      expect(find.text('Runner-up'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('prize-reward-0')), '₹25,000 + trophy');
+      await tester.enterText(find.byKey(const ValueKey('entry-fee')), '2500');
+      await tester.enterText(find.byKey(const ValueKey('rules')), 'Tennis ball. Fees not refundable.');
+      await tester.tap(find.text('Save'));
+      await settle(tester);
+
+      final saved = tournaments.tournaments['t']!;
+      expect(saved.prizes.single.title, 'Winner', reason: 'a prize with nothing to win is left out');
+      expect(saved.entryFee, 2500);
+      expect(saved.rules, 'Tennis ball. Fees not refundable.');
+
+      expect(find.text('WINNER'), findsOneWidget);
+      expect(find.text('₹25,000 + trophy'), findsOneWidget);
+      expect(find.text('Tennis ball. Fees not refundable.'), findsOneWidget);
+      expect(find.text('₹2,500 a team · ₹0 of ₹7,500 collected'), findsOneWidget);
+      expect(find.text(PrizesTab.privateNote), findsOneWidget);
+      expect(find.text('Not paid'), findsNWidgets(3));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('payments: part paid, paid in full, and the total', (tester) async {
+      await tournaments.save(withFee());
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await openPrizes(tester);
+
+      await tester.tap(find.text('Alpha'));
+      await settle(tester);
+      await tester.enterText(find.byKey(const ValueKey('paid-amount')), '1000');
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await settle(tester);
+      expect(find.text('₹1,000 of ₹2,500'), findsOneWidget);
+
+      await tester.tap(find.text('Bravo'));
+      await settle(tester);
+      await tester.tap(find.text('Paid in full'));
+      await settle(tester);
+      expect(find.text('Paid'), findsOneWidget);
+      expect(find.text('₹2,500 a team · ₹3,500 of ₹7,500 collected'), findsOneWidget);
+
+      final saved = tournaments.tournaments['t']!;
+      expect(saved.paidBy('a'), 1000);
+      expect(saved.paidBy('b'), 2500);
+      expect(saved.toPublicJson().containsKey('paid'), isFalse);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a prize needs a name, and rows can be added and removed', (tester) async {
+      await pump(tester, TournamentDetailsScreen(tournament: threeTeams()));
+      await tester.tap(find.text('Add prize'));
+      await tester.pump(_settle);
+      expect(find.byKey(const ValueKey('prize-reward-2')), findsOneWidget);
+      await tester.tap(find.byTooltip('Remove prize').last);
+      await tester.pump(_settle);
+      expect(find.byKey(const ValueKey('prize-reward-2')), findsNothing);
+
+      await tester.enterText(find.byKey(const ValueKey('prize-title-0')), '');
+      await tester.enterText(find.byKey(const ValueKey('prize-reward-0')), 'A bat');
+      await tester.tap(find.text('Save'));
+      await tester.pump(_settle);
+      expect(find.text(TournamentDetailsScreen.missingTitle), findsOneWidget);
+      expect(find.byType(TournamentDetailsScreen), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the champions banner shows the winner\'s prize', (tester) async {
+      final t = threeTeams(hasFinal: true).withDetails(
+        prizes: const [Prize(title: 'Winner', reward: '₹25,000 + trophy')],
+        entryFee: null,
+        rules: null,
+      );
+      await tournaments.save(t);
+      for (final f in t.fixtures) {
+        await playFixture(t, f.id, f.teamAId == 'a' || f.teamBId == 'a' ? 'a' : 'b');
+      }
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      await tester.tap(find.text('Set up the final: Alpha v Bravo'));
+      await settle(tester);
+      await playFixture(t, 'final', 'b');
+      await tester.pumpWidget(const SizedBox());
+      await pump(tester, const TournamentScreen(tournamentId: 't'));
+      expect(find.text('CHAMPIONS'), findsOneWidget);
+      expect(find.text('Wins ₹25,000 + trophy'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
   });
 

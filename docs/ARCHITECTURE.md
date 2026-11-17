@@ -366,8 +366,15 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
 - **Tournaments:** the list, then one tournament with Matches, Bracket (when it
-  has knockout games), Table (not for a cup), Batting, Bowling, MVP and
-  Boundaries tabs. The Matches tab offers the next games in one tap ("Set up the
+  has knockout games), Table (not for a cup), Prizes, Batting, Bowling, MVP and
+  Boundaries tabs. Prizes (`PrizesTab`) shows the prizes (the first, the
+  winner's, with a gold trophy), rules and notes, and the entry fee with each
+  team's payment ("Paid", "Rs 1,000 of Rs 2,500", "Not paid") and the total
+  collected, marked "Only on this phone. Never published."; tapping a team
+  records what it has paid in total (or Paid in full / Not paid). "Edit prizes,
+  fee and rules" opens Tournament details (`TournamentDetailsScreen`), which
+  starts with Winner and Runner-up ready to fill in and leaves out a prize with
+  nothing to win. The champions banner adds "Wins" and the first prize. The Matches tab offers the next games in one tap ("Set up the
   quarter-finals", "Set up Semi-final 1: A v B") and flags knockout games that a
   changed result has made wrong. Bracket shows every knockout game round by
   round: known teams with badges, unknown ones as "Winner of Quarter-final 2",
@@ -379,6 +386,7 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   Quarters, each offered once there are enough teams) or Knockout cup (the draw
   is the order teams were ticked, previewed as first-round games and byes, with
   Shuffle draw).
+- **Tournament details:** prizes, entry fee per team and rules, saved together.
 - **Teams and Team edit:** squads, roles, captain, vice-captain, keeper.
 - **Backup:** create a backup file, or restore from one.
 - **Watch match:** someone else's published match, read-only and live. Same

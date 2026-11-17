@@ -8,6 +8,7 @@ import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/motion.dart';
 import '../widgets/avatars.dart';
+import '../widgets/prizes_tab.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
 import 'new_match_screen.dart';
@@ -39,7 +40,7 @@ class TournamentScreen extends ConsumerWidget {
     final hasTable = !tournament.isKnockout;
     final hasBracket = tournament.bracket.isNotEmpty;
     return DefaultTabController(
-      length: 4 + (hasTable ? 1 : 0) + (hasBracket ? 1 : 0) + 1,
+      length: 6 + (hasTable ? 1 : 0) + (hasBracket ? 1 : 0),
       child: Scaffold(
         appBar: AppBar(
           title: Text(tournament.name, maxLines: 1, overflow: TextOverflow.ellipsis),
@@ -50,6 +51,7 @@ class TournamentScreen extends ConsumerWidget {
               const Tab(text: 'Matches'),
               if (hasBracket) const Tab(text: 'Bracket'),
               if (hasTable) const Tab(text: 'Table'),
+              const Tab(text: 'Prizes'),
               const Tab(text: 'Batting'),
               const Tab(text: 'Bowling'),
               const Tab(text: 'MVP'),
@@ -62,6 +64,7 @@ class TournamentScreen extends ConsumerWidget {
             _MatchesTab(progress: progress),
             if (hasBracket) _BracketTab(progress: progress),
             if (hasTable) _TableTab(progress: progress),
+            PrizesTab(tournament: tournament),
             if (book.isEmpty) noResults else BattingTab(book: book),
             if (book.isEmpty) noResults else BowlingTab(book: book),
             if (book.isEmpty) noResults else MvpTab(book: book),
@@ -152,6 +155,7 @@ class _MatchesTab extends ConsumerWidget {
           _ChampionBanner(
             name: tournament.teamById(champion).name,
             bestPlayer: progress.playerOfTheTournament?.name,
+            prize: tournament.prizes.firstOrNull?.reward,
           ),
           const SizedBox(height: 12),
         ],
@@ -455,10 +459,13 @@ class _TableTab extends StatelessWidget {
 }
 
 class _ChampionBanner extends StatelessWidget {
-  const _ChampionBanner({required this.name, this.bestPlayer});
+  const _ChampionBanner({required this.name, this.bestPlayer, this.prize});
 
   final String name;
   final String? bestPlayer;
+
+  /// The first prize, which is the winner's.
+  final String? prize;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -487,6 +494,15 @@ class _ChampionBanner extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: scoreStyle(26, color: Colors.white),
                   ),
+                  if (prize case final prize?) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      'Wins $prize',
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: AppColors.four, fontWeight: FontWeight.w800),
+                    ),
+                  ],
                   if (bestPlayer case final player?) ...[
                     const SizedBox(height: 4),
                     Text(

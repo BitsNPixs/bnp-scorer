@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+- A full home page for the website: a live scoreboard whose over is bowled ball
+  by ball on load, the match day from squads to the points table beside real
+  screens of the app, house rules, privacy, how to get the beta, and questions.
+  It uses the app's own fonts, served from the site, and has a link preview for
+  WhatsApp. `app/tool/generate_screenshots_test.dart` renders the screens and
+  `app/tool/build_site_assets.py` turns them into the site's images and fonts.
+
 ## 0.9.0-beta.1 — 2026-11-17
 
 The first beta, shared as an APK over WhatsApp or Drive and signed with the

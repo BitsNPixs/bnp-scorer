@@ -1,0 +1,40 @@
+/* The app's own faces, served from this site (fonts/, OFL licences beside
+   them), so a visit loads nothing from another server. Built by
+   app/tool/build_site_assets.py. */
+@font-face {
+  font-family: "Inter";
+  font-weight: 400;
+  font-display: swap;
+  src: url("fonts/Inter-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 600;
+  font-display: swap;
+  src: url("fonts/Inter-SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-weight: 800;
+  font-display: swap;
+  src: url("fonts/Inter-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-weight: 700;
+  font-display: swap;
+  src: url("fonts/BarlowCondensed-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-weight: 800;
+  font-display: swap;
+  src: url("fonts/BarlowCondensed-ExtraBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Barlow Condensed";
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+  src: url("fonts/BarlowCondensed-ExtraBoldItalic.woff2") format("woff2");
+}

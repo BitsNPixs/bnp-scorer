@@ -216,6 +216,18 @@ to GitHub Pages (free for this public repo) whenever `site/` changes on `main`:
 - home: https://bitsnpixs.github.io/bnp-scorer/
 - privacy policy: https://bitsnpixs.github.io/bnp-scorer/privacy.html
 
+The home page shows real screens of the app. To refresh them after a visible
+change (from `app/`):
+
+```sh
+flutter test tool/generate_screenshots_test.dart   # PNGs into build/screenshots/
+python tool/build_site_assets.py                    # WebP screens, web fonts, link preview
+```
+
+The first renders the screens with the demo data and the bundled fonts; the
+second (needs `pip install pillow fonttools brotli`) writes `site/img/` and
+`site/fonts/`. The same PNGs can go on the Play Store listing.
+
 Update the policy, and its effective date, **before** releasing anything that
 changes what the app stores or sends: an internet permission, accounts, live
 scores or crash reporting. The pages use system fonts, so a visit loads nothing

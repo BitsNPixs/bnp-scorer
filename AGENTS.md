@@ -67,6 +67,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   drawn by `app/tool/generate_app_icon_test.dart` with the bundled font; edit
   the art there and run it (`flutter test tool/generate_app_icon_test.dart`),
   never by hand. `test/app_icon_test.dart` checks sizes and wiring.
+- Website screens: `app/tool/generate_screenshots_test.dart` renders the app with
+  the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
+  `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible
+  change; never edit the images by hand.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline and are edited on the Teams tab.

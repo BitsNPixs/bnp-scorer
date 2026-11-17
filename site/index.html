@@ -4,34 +4,279 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BNP Scorer</title>
-  <meta name="description" content="Ball-by-ball cricket scoring for local matches, offline, by Bits N Pixs.">
-  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Free ball-by-ball cricket scoring for local, club and gully matches. Works offline, keeps your matches on your phone. By Bits N Pixs.">
+  <meta name="theme-color" content="#07100c">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="BNP Scorer: ball-by-ball cricket scoring">
+  <meta property="og:description" content="Free scoring for local and gully cricket. Works offline. Your matches stay on your phone.">
+  <meta property="og:url" content="https://bitsnpixs.github.io/bnp-scorer/">
+  <meta property="og:image" content="https://bitsnpixs.github.io/bnp-scorer/img/share.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preload" href="fonts/BarlowCondensed-ExtraBoldItalic.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="home.css">
 </head>
 <body>
-<main>
-  <header class="hero">
-    <span class="mark">BNP</span>
-    <h1>BNP Scorer</h1>
-    <p>Ball-by-ball cricket scoring for local and gully matches. Works offline,
-    with big keys that read in sunlight.</p>
-    <div class="links">
-      <a class="button" href="privacy.html">Privacy policy</a>
-    </div>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./"><span class="mark">BNP</span> BNP Scorer</a>
+    <nav aria-label="Sections">
+      <a class="optional" href="#match-day">Features</a>
+      <a class="optional" href="#beta">Get the beta</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
   </header>
 
-  <section>
-    <h2>What it does</h2>
-    <ul>
-      <li>Score every ball: runs, extras, wickets, free hits and Super Overs.</li>
-      <li>Full scorecards, charts and the over-by-over story of a match.</li>
-      <li>Saved teams, tournaments with points tables, and player stats.</li>
-      <li>Share a scorecard picture to WhatsApp. Back up and restore your matches.</li>
-    </ul>
-    <p class="muted">Everything stays on your phone. No account, no internet
-    access.</p>
-  </section>
+  <main>
+    <div class="hero">
+      <div>
+        <h1>Every ball.<br>Every run.</h1>
+        <p class="lede">Free cricket scoring for local, club and gully matches. Big keys
+          you can hit in bright sun, the real laws of cricket underneath, and no signal
+          needed at the ground.</p>
 
-  <footer>© 2026 Bits N Pixs</footer>
-</main>
+        <div class="scoreboard" role="img"
+             aria-label="Live score: Team B 50 for 4 after 6.4 overs, needing 27 runs from 20 balls. This over: dot, wide, wicket, dot, six.">
+          <div class="top">
+            <span class="team">Team B, chasing 77</span>
+            <span class="live">Live</span>
+          </div>
+          <div class="score">
+            <span class="runs">50<span>/4</span></span>
+            <span class="overs">6.4 of 10 overs</span>
+          </div>
+          <p class="need">Need 27 runs from 20 balls</p>
+          <div class="over" aria-hidden="true">
+            <span class="ball dot">•</span>
+            <span class="ball wide">Wd</span>
+            <span class="ball wicket">W</span>
+            <span class="ball dot">•</span>
+            <span class="ball six">6</span>
+            <span class="ball empty"></span>
+            <span class="ball empty"></span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <a class="button primary" href="#beta">Get the beta</a>
+          <a class="button ghost" href="#match-day">See what it does</a>
+        </div>
+      </div>
+
+      <div class="phone">
+        <img src="img/home.webp" width="390" height="844"
+             alt="The BNP Scorer home screen: a live match card, results, and tournament filters.">
+      </div>
+    </div>
+
+    <section id="match-day" aria-labelledby="match-day-title">
+      <div class="section-head">
+        <h2 id="match-day-title">Your whole match day</h2>
+        <p>From picking the squads to the points table at the end of the season.</p>
+      </div>
+
+      <ol class="day">
+        <li class="stage">
+          <span class="step" aria-hidden="true">1</span>
+          <div>
+            <h3>Before the toss</h3>
+            <p class="intro">Save your squads once and start a match in a few taps.</p>
+            <ul class="points">
+              <li><strong>Saved teams</strong> with batters, bowlers and all-rounders,
+                plus the captain, vice-captain and wicket-keeper.</li>
+              <li><strong>Any length of match:</strong> pick the overs, or tap a preset.</li>
+              <li><strong>Your ground's rules:</strong> whether wides and no-balls give a
+                run, free hits, last man stands, and a limit on overs per bowler.</li>
+              <li><strong>Short of players?</strong> Play with as few as two a side.</li>
+            </ul>
+          </div>
+          <div class="shots">
+            <div class="phone">
+              <img src="img/team.webp" width="390" height="844" loading="lazy"
+                   alt="A saved squad with each player's role, captain and wicket-keeper.">
+            </div>
+          </div>
+        </li>
+
+        <li class="stage">
+          <span class="step" aria-hidden="true">2</span>
+          <div>
+            <h3>Ball by ball</h3>
+            <p class="intro">One tap for most balls. The app knows the rules, so the
+              score is right.</p>
+            <ul class="points">
+              <li><strong>Big keys</strong> for 0 to 6, wides, no-balls, byes, leg byes,
+                OUT and Undo.</li>
+              <li><strong>Only the dismissals that can happen</strong> on each kind of ball,
+                and free hits after a no-ball.</li>
+              <li><strong>Run outs done right:</strong> say which end, and it shows who
+                faces next.</li>
+              <li><strong>Live chase numbers:</strong> target, required rate and
+                "need 27 from 20".</li>
+              <li><strong>Never stuck:</strong> if a side runs out of bowlers, the app
+                eases the rule so play goes on.</li>
+            </ul>
+          </div>
+          <div class="shots">
+            <div class="phone">
+              <img src="img/scoring.webp" width="390" height="844" loading="lazy"
+                   alt="Live scoring: the score, the over so far, and the big score keys.">
+            </div>
+          </div>
+        </li>
+
+        <li class="stage">
+          <span class="step" aria-hidden="true">3</span>
+          <div>
+            <h3>After stumps</h3>
+            <p class="intro">The full story of the match, ready to share in the group.</p>
+            <ul class="points">
+              <li><strong>Result with Player of the Match,</strong> plus the top batter
+                and best bowler.</li>
+              <li><strong>Scorecards</strong> with fall of wickets, extras and every
+                bowler's figures.</li>
+              <li><strong>Charts:</strong> runs per over, the run race and a wagon wheel
+                of where the shots went.</li>
+              <li><strong>Share to WhatsApp</strong> as a scorecard picture.</li>
+            </ul>
+          </div>
+          <div class="shots">
+            <div class="phone">
+              <img src="img/result.webp" width="390" height="844" loading="lazy"
+                   alt="A finished match: who won, the Player of the Match and the stars of the match.">
+            </div>
+            <div class="phone">
+              <img src="img/charts.webp" width="390" height="844" loading="lazy"
+                   alt="Charts of runs per over and the run race between both teams.">
+            </div>
+          </div>
+        </li>
+
+        <li class="stage">
+          <span class="step" aria-hidden="true">4</span>
+          <div>
+            <h3>Across the season</h3>
+            <p class="intro">Run a whole tournament from one phone.</p>
+            <ul class="points">
+              <li><strong>Leagues or two groups,</strong> one or two legs, then
+                semi-finals and a final.</li>
+              <li><strong>Points table with net run rate,</strong> worked out from the
+                matches you score.</li>
+              <li><strong>Super Overs</strong> settle tied knockout games.</li>
+              <li><strong>Leaderboards and awards:</strong> runs, wickets, boundaries,
+                MVP and Player of the Tournament.</li>
+            </ul>
+          </div>
+          <div class="shots">
+            <div class="table-card">
+              <img src="img/table.webp" width="780" height="878" loading="lazy"
+                   alt="A tournament points table with wins, losses and net run rate.">
+            </div>
+          </div>
+        </li>
+      </ol>
+    </section>
+
+    <section aria-labelledby="rules-title">
+      <div class="section-head">
+        <h2 id="rules-title">Built for the way you play</h2>
+        <p>Every ground plays a little differently. Set it up your way.</p>
+      </div>
+      <ul class="rules">
+        <li>Any number of overs</li>
+        <li>Wides with or without a run</li>
+        <li>No-balls with or without a run</li>
+        <li>Free hit on or off</li>
+        <li>Last man stands</li>
+        <li>Max overs per bowler</li>
+        <li>Record shot direction</li>
+        <li>Retired hurt and retired out</li>
+        <li>Abandon a match with no result</li>
+        <li>Light or dark screen</li>
+      </ul>
+    </section>
+
+    <section aria-labelledby="privacy-title">
+      <div class="privacy">
+        <h2 id="privacy-title">Your matches stay on your phone</h2>
+        <ul class="facts">
+          <li><strong>No account</strong><span>Open it and start scoring. No sign-up, no
+            password.</span></li>
+          <li><strong>No internet</strong><span>The app has no internet access at all, so
+            it works anywhere.</span></li>
+          <li><strong>Nothing collected</strong><span>We never see your matches. They leave
+            your phone only when you share them.</span></li>
+        </ul>
+        <a class="button ghost" href="privacy.html">Read the privacy policy</a>
+      </div>
+    </section>
+
+    <section id="beta" aria-labelledby="beta-title">
+      <div class="beta">
+        <div class="section-head">
+          <h2 id="beta-title">Get the beta</h2>
+          <p>BNP Scorer is in beta with local scorers now. It is free, and it will come
+            to Google Play next.</p>
+          <p class="note">Needs Android 7.0 or newer. iPhone is not supported yet.</p>
+        </div>
+        <ol class="install">
+          <li><div><strong>Ask Bits N Pixs for the app</strong>
+            <span>It comes as a file on WhatsApp or Google Drive.</span></div></li>
+          <li><div><strong>Tap the file, then Install</strong>
+            <span>If your phone asks, allow installing apps from WhatsApp or Files.</span></div></li>
+          <li><div><strong>Score your next match</strong>
+            <span>New versions install the same way and keep your matches.</span></div></li>
+        </ol>
+      </div>
+    </section>
+
+    <section aria-labelledby="faq-title">
+      <div class="section-head">
+        <h2 id="faq-title">Questions</h2>
+      </div>
+      <div class="faq">
+        <details>
+          <summary>Is it really free?</summary>
+          <p>Yes. No ads and nothing to buy.</p>
+        </details>
+        <details>
+          <summary>Do I need internet at the ground?</summary>
+          <p>No. BNP Scorer works fully offline. You only need a connection to share a
+            scorecard on WhatsApp.</p>
+        </details>
+        <details>
+          <summary>What if I change or lose my phone?</summary>
+          <p>Make a backup in Settings now and then and keep the file somewhere safe,
+            like Google Drive. Restore it on the new phone and everything comes back.</p>
+        </details>
+        <details>
+          <summary>Can two people score the same match?</summary>
+          <p>Not yet. One phone scores each match. Live score links that anyone can follow
+            are planned.</p>
+        </details>
+        <details>
+          <summary>Does it handle rain rules like DLS?</summary>
+          <p>Not yet. If rain stops play, end the innings early, or abandon the match for
+            no result.</p>
+        </details>
+        <details>
+          <summary>Something went wrong. How do I tell you?</summary>
+          <p>Open Settings and tap Report a problem. It sends us the app version and any
+            recent errors, and you can add what happened.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>© 2026 Bits N Pixs</span>
+    <nav aria-label="Footer">
+      <a href="privacy.html">Privacy policy</a>
+      <a href="https://github.com/BitsNPixs/bnp-scorer">Source code</a>
+    </nav>
+  </footer>
+</div>
 </body>
 </html>

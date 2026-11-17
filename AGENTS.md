@@ -22,8 +22,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Latest run (2026-11-17): analyze clean, 182 engine and 307 app tests passing,
   beta 0.9.0-beta.3 (build 4) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.3.apk`), with cups, prizes, upcoming matches and
-  their cloud. Not yet sent to testers or installed; the site must be pushed
-  and the new `firestore.rules` pasted first. The owner's phone runs beta.2.
+  their cloud. Pushed, with the policy live; the owner pasted the new
+  `firestore.rules` and the owner's phone runs beta.3 (2026-11-17). Not yet
+  sent to testers: a two-phone try of cups and schedules comes first.
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
   cover sign-in and publishing, and the scorer name never falls back to the
   email. Beta.2 may go to testers once the site is pushed, so the policy link
@@ -121,8 +122,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   friendly scheduled while signed in are published (`firestore.rules` now has
   `tournaments` and `schedules`; payments are never sent, and the rules refuse
   them). Everyone gains Upcoming and Cups, and a cup opens read-only in
-  `WatchTournamentScreen`. **The new rules must be pasted into the console**;
-  not yet tried against the real Firestore.
+  `WatchTournamentScreen`. The rules are in the console (2026-11-17); not yet
+  tried against the real Firestore.
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.

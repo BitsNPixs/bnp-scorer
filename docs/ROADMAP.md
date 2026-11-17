@@ -176,8 +176,8 @@ Order of work (each step tested and committed):
    refused and nothing else breaks.
 5. Then update the privacy policy for cups and schedules (organiser name,
    prizes; never amounts paid) and ship beta.3. Policy, notice and the beta.3
-   build done 2026-11-17; to ship: push (so the policy is live), paste the
-   rules, try it on two phones, then send.
+   build done 2026-11-17, pushed, rules pasted, installed on the owner's
+   phone. To ship: try cups and schedules on two phones, then send.
 
 **Phase 3: push**
 - FCM pushes for wickets, milestones and results. Share a match link that opens

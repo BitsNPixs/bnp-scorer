@@ -26,7 +26,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `firestore.rules` and the owner's phone runs beta.3 (2026-11-17). Published
   as GitHub Release `v0.9.0-beta.3` (asset `bnp-scorer.apk`), which the
   website's Download for Android button serves (README "Beta builds"). A
-  two-phone try of cups and schedules is still to come.
+  two-phone try of cups and schedules is still to come. **What to do next is
+  in docs/ROADMAP.md "Next, in order".**
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
   cover sign-in and publishing, and the scorer name never falls back to the
   email. Beta.2 may go to testers once the site is pushed, so the policy link

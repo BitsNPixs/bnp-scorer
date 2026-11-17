@@ -16,13 +16,31 @@
 | Area | Target | v0.1 | Why the difference |
 | --- | --- | --- | --- |
 | App | Flutter, Riverpod | Flutter 3.32+, Riverpod 3 | — |
-| Routing | go_router | `Navigator` | 12 screens, no deep links yet. Add go_router with them |
+| Routing | go_router | `Navigator` | 15 screens, no deep links yet. Add go_router with them |
 | Models | freezed + json_serializable | hand-written | Builds without build_runner |
 | Offline store | Drift (SQLite) | shared_preferences behind repositories | Enough for v0.1. Swap via the interfaces |
-| Backend | Firebase on the free Spark plan: Auth (Google), Firestore; later FCM | none | Being added ("Cloud: shared matches") |
+| Backend | Firebase on the free Spark plan: Auth (Google), Firestore; later FCM | Auth (Google) and Firestore: matches, tournaments, schedules | FCM not needed yet |
 | Charts | fl_chart (wagon wheel, Manhattan, worm) | hand-drawn on a canvas | Keeps out a dependency; three simple charts did not need one |
 | Sharing, files | — | share_plus, file_picker behind `DeviceFiles` | Needs platform code |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
+
+## Next, in order (as of 2026-11-17, end of day)
+1. **Two-phone try of beta.3 on the real Firestore:** on the owner's phone,
+   signed in, create a knockout cup with a date, add prizes, a fee and a
+   payment, and "Schedule for later" a friendly. On a second phone, check
+   Everyone > Upcoming and Cups, open the cup (bracket and prize shown, no
+   payments, no edit), and watch a fixture played. If something is missing,
+   read the documents with the Firestore REST API (public read) and compare.
+2. **Check on a phone what is only tested in renders:** AGENTS.md "Current
+   status" lists it (cups, bracket, prizes tab, upcoming sheet, WhatsApp invite,
+   scorecard sharing, charts, Super Overs).
+3. **Before the Play Store:** in-app "Delete my account" (removes the scorer's
+   published matches, tournaments and schedules, then the Firebase user) and a
+   web page for the same request; a private privacy contact (a role address
+   such as privacy@, the owner's call); the Data safety form (answers in README
+   "Cloud"); the $25 account and a closed test with about 12 testers for 14
+   days.
+4. **Cloud step 5:** teams in the cloud, and handing a match to another scorer.
 
 ## Phases
 **Phase 0: make v0.1 real (next)**
@@ -58,14 +76,14 @@ Still to do, all free unless noted:
    brought everything back.
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
-3. Share 0.9.0-beta.1 over WhatsApp or Drive (the owner's choice, free;
-   README "Beta builds"). Later, the Play Store needs a one-time $25 developer
+3. Share betas from the website's Download for Android button (the latest
+   GitHub Release, since beta.3) or over WhatsApp (README "Beta builds"). Later, the Play Store needs a one-time $25 developer
    account; a new personal account must run a closed test with about 12 testers
    for 14 days before going public.
 4. For the store: `flutter build appbundle --release --obfuscate
    --split-debug-info=build/symbols` (keep the symbols), screenshots, a 1024x500
    feature graphic, content rating, target audience not children, and Data
-   safety "no data collected". Bump the version first (AGENTS "Version").
+   safety as in README "Cloud" (the cloud build collects data). Bump the version first (AGENTS "Version").
 
 **Cloud: shared matches (decided with the owner on 2026-11-17)**
 Goal: everyone who installs the app sees the same, up-to-date matches.
@@ -175,9 +193,10 @@ Order of work (each step tested and committed):
    into the console before it works for real; until then those writes are
    refused and nothing else breaks.
 5. Then update the privacy policy for cups and schedules (organiser name,
-   prizes; never amounts paid) and ship beta.3. Policy, notice and the beta.3
-   build done 2026-11-17, pushed, rules pasted, installed on the owner's
-   phone. To ship: try cups and schedules on two phones, then send.
+   prizes; never amounts paid) and ship beta.3. Done 2026-11-17: policy and
+   notice live, rules pasted, beta.3 on the owner's phone and published as
+   GitHub Release `v0.9.0-beta.3`, served by the website's download button.
+   Not yet tried on two phones against the real Firestore (see "Next").
 
 **Phase 3: push**
 - FCM pushes for wickets, milestones and results. Share a match link that opens
@@ -225,7 +244,12 @@ In priority order:
 7. **Untested:** the new-match "Start" blocker, including the new bowler-limit
    check. Add a widget test or extract the validation into a pure function and
    unit test it.
-8. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
+8. **Cloud cups, known limits:** a fixture's match scored while signed out is
+   never published, so a watched cup shows that fixture as not started;
+   Everyone lists only the newest 20 cups; a friendly neither started nor
+   cancelled stays in Firestore (it drops off the lists by time); a watched cup
+   reads one document per played match.
+9. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
 
 ## Out of scope for v0.1

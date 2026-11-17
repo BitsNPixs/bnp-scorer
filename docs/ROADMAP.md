@@ -114,8 +114,43 @@ Order of work:
    2026-11-17, with `firestore.rules` published in the console.
 3. The public list and the read-only live view. Done on 2026-11-17 and seen
    updating live on a second phone.
-4. Privacy policy, in-app notice before publishing, beta.2 to testers.
+4. Privacy policy, in-app notice before publishing, beta.2 to testers. Moved
+   after "Cups, prizes and upcoming matches", so one update covers everything.
 5. Teams and tournaments in the cloud; handing a match to another scorer.
+
+**Cups, prizes and upcoming matches (decided with the owner on 2026-11-17)**
+Goal: run a local cash-prize cup or league in the app, and list what is coming
+up, for organisers and for everyone following.
+
+Decisions:
+- **Formats: both.** A new straight-knockout cup: any number of teams in a
+  bracket, losers out each round (round of 32 or 16, quarter-finals, semis,
+  final), with byes for numbers that are not a power of two. And quarter-finals
+  as a third knockout option after a league or groups (top 8; top 4 of each of
+  two groups).
+- **Prizes and entry fees.** Prize amounts (winner, runner-up, player of the
+  series, and so on) shown on the tournament page and the champion's share card.
+  An entry fee per team and who has paid it, for the organiser's own tracking.
+  The app never handles money. Amounts default to rupees.
+- **Upcoming: cup fixtures and friendlies.** Fixtures get a start time and show
+  as upcoming. Friendlies get "Schedule for later" on New match. A scheduled
+  match is a fixture, not a match: the toss is set when it starts, through New
+  match prefilled, as tournament fixtures already work.
+- **Public.** A signed-in organiser's cups and scheduled matches appear under
+  Everyone; only the organiser changes them. Who has paid the entry fee stays on
+  the organiser's phone and is never published.
+
+Order of work (each step tested and committed):
+1. Engine: straight knockout with byes and round names, quarter-finals after
+   groups, prizes and entry fees on `Tournament` (optional JSON fields), tests.
+2. App: format choice and draw order on New tournament, a bracket tab, prizes
+   and entry fees (organiser-only paid status), prizes on the champion card.
+3. Upcoming: fixture start times shown and editable, an Upcoming strip on My
+   matches, "Schedule for later" for friendlies, and a WhatsApp invite.
+4. Cloud: publish cups (without paid status) and scheduled friendlies; Everyone
+   gains Upcoming and Cups.
+5. Then "Cloud" step 4 (privacy policy, Data safety) covering all of it, and
+   beta.2 to testers.
 
 **Phase 3: push**
 - FCM pushes for wickets, milestones and results. Share a match link that opens

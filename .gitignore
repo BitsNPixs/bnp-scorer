@@ -24,3 +24,8 @@ app/ios/Flutter/flutter_export_environment.sh
 app/lib/firebase_options.dart
 app/android/app/google-services.json
 app/ios/Runner/GoogleService-Info.plist
+
+# Signing keys anywhere in the repo (app/android/.gitignore also covers
+# key.properties). Anyone with the upload key can publish as BNP.
+*.jks
+*.keystore

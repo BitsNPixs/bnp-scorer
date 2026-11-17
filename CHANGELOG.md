@@ -72,6 +72,9 @@
   skipped when the phone asks for reduced motion.
 
 ### Changed
+- Release builds sign with an upload key from `app/android/key.properties`
+  (gitignored; README "Release signing"), and fall back to the debug key, with
+  a Gradle warning, when it is missing. Keystores are gitignored repo-wide.
 - The scorecard is now tabs on the match screen (Live, each innings, Overs,
   Charts) instead of a separate screen behind a "Full scorecard" button.
   Swiping between tabs is off while scoring, so a hurried drag on the pad

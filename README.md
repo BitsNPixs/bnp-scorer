@@ -5,8 +5,9 @@ By Bits N Pixs (BNP).
 Ball-by-ball cricket scoring for local matches, for Android and iOS (Flutter).
 Offline-first: scoring works with no network and every match is stored on the device.
 
-> Status: **v0.1, builds and runs on Android (debug).** Release builds and iOS have
-> not been tried. Run the checks in "Verify" below before building on it.
+> Status: **v0.1, builds and runs on Android, debug and release.** Release
+> builds are debug-signed until an upload key is set up ("Release signing").
+> iOS has not been tried. Run the checks in "Verify" below before building on it.
 
 ## Documentation
 | File | For |
@@ -135,6 +136,38 @@ flutter analyze
 flutter test
 flutter build apk --debug      # and `flutter build ios --no-codesign` on a Mac
 ```
+
+## Release signing
+
+Release builds are signed with the key named in `app/android/key.properties`.
+Without that file they fall back to the debug key: fine for a phone, refused
+by the Play Store. The file and any `*.jks` are gitignored.
+
+Create the upload key once (free; `keytool` comes with the JDK). Keep it
+outside the repo:
+
+```sh
+keytool -genkeypair -v -keystore ~/bnp-upload-keystore.jks -storetype JKS   -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+```
+
+Then write `app/android/key.properties`:
+
+```properties
+storePassword=<the keystore password>
+keyPassword=<the key password>
+keyAlias=upload
+storeFile=C:/Users/<you>/bnp-upload-keystore.jks
+```
+
+**Back up the `.jks` file and both passwords in two places** (for example a
+password manager and a USB drive). If you lose the key you cannot update the
+app. With Play App Signing, Google holds the app signing key and this one
+only uploads, so a lost upload key can be reset through Play support.
+
+Build for the Play Store with `flutter build appbundle --release`. Phones that
+have a debug-signed build must uninstall it before installing a release-signed
+one (Android refuses an update signed with a different key), which deletes
+their data, so back up first.
 
 ## Fonts and offline first launch
 

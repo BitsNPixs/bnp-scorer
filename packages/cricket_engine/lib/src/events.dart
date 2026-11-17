@@ -108,7 +108,7 @@ final class BowlerChanged extends MatchEvent {
 }
 
 class Wicket {
-  const Wicket({required this.type, required this.batterOutId, this.fielderId});
+  const Wicket({required this.type, required this.batterOutId, this.fielderId, this.end});
 
   final DismissalType type;
   final String batterOutId;
@@ -116,13 +116,27 @@ class Wicket {
   /// Catcher, run-out fielder or wicket-keeper, when known.
   final String? fielderId;
 
-  Json toJson() =>
-      {'type': type.name, 'batterOutId': batterOutId, 'fielderId': fielderId};
+  /// Run outs only: the end where the wicket was put down. The not-out batter
+  /// goes to the other end and the new batter comes in here. Without it (logs
+  /// from before it existed) the ends follow the runs completed.
+  final CreaseEnd? end;
+
+  Json toJson() => {
+        'type': type.name,
+        'batterOutId': batterOutId,
+        'fielderId': fielderId,
+        // Written only when set, so other wickets read the same as before.
+        if (end != null) 'end': end!.name,
+      };
 
   factory Wicket.fromJson(Json json) => Wicket(
         type: DismissalType.values.byName(json['type']! as String),
         batterOutId: json['batterOutId']! as String,
         fielderId: json['fielderId'] as String?,
+        end: switch (json['end']) {
+          final String end => CreaseEnd.values.byName(end),
+          _ => null,
+        },
       );
 }
 

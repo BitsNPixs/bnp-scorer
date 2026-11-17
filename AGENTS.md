@@ -19,14 +19,16 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 149 engine and 236 app tests passing,
-  debug and release APKs built. Not installed on the phone since 2026-11-10.
+- Latest run (2026-11-17): analyze clean, 161 engine and 242 app tests passing,
+  debug APK built. Not installed on the phone since 2026-11-10.
 - **Beta prep (2026-11-17):** run outs off a bye or leg bye and leg byes off a
   no-ball now score correctly; release signing reads `app/android/key.properties`
-  (README "Release signing"; the owner has not created the key yet); uncaught
+  (README "Release signing"; the owner made a key, but no `key.properties` is in
+  this checkout yet, so local release builds are still debug-signed); uncaught
   errors are kept on the phone (`ErrorLog`) and sent from Settings > Report a
-  problem; Settings shows the version and a privacy note. The remaining beta steps
-  are in docs/ROADMAP.md "Beta readiness".
+  problem; Settings shows the version and a privacy note. The bowler picker never
+  leaves the scorer stuck (`bowlingRelaxation`), and a run out records the end it
+  happened at. The remaining beta steps are in docs/ROADMAP.md "Beta readiness".
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
   System / Light / Dark switch in Settings, saved on the device. Animations follow
@@ -41,17 +43,20 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Not yet checked on a real phone:** the splash screen's mark, the scorecard
   tabs and Result tab (seen only in test renders with the real fonts), the
   bursts and confetti, the Settings sheet and its Report a problem, the new
-  wicket and no-ball sheet choices and the error panel (test renders only), the Tournaments and Stats tabs,
+  wicket and no-ball sheet choices, the run-out end and the eased-rule note in
+  the bowler picker, and the error panel (test renders only), the Tournaments and Stats tabs,
   sharing to WhatsApp, backup and restore (tests replace the share sheet and
   file picker), charts, the wagon wheel, and Super Overs.
 - A release build (`flutter build apk --release`) was installed and ran on the
   phone on 2026-11-10. Until `key.properties` exists it is signed with the debug
   key, so it installs over a debug build. Once a real key is used, phones must
   uninstall the debug-signed app first, which deletes their data. iOS is untried.
-- Work happens on the `dev` branch, which has not been merged to `main` or pushed.
-  Commit each finished, verified piece of work.
+- Since 2026-11-17 work happens on `main`, which the owner pushed to
+  `github.com/BitsNPixs/bnp-scorer` (a **public** repo); there is no `dev` branch.
+  Commit each finished, verified piece of work; the owner pushes.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out
-  of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked.
+  of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked;
+  the owner is fine with them being public (2026-11-17).
 - App icon and splash: the BNP letters over a red seam on night. The PNGs are
   drawn by `app/tool/generate_app_icon_test.dart` with the bundled font; edit
   the art there and run it (`flutter test tool/generate_app_icon_test.dart`),

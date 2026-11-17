@@ -345,11 +345,21 @@ class _ScoringView extends ConsumerWidget {
   }
 
   Future<void> _wicket(BuildContext context, WidgetRef ref) async {
-    final input = await showWicketSheet(context, live.state);
+    final notifier = _notifier(ref);
+    final input = await showWicketSheet(
+      context,
+      live.state,
+      preview: (i) => notifier.previewWicketBall(
+        extra: i.delivery,
+        runsOffBat: i.runsOffBat,
+        extraRuns: i.extraRuns,
+        wicket: i.wicket,
+      ),
+    );
     if (input == null || !context.mounted) return;
     reportResult(
       context,
-      _notifier(ref).ball(
+      notifier.ball(
         extra: input.delivery,
         runsOffBat: input.runsOffBat,
         extraRuns: input.extraRuns,

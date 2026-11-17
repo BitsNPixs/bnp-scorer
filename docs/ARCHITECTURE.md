@@ -60,7 +60,7 @@ immutable `MatchState`. Nothing derived is ever stored.
 | --- | --- | --- | --- |
 | `OpenersSelected` | `openersSelected` | `strikerId`, `nonStrikerId` | Starts an innings |
 | `BowlerChanged` | `bowlerChanged` | `bowlerId` | Bowler for the next over, or a mid-over replacement |
-| `BallBowled` | `ballBowled` | `runsOffBat`, `extra` (`none/wide/noBall/bye/legBye`), `extraRuns`, `boundary`, `wicket?` {`type`, `batterOutId`, `fielderId?`}, `shotZone?` | One delivery |
+| `BallBowled` | `ballBowled` | `runsOffBat`, `extra` (`none/wide/noBall/bye/legBye`), `extraRuns`, `boundary`, `wicket?` {`type`, `batterOutId`, `fielderId?`, `end?` (run outs: `striker/bowler`)}, `shotZone?`, `legByes?` (no-balls) | One delivery |
 | `NewBatter` | `newBatter` | `batterId` | Fills the empty slot (also a returning retired-hurt batter) |
 | `BatterRetired` | `batterRetired` | `batterId`, `hurt` | Retired hurt (not out, may return) or retired out (a wicket) |
 | `StrikeSwapped` | `strikeSwapped` | — | Manual correction |
@@ -79,6 +79,12 @@ with target = first innings runs + 1), then `completed` (result set).
 - **Strike:** rotates on odd *completed* runs; swaps at the end of an over.
   A new batter takes the dismissed batter's end (so after a caught dismissal
   the new batter faces, unless the over just ended).
+- **Run-out ends (Law 38):** a run out records the end where the wicket was put
+  down (`Wicket.end`). The not-out batter goes to the other end, whoever had
+  crossed, and the new batter comes in at the run-out end; the end-of-over swap
+  still follows. The wicket sheet pre-selects the end the out batter was running
+  to and shows who faces next, from `LiveMatchNotifier.previewWicketBall`. Run
+  outs logged before the field existed follow the runs completed.
 - **Wide:** not a legal ball and not faced by the batter. Penalty
   (`wideRuns`, default 1) plus any runs go to wides and are charged to the
   bowler.
@@ -232,6 +238,8 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   - **Actions:** `openers`, `bowler`, `ball`, `newBatter`, `retire`,
     `swapStrike`, `closeInnings`, `abandon` each return `String?`. Null means success;
     otherwise it's the error to show. `undo()` returns `bool`.
+    `previewWicketBall` returns the state a wicket would lead to without
+    recording it, or null if it is not allowed.
   - **Flow:** `_add(event)` validates through `ScoringEngine.apply`, updates
     the state immediately (optimistic), then `_persist()` saves in the
     background.
@@ -293,7 +301,8 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - `BYE LB OUT Undo`: OUT opens the wicket sheet. Its delivery is legal, wide,
     no-ball, bye or leg bye, and it offers only the dismissal types the engine
     allows for that delivery, plus who is out, runs completed (extras on a
-    wide, bye or leg bye) and the fielder / keeper.
+    wide, bye or leg bye), where a run out happened, who faces next, and the
+    fielder / keeper.
 - **Scorecard (tabs on the Scoring screen):** a tab per innings
   (`InningsScorecard`), then an Overs tab and a Charts tab. Each innings tab has:
   - `ResultHero`: every innings, the result or the state of play (LIVE), and the

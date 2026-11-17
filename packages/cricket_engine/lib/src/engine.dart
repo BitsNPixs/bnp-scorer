@@ -523,8 +523,13 @@ class _InningsBuilder {
       ExtraType.bye || ExtraType.legBye => e.extraRuns,
       ExtraType.none => e.runsOffBat,
     };
-    if (completedRuns.isOdd) _swap();
-    if (wicket != null) _vacate(wicket.batterOutId);
+    final end = wicket?.end;
+    if (wicket != null && end != null) {
+      _placeAfterRunOut(wicket.batterOutId, end);
+    } else {
+      if (completedRuns.isOdd) _swap();
+      if (wicket != null) _vacate(wicket.batterOutId);
+    }
 
     if (legal && legalBalls % rules.ballsPerOver == 0) _endOver();
     _checkComplete();
@@ -597,6 +602,9 @@ class _InningsBuilder {
         (e.runsOffBat != 0 || e.extraRuns != 0)) {
       throw ScoringException(
           'No runs can be scored with ${w.type.label.toLowerCase()}.');
+    }
+    if (w.end != null && w.type != DismissalType.runOut) {
+      throw const ScoringException('Only a run out records the end it happened at.');
     }
     final fielder = w.fielderId;
     if (fielder != null && !bowlingTeam.hasPlayer(fielder)) {
@@ -672,6 +680,19 @@ class _InningsBuilder {
     final s = strikerId;
     strikerId = nonStrikerId;
     nonStrikerId = s;
+  }
+
+  /// Law 38: the batter out leaves the end where the wicket was put down; the
+  /// other batter is at the far end, whoever had crossed.
+  void _placeAfterRunOut(String outId, CreaseEnd end) {
+    final notOut = outId == strikerId ? nonStrikerId : strikerId;
+    if (end == CreaseEnd.striker) {
+      strikerId = null;
+      nonStrikerId = notOut;
+    } else {
+      strikerId = notOut;
+      nonStrikerId = null;
+    }
   }
 
   void _vacate(String batterId) {

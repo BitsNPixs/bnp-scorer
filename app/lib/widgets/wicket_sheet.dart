@@ -14,6 +14,7 @@ class WicketInput {
     required this.batterOutId,
     required this.runs,
     this.fielderId,
+    this.end,
   });
 
   final DismissalType type;
@@ -26,7 +27,10 @@ class WicketInput {
   final int runs;
   final String? fielderId;
 
-  Wicket get wicket => Wicket(type: type, batterOutId: batterOutId, fielderId: fielderId);
+  /// Run outs: where the wicket was put down.
+  final CreaseEnd? end;
+
+  Wicket get wicket => Wicket(type: type, batterOutId: batterOutId, fielderId: fielderId, end: end);
 
   bool get _runsOffBat => delivery == ExtraType.none || delivery == ExtraType.noBall;
 
@@ -43,13 +47,19 @@ const _deliveries = {
   ExtraType.legBye: 'Leg bye',
 };
 
-Future<WicketInput?> showWicketSheet(BuildContext context, MatchState state) =>
+/// [preview] returns the match as it would be after the wicket, or null if
+/// it is not allowed; the sheet uses it to say who faces next.
+Future<WicketInput?> showWicketSheet(
+  BuildContext context,
+  MatchState state, {
+  required MatchState? Function(WicketInput input) preview,
+}) =>
     showModalBottomSheet<WicketInput>(
       context: context,
       isScrollControlled: true,
       showDragHandle: true,
       useSafeArea: true,
-      builder: (context) => _WicketSheet(state: state),
+      builder: (context) => _WicketSheet(state: state, preview: preview),
     );
 
 const _fielderTypes = {
@@ -59,9 +69,10 @@ const _fielderTypes = {
 };
 
 class _WicketSheet extends StatefulWidget {
-  const _WicketSheet({required this.state});
+  const _WicketSheet({required this.state, required this.preview});
 
   final MatchState state;
+  final MatchState? Function(WicketInput input) preview;
 
   @override
   State<_WicketSheet> createState() => _WicketSheetState();
@@ -73,6 +84,25 @@ class _WicketSheetState extends State<_WicketSheet> {
   late String _outId = widget.state.current.strikerId!;
   int _runs = 0;
   String? _fielderId;
+
+  /// Set once the scorer picks an end; until then it follows [_likelyEnd].
+  CreaseEnd? _end;
+
+  /// Most run outs happen at the end the batter was running to: the far end
+  /// from where they stood after the runs completed.
+  CreaseEnd _likelyEnd(InningsState inn, String outId, int runs) {
+    final atStrikerEnd = (outId == inn.strikerId) != runs.isOdd;
+    return atStrikerEnd ? CreaseEnd.bowler : CreaseEnd.striker;
+  }
+
+  /// "Next ball: Arun faces", from the engine, or null if the innings ends or
+  /// the ball is not allowed.
+  String? _nextBall(WicketInput input) {
+    final after = widget.preview(input);
+    if (after == null || after.phase == MatchPhase.completed || after.current.isComplete) return null;
+    final striker = after.current.strikerId;
+    return striker == null ? 'Next ball: the new batter faces' : 'Next ball: ${playerName(after.setup, striker)} faces';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,6 +120,17 @@ class _WicketSheetState extends State<_WicketSheet> {
     final byes = _delivery == ExtraType.bye || _delivery == ExtraType.legBye;
     final runOptions = byes ? const [1, 2, 3] : const [0, 1, 2, 3];
     final runs = runOptions.contains(_runs) ? _runs : runOptions.first;
+    final runOut = type == DismissalType.runOut;
+    final end = runOut ? _end ?? _likelyEnd(inn, outId, runs) : null;
+    WicketInput input(DismissalType type) => WicketInput(
+          type: type,
+          delivery: _delivery,
+          batterOutId: outId,
+          runs: runsAllowed ? runs : 0,
+          fielderId: _fielderTypes.contains(type) ? _fielderId : null,
+          end: end,
+        );
+    final nextBall = type == null ? null : _nextBall(input(type));
     final fielders = setup.teamById(inn.bowlingTeamId).players;
 
     return SheetBody(
@@ -153,6 +194,25 @@ class _WicketSheetState extends State<_WicketSheet> {
               ],
             ),
           ],
+          if (runOut) ...[
+            const SizedBox(height: 20),
+            const SectionLabel('Run out at'),
+            const SizedBox(height: 8),
+            OptionChips<CreaseEnd>(
+              options: CreaseEnd.values,
+              labelOf: (e) => e.label,
+              selected: end,
+              color: Theme.of(context).colorScheme.primary,
+              onSelected: (e) => setState(() => _end = e),
+            ),
+          ],
+          if (nextBall != null) ...[
+            const SizedBox(height: 12),
+            Text(
+              nextBall,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
           if (type != null && _fielderTypes.contains(type)) ...[
             const SizedBox(height: 20),
             SectionLabel(type == DismissalType.stumped ? 'Wicket-keeper (optional)' : 'Fielder (optional)'),
@@ -173,13 +233,7 @@ class _WicketSheetState extends State<_WicketSheet> {
             ),
             onPressed: type == null
                 ? null
-                : () => Navigator.of(context).pop(WicketInput(
-                      type: type,
-                      delivery: _delivery,
-                      batterOutId: outId,
-                      runs: runsAllowed ? runs : 0,
-                      fielderId: _fielderTypes.contains(type) ? _fielderId : null,
-                    )),
+                : () => Navigator.of(context).pop(input(type)),
             child: Text(type == null ? 'Choose how they were out' : 'Confirm wicket'),
           ),
         ],

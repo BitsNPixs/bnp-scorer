@@ -101,8 +101,8 @@ class Scorer {
   void bye(int r) => add(ballEvent(extra: ExtraType.bye, extraRuns: r));
   void legBye(int r) => add(ballEvent(extra: ExtraType.legBye, extraRuns: r));
 
-  Wicket wicketOf(DismissalType type, {String? out, String? fielder}) =>
-      Wicket(type: type, batterOutId: out ?? inn.strikerId!, fielderId: fielder);
+  Wicket wicketOf(DismissalType type, {String? out, String? fielder, CreaseEnd? end}) =>
+      Wicket(type: type, batterOutId: out ?? inn.strikerId!, fielderId: fielder, end: end);
 
   void out(
     DismissalType type, {
@@ -111,12 +111,13 @@ class Scorer {
     int bat = 0,
     ExtraType extra = ExtraType.none,
     int extraRuns = 0,
+    CreaseEnd? end,
   }) =>
       add(ballEvent(
         bat: bat,
         extra: extra,
         extraRuns: extraRuns,
-        wicket: wicketOf(type, out: batter, fielder: fielder),
+        wicket: wicketOf(type, out: batter, fielder: fielder, end: end),
       ));
 
   void newBatter(String id) =>
@@ -605,6 +606,71 @@ void main() {
     test('bowler must be in the fielding side', () {
       final s = Scorer(setup())..openers('a1', 'a2');
       s.rejects(s.bowlerEvent('a3'));
+    });
+  });
+
+  group('run-out ends', () {
+    test('striker out at the bowler\'s end after crossing: the other batter faces', () {
+      final s = Scorer(setup())..start();
+      s.out(DismissalType.runOut, batter: 'a1', end: CreaseEnd.bowler);
+      expect(s.inn.strikerId, 'a2');
+      expect(s.inn.nonStrikerId, isNull);
+      s.newBatter('a3');
+      expect(s.inn.nonStrikerId, 'a3', reason: 'the new batter comes in at the bowler\'s end');
+    });
+
+    test('out at the striker\'s end going for a second: the new batter faces', () {
+      final s = Scorer(setup())..start();
+      s.out(DismissalType.runOut, batter: 'a1', bat: 1, end: CreaseEnd.striker);
+      expect(s.inn.batter('a1')!.runs, 1);
+      expect(s.inn.strikerId, isNull);
+      expect(s.inn.nonStrikerId, 'a2');
+      s.newBatter('a3');
+      expect(s.inn.strikerId, 'a3');
+    });
+
+    test('the non-striker can be out at either end', () {
+      final s = Scorer(setup())..start();
+      s.out(DismissalType.runOut, batter: 'a2', end: CreaseEnd.striker);
+      expect(s.inn.strikerId, isNull);
+      expect(s.inn.nonStrikerId, 'a1', reason: 'a1 crossed to the bowler\'s end');
+    });
+
+    test('on the last ball of the over the batters still change ends', () {
+      final s = Scorer(setup())..start();
+      s.dots(5);
+      s.out(DismissalType.runOut, batter: 'a1', end: CreaseEnd.bowler);
+      expect(s.inn.strikerId, isNull, reason: 'the new batter faces the next over');
+      expect(s.inn.nonStrikerId, 'a2');
+    });
+
+    test('without an end, a run out follows the runs completed as before', () {
+      final s = Scorer(setup())..start();
+      s.out(DismissalType.runOut, batter: 'a1', bat: 1);
+      expect(s.inn.strikerId, 'a2');
+      expect(s.inn.nonStrikerId, isNull);
+    });
+
+    test('only a run out can name an end', () {
+      final s = Scorer(setup())..start();
+      s.rejects(s.ballEvent(wicket: s.wicketOf(DismissalType.bowled, end: CreaseEnd.striker)));
+      s.rejects(s.ballEvent(
+        bat: 1,
+        wicket: s.wicketOf(DismissalType.obstructingTheField, end: CreaseEnd.bowler),
+      ));
+    });
+
+    test('the end survives JSON, and older wickets read without one', () {
+      final s = Scorer(setup())..start();
+      final withEnd = s.ballEvent(wicket: s.wicketOf(DismissalType.runOut, end: CreaseEnd.bowler));
+      final restored = MatchEvent.fromJson(
+        jsonDecode(jsonEncode(withEnd.toJson())) as Map<String, Object?>,
+      ) as BallBowled;
+      expect(restored.wicket!.end, CreaseEnd.bowler);
+
+      final caught = s.wicketOf(DismissalType.caught);
+      expect(caught.toJson().containsKey('end'), isFalse);
+      expect(Wicket.fromJson(caught.toJson()).end, isNull);
     });
   });
 

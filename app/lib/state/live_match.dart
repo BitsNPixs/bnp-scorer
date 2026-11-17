@@ -73,6 +73,34 @@ class LiveMatchNotifier extends AsyncNotifier<LiveMatch> {
         legByes: legByes,
       ));
 
+  /// The match as it would be after a wicket ball, without recording it, so
+  /// a sheet can show what will happen. Null if the ball is not allowed.
+  MatchState? previewWicketBall({
+    required ExtraType extra,
+    required int runsOffBat,
+    required int extraRuns,
+    required Wicket wicket,
+  }) {
+    final current = state.value;
+    if (current == null) return null;
+    try {
+      return ScoringEngine.apply(
+        current.setup,
+        current.record.events,
+        BallBowled(
+          id: 'preview',
+          at: DateTime.now(),
+          runsOffBat: runsOffBat,
+          extra: extra,
+          extraRuns: extraRuns,
+          wicket: wicket,
+        ),
+      );
+    } on ScoringException {
+      return null;
+    }
+  }
+
   String? newBatter(String batterId) =>
       _add(NewBatter(id: newId(), at: DateTime.now(), batterId: batterId));
 

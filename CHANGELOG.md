@@ -117,6 +117,12 @@
   stats are not split across two identities.
 
 ### Fixed
+- After a run out, strike followed the runs completed, which is wrong when the
+  batters had crossed, so the scorer had to remember "swap strike". The wicket
+  sheet now asks where the run out happened (Striker's end / Bowler's end),
+  pre-selected as the end the batter was running to, and shows who faces next.
+  `Wicket` has an optional `end`, written only for run outs that set it, so older
+  matches replay as before.
 - A side short of bowlers could get stuck with nobody allowed to bowl (two
   bowlers and a mid-over change, or everyone at the overs limit), leaving only
   "End innings". The engine now eases the rules one step at a time until someone

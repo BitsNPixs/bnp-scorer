@@ -71,6 +71,16 @@ enum ShotZone {
   double get angleDegrees => index * 45 + 22.5;
 }
 
+/// The two ends of the pitch, named for where the striker and bowler stand.
+enum CreaseEnd {
+  striker("Striker's end"),
+  bowler("Bowler's end");
+
+  const CreaseEnd(this.label);
+
+  final String label;
+}
+
 /// A rule set aside so that someone can bowl, used only when nobody is free
 /// under the usual rules. Each step also keeps the ones before it.
 enum BowlingRelaxation {

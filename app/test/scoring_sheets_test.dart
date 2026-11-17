@@ -156,4 +156,63 @@ void main() {
       expect(_innings(repo).batter('a1')!.runs, 1);
     });
   });
+
+  group('run-out end', () {
+    bool selected(WidgetTester tester, String label) => tester
+        .widget<ChoiceChip>(find.ancestor(of: _inSheet(find.text(label)), matching: find.byType(ChoiceChip)))
+        .selected;
+
+    Future<void> openRunOut(WidgetTester tester) async {
+      await _tap(tester, find.text('OUT'));
+      await _tap(tester, _inSheet(find.text('Run out')));
+    }
+
+    testWidgets('starts at the end the batter ran to, and says who faces next', (tester) async {
+      final repo = await _pumpInPlay(tester);
+      await openRunOut(tester);
+      _expectChipsFit(tester);
+      expect(selected(tester, "Bowler's end"), isTrue, reason: "Asha was running to the bowler's end");
+      expect(selected(tester, "Striker's end"), isFalse);
+      expect(_inSheet(find.text('Next ball: Arun faces')), findsOneWidget);
+
+      await _tap(tester, _inSheet(find.text('Confirm wicket')));
+      expect(_lastBall(repo).wicket!.end, CreaseEnd.bowler);
+      expect(_innings(repo).strikerId, 'a2');
+    });
+
+    testWidgets('choosing the other end puts the new batter on strike', (tester) async {
+      final repo = await _pumpInPlay(tester);
+      await openRunOut(tester);
+      await _tap(tester, _inSheet(find.text("Striker's end")));
+      expect(selected(tester, "Striker's end"), isTrue);
+      expect(_inSheet(find.text('Next ball: the new batter faces')), findsOneWidget);
+
+      await _tap(tester, _inSheet(find.text('Confirm wicket')));
+      expect(_lastBall(repo).wicket!.end, CreaseEnd.striker);
+      expect(_innings(repo).strikerId, isNull);
+      expect(_innings(repo).nonStrikerId, 'a2');
+    });
+
+    testWidgets("after one run the likely end is the striker's end", (tester) async {
+      final repo = await _pumpInPlay(tester);
+      await openRunOut(tester);
+      await _tap(tester, _inSheet(find.text('1')));
+      expect(selected(tester, "Striker's end"), isTrue, reason: 'Asha was coming back for a second');
+      expect(_inSheet(find.text('Next ball: the new batter faces')), findsOneWidget);
+
+      await _tap(tester, _inSheet(find.text('Confirm wicket')));
+      final ball = _lastBall(repo);
+      expect(ball.wicket!.end, CreaseEnd.striker);
+      expect(ball.runsOffBat, 1);
+    });
+
+    testWidgets('other dismissals ask no end and record none', (tester) async {
+      final repo = await _pumpInPlay(tester);
+      await _tap(tester, find.text('OUT'));
+      await _tap(tester, _inSheet(find.text('Bowled')));
+      expect(_inSheet(find.text("Bowler's end")), findsNothing);
+      await _tap(tester, _inSheet(find.text('Confirm wicket')));
+      expect(_lastBall(repo).wicket!.end, isNull);
+    });
+  });
 }

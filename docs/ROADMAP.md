@@ -46,23 +46,22 @@ Still to do:
 
 **Beta readiness (before testers outside the owner's circle)**
 Done on 2026-11-17: release signing setup, byes and leg byes on run outs and
-no-balls, Report a problem, version and privacy note in Settings.
+no-balls, Report a problem, version and privacy note in Settings, a bowler picker
+that never leaves the scorer stuck, run-out ends, and the repo pushed to GitHub.
+The real names in `demo_data.dart` are fine to show (owner).
 
 Still to do, all free unless noted:
-1. Create the upload key and `key.properties` (README "Release signing"), and
-   back the key up twice. Testers on debug-signed builds back up, uninstall and
-   reinstall once.
-2. Push the repo to a private GitHub repository: today it exists on one disk.
-3. Score full matches on the phone covering the cases in Phase 0 step 1, plus
-   the open issue below that a real match will hit (run-out strike).
-4. Replace the real names in `demo_data.dart` before any public screenshot, or
-   get consent.
-5. Privacy policy page for the store listing (Google Sites, or a public repo with
-   only the policy). GitHub Pages on a private repo needs a paid plan.
-6. First beta by sharing the APK or through Firebase App Distribution (free).
+1. Put `key.properties` in `app/android/` on the build machine (README "Release
+   signing"); the owner made and backed up the key on 2026-11-17. Testers on
+   debug-signed builds back up, uninstall and reinstall once.
+2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
+   run out with the batters crossed and a side short of bowlers.
+3. Privacy policy page for the store listing. The repo is public, so GitHub
+   Pages is free.
+4. First beta by sharing the APK or through Firebase App Distribution (free).
    The Play Store needs a one-time $25 developer account; a new personal account
    must run a closed test with about 12 testers for 14 days before going public.
-7. For the store: `flutter build appbundle --release --obfuscate
+5. For the store: `flutter build appbundle --release --obfuscate
    --split-debug-info=build/symbols` (keep the symbols), screenshots, a 1024x500
    feature graphic, content rating, target audience not children, and Data
    safety "no data collected". Bump the version first (AGENTS "Version").
@@ -128,17 +127,14 @@ In priority order:
    - groups are split by list order and cannot be arranged by hand.
 4. **Closing an innings early** still decides on runs. Use "Abandon match" for a
    game that should have no result. Rain rules such as DLS are not implemented.
-5. **Run-out strike.** After a run out, strike follows the runs completed. If
-   the batters crossed, the scorer must tap "swap strike". Consider asking
-   "who's on strike?" in the wicket sheet.
-6. **Large text / long names.** The "Players · N" label is fixed. Other rows
+5. **Large text / long names.** The "Players · N" label is fixed. Other rows
    have not been checked at 200% text size.
-7. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
+6. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
    counts the extra wicket). Decide the wording with the owner.
-8. **Untested:** the new-match "Start" blocker, including the new bowler-limit
+7. **Untested:** the new-match "Start" blocker, including the new bowler-limit
    check. Add a widget test or extract the validation into a pure function and
    unit test it.
-9. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
+8. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
 
 ## Out of scope for v0.1

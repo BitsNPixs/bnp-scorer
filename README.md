@@ -171,6 +171,20 @@ have a debug-signed build must uninstall it before installing a release-signed
 one (Android refuses an update signed with a different key), which deletes
 their data, so back up first.
 
+## Website and privacy policy
+
+`site/` is a two-page website: a home page and the privacy policy the Play
+Store listing links to. `.github/workflows/pages.yml` publishes only that folder
+to GitHub Pages (free for this public repo) whenever `site/` changes on `main`:
+
+- home: https://bitsnpixs.github.io/bnp-scorer/
+- privacy policy: https://bitsnpixs.github.io/bnp-scorer/privacy.html
+
+Update the policy, and its effective date, **before** releasing anything that
+changes what the app stores or sends: an internet permission, accounts, live
+scores or crash reporting. The pages use system fonts, so a visit loads nothing
+from another server.
+
 ## Fonts and offline first launch
 
 Inter and Barlow Condensed ship inside the app (`app/assets/google_fonts/`, with

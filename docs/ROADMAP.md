@@ -47,21 +47,19 @@ Still to do:
 **Beta readiness (before testers outside the owner's circle)**
 Done on 2026-11-17: release signing setup, byes and leg byes on run outs and
 no-balls, Report a problem, version and privacy note in Settings, a bowler picker
-that never leaves the scorer stuck, run-out ends, and the repo pushed to GitHub.
+that never leaves the scorer stuck, run-out ends, the repo pushed to GitHub, the
+upload key, and the privacy policy at https://bitsnpixs.github.io/bnp-scorer/privacy.html.
 The real names in `demo_data.dart` are fine to show (owner).
 
 Still to do, all free unless noted:
-1. Put `key.properties` in `app/android/` on the build machine (README "Release
-   signing"); the owner made and backed up the key on 2026-11-17. Testers on
-   debug-signed builds back up, uninstall and reinstall once.
+1. Testers and the owner's phone, if on a debug-signed build, back up,
+   uninstall and reinstall once to move to the upload-signed build.
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
-3. Privacy policy page for the store listing. The repo is public, so GitHub
-   Pages is free.
-4. First beta by sharing the APK or through Firebase App Distribution (free).
+3. First beta by sharing the APK or through Firebase App Distribution (free).
    The Play Store needs a one-time $25 developer account; a new personal account
    must run a closed test with about 12 testers for 14 days before going public.
-5. For the store: `flutter build appbundle --release --obfuscate
+4. For the store: `flutter build appbundle --release --obfuscate
    --split-debug-info=build/symbols` (keep the symbols), screenshots, a 1024x500
    feature graphic, content rating, target audience not children, and Data
    safety "no data collected". Bump the version first (AGENTS "Version").

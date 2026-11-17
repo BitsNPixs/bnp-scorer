@@ -3,6 +3,10 @@
 ## Unreleased
 
 ### Added
+- Website with the privacy policy, published from `site/` to GitHub Pages by a
+  workflow (`https://bitsnpixs.github.io/bnp-scorer/privacy.html`). It says what
+  the app stores, that nothing leaves the phone unless the scorer shares it, and
+  that the app asks for no permissions (checked against the release APK).
 - Report a problem: uncaught errors are kept on the phone (`ErrorLog`, last 20,
   repeats counted), and Settings shares a report with the version, platform and
   those errors through the share sheet. Needs no internet permission and no new

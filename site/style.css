@@ -1,0 +1,120 @@
+/* BNP Scorer site: night pitch and neon, the app's own palette. System fonts
+   only, so a visit sends nothing to a font server. */
+:root {
+  --bg: #eef3f0;
+  --surface: #ffffff;
+  --text: #0a1a12;
+  --muted: #4f6157;
+  --line: #d8e2dc;
+  --accent: #007a4d;
+  --hero: linear-gradient(135deg, #173f2f, #0b1a14);
+  --neon: #2cf59e;
+  --night: #07100c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #060a08;
+    --surface: #0f1612;
+    --text: #e8f1ec;
+    --muted: #8ea398;
+    --line: #1f2a24;
+    --accent: #2cf59e;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #060a08;
+  --surface: #0f1612;
+  --text: #e8f1ec;
+  --muted: #8ea398;
+  --line: #1f2a24;
+  --accent: #2cf59e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+.hero {
+  background: var(--hero);
+  color: #fff;
+  border-radius: 24px;
+  padding: 28px 24px;
+  margin-bottom: 28px;
+}
+
+.hero .mark {
+  display: inline-block;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: var(--night);
+  background: var(--neon);
+  border-radius: 999px;
+  padding: 2px 12px;
+  font-size: 13px;
+}
+
+.hero h1 {
+  margin: 14px 0 6px;
+  font-size: clamp(28px, 7vw, 40px);
+  line-height: 1.15;
+}
+
+.hero p { margin: 0; color: #cfe3d8; }
+
+h2 {
+  font-size: 20px;
+  margin: 32px 0 8px;
+}
+
+section {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 4px 20px 16px;
+  margin-bottom: 14px;
+}
+
+section h2 { margin-top: 16px; }
+
+a { color: var(--accent); font-weight: 600; }
+
+ul { padding-left: 20px; }
+li { margin: 4px 0; }
+
+.muted { color: var(--muted); font-size: 14px; }
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.button {
+  display: inline-block;
+  background: var(--neon);
+  color: var(--night);
+  text-decoration: none;
+  font-weight: 800;
+  padding: 10px 18px;
+  border-radius: 999px;
+}
+
+footer {
+  margin-top: 32px;
+  color: var(--muted);
+  font-size: 14px;
+}

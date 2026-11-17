@@ -23,12 +23,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   debug APK built. Not installed on the phone since 2026-11-10.
 - **Beta prep (2026-11-17):** run outs off a bye or leg bye and leg byes off a
   no-ball now score correctly; release signing reads `app/android/key.properties`
-  (README "Release signing"; the owner made a key, but no `key.properties` is in
-  this checkout yet, so local release builds are still debug-signed); uncaught
+  (README "Release signing"; the key is `C:/Users/AswinBlix/bnp-upload-keystore.jks`
+  on the owner's machine, never in git); uncaught
   errors are kept on the phone (`ErrorLog`) and sent from Settings > Report a
   problem; Settings shows the version and a privacy note. The bowler picker never
   leaves the scorer stuck (`bowlingRelaxation`), and a run out records the end it
-  happened at. The remaining beta steps are in docs/ROADMAP.md "Beta readiness".
+  happened at. The privacy policy is `site/privacy.html`, published to
+  https://bitsnpixs.github.io/bnp-scorer/privacy.html (README "Website and
+  privacy policy"). The remaining beta steps are in docs/ROADMAP.md "Beta
+  readiness".
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
   System / Light / Dark switch in Settings, saved on the device. Animations follow

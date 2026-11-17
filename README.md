@@ -171,6 +171,42 @@ have a debug-signed build must uninstall it before installing a release-signed
 one (Android refuses an update signed with a different key), which deletes
 their data, so back up first.
 
+## Beta builds
+
+Testers get the APK directly, over WhatsApp or Google Drive. It costs nothing,
+and updates install over the top as long as every build is signed with the same
+upload key ("Release signing").
+
+1. Bump `version:` in `app/pubspec.yaml` and `app/lib/data/app_info.dart` together,
+   e.g. `0.9.0-beta.2+3`. The number after `+` must always go up.
+2. Build and copy it out (PowerShell, from `app/`):
+
+   ```powershell
+   flutter build apk --release
+   New-Item -ItemType Directory -Force ..\dist | Out-Null
+   Copy-Item build\app\outputs\flutter-apk\app-release.apk ..\dist\bnp-scorer-0.9.0-beta.2.apk
+   ```
+
+   No `BNP_DEMO`, so testers start empty. No `--obfuscate` either, so the stack
+   traces in Settings > Report a problem stay readable. `dist/` is gitignored.
+3. Check it is signed with the upload key, not the debug key:
+   `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.2.apk`
+   (in the Android SDK's `build-tools`) should not say `CN=Android Debug`.
+4. Send the file with the tester message below. In WhatsApp, attach it as a
+   **Document**, so it arrives as a file.
+
+Tester message (edit the version):
+
+> BNP Scorer beta 0.9.0-beta.1 is attached. To install: tap the file, allow
+> "install unknown apps" for WhatsApp (or Files) when asked, then Install. Updates
+> come the same way and keep your matches. Please back up from Settings now and
+> then. If anything goes wrong, use Settings > Report a problem and send it to me.
+> Privacy: https://bitsnpixs.github.io/bnp-scorer/privacy.html
+
+Someone who has a debug-signed build (the owner's phone, or an early demo
+install) must back up, uninstall and then install the beta once. Android refuses
+an update signed with a different key, and uninstalling deletes the data.
+
 ## Website and privacy policy
 
 `site/` is a two-page website: a home page and the privacy policy the Play

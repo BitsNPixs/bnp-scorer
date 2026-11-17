@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.9.0-beta.1 — 2026-11-17
+
+The first beta, shared as an APK over WhatsApp or Drive and signed with the
+upload key. Everything below since 0.1.0 is in it.
+
 ### Added
 - Website with the privacy policy, published from `site/` to GitHub Pages by a
   workflow (`https://bitsnpixs.github.io/bnp-scorer/privacy.html`). It says what

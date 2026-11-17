@@ -30,8 +30,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   leaves the scorer stuck (`bowlingRelaxation`), and a run out records the end it
   happened at. The privacy policy is `site/privacy.html`, published to
   https://bitsnpixs.github.io/bnp-scorer/privacy.html (README "Website and
-  privacy policy"). The remaining beta steps are in docs/ROADMAP.md "Beta
-  readiness".
+  privacy policy"). Beta 0.9.0-beta.1 (build 2) is an upload-signed APK, no demo
+  data, shared over WhatsApp or Drive (README "Beta builds"). The remaining beta
+  steps are in docs/ROADMAP.md "Beta readiness".
 - **UI redesign (2026-11-10):** night-pitch and neon-green look, a bottom bar
   (Matches, Tournaments, a raised "+" for a new match, Stats, Teams), and a
   System / Light / Dark switch in Settings, saved on the device. Animations follow

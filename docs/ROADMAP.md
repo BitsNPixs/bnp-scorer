@@ -56,9 +56,10 @@ Still to do, all free unless noted:
    uninstall and reinstall once to move to the upload-signed build.
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
-3. First beta by sharing the APK or through Firebase App Distribution (free).
-   The Play Store needs a one-time $25 developer account; a new personal account
-   must run a closed test with about 12 testers for 14 days before going public.
+3. Share 0.9.0-beta.1 over WhatsApp or Drive (the owner's choice, free;
+   README "Beta builds"). Later, the Play Store needs a one-time $25 developer
+   account; a new personal account must run a closed test with about 12 testers
+   for 14 days before going public.
 4. For the store: `flutter build appbundle --release --obfuscate
    --split-debug-info=build/symbols` (keep the symbols), screenshots, a 1024x500
    feature graphic, content rating, target audience not children, and Data

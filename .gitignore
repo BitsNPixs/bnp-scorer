@@ -25,6 +25,9 @@ app/lib/firebase_options.dart
 app/android/app/google-services.json
 app/ios/Runner/GoogleService-Info.plist
 
+# Beta APKs ready to share (README "Beta builds")
+dist/
+
 # Signing keys anywhere in the repo (app/android/.gitignore also covers
 # key.properties). Anyone with the upload key can publish as BNP.
 *.jks

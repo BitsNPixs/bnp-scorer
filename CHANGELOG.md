@@ -7,6 +7,10 @@
 Cups, prizes and upcoming matches, public for everyone to follow.
 
 ### Added
+- Download from the website: "Download for Android" serves the latest GitHub
+  Release (`releases/latest/download/bnp-scorer.apk`). Beta.3 is the first
+  release there. The website's season section lists cups, prizes and upcoming
+  matches.
 - Privacy policy, website and the sign-in notice cover tournaments and
   scheduled matches: what each contains when published, that entry fee
   payments never leave the phone, and how to remove them. A website FAQ on

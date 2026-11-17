@@ -205,7 +205,8 @@ Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
 
 ## Beta builds
 
-Testers get the APK directly, over WhatsApp or Google Drive. It costs nothing,
+Testers get the APK from the website's download button (a GitHub Release) or
+directly over WhatsApp or Google Drive. It costs nothing,
 and updates install over the top as long as every build is signed with the same
 upload key ("Release signing").
 
@@ -224,7 +225,20 @@ upload key ("Release signing").
 3. Check it is signed with the upload key, not the debug key:
    `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.3.apk`
    (in the Android SDK's `build-tools`) should not say `CN=Android Debug`.
-4. Send the file with the tester message below. In WhatsApp, attach it as a
+4. Publish it as a GitHub Release, which the website's "Download for Android"
+   button serves. Upload the APK under the fixed name `bnp-scorer.apk` and mark
+   the release as latest, **not** pre-release: the button links to
+   `releases/latest/download/bnp-scorer.apk`, which skips pre-releases.
+
+   ```powershell
+   Copy-Item ..\dist\bnp-scorer-0.9.0-beta.3.apk $env:TEMP\bnp-scorer.apk
+   gh release create v0.9.0-beta.3 $env:TEMP\bnp-scorer.apk --target <full commit hash> `
+     --title "BNP Scorer 0.9.0-beta.3" --notes-file <notes.md> --latest
+   ```
+
+   The repo is public, so a release is public at once: only publish a build
+   whose privacy policy is already live.
+5. Or send the file with the tester message below. In WhatsApp, attach it as a
    **Document**, so it arrives as a file.
 
 Tester message (edit the version):

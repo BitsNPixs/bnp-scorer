@@ -19,7 +19,7 @@
 | Routing | go_router | `Navigator` | 12 screens, no deep links yet. Add go_router with them |
 | Models | freezed + json_serializable | hand-written | Builds without build_runner |
 | Offline store | Drift (SQLite) | shared_preferences behind repositories | Enough for v0.1. Swap via the interfaces |
-| Backend | Firebase: Auth (phone OTP, Google, Apple), Firestore, Cloud Functions, Storage, FCM, Crashlytics, App Check | none | Needs the owner's Firebase project |
+| Backend | Firebase on the free Spark plan: Auth (Google), Firestore; later FCM | none | Being added ("Cloud: shared matches") |
 | Charts | fl_chart (wagon wheel, Manhattan, worm) | hand-drawn on a canvas | Keeps out a dependency; three simple charts did not need one |
 | Sharing, files | — | share_plus, file_picker behind `DeviceFiles` | Needs platform code |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
@@ -67,32 +67,57 @@ Still to do, all free unless noted:
    feature graphic, content rating, target audience not children, and Data
    safety "no data collected". Bump the version first (AGENTS "Version").
 
-**Phase 1: accounts, teams, players**
-- Firebase project, `flutterfire configure` (creates `lib/firebase_options.dart`,
-  which is gitignored), and phone OTP sign-in.
-- Saved teams, squad editing and player roles are done on the device
-  (`TeamRepository`). Still to do: sync them to the account, and a player profile
-  with photo (Storage).
+**Cloud: shared matches (decided with the owner on 2026-11-17)**
+Goal: everyone who installs the app sees the same, up-to-date matches.
 
-**Phase 2: cloud sync for scoring**
-- `FirestoreMatchRepository implements MatchRepository`, or better, keep local
-  storage as the source of truth for the scorer and add a background sync that
-  pushes events.
-- Firestore layout:
-  - `matches/{matchId}`: setup, owner, scorers, status;
-  - `matches/{matchId}/events/{eventId}`: one document per event. The event id
-    makes writes idempotent on re-sync.
-- Security rules: only the match's scorers can write events. Events are
-  append-only; undo is a separate "undo" marker or a delete by the scorer.
-  Decide which and document it in ARCHITECTURE.
-- Conflict rule: one active scorer device per match (lock), with a handover.
+Decisions:
+- **Public:** every match a signed-in scorer saves to the cloud is visible to all
+  app users. Player names become public, and the app says so before a scorer
+  publishes.
+- **Only its scorer changes a match.** Everyone else watches it update live. A
+  handover to another scorer can come later.
+- **Google sign-in** for scorers only. Watching needs no account. Scoring
+  signed out still works, on the phone only, as today.
+- **Firebase, free Spark plan:** Firestore and Firebase Auth. About 50,000 reads,
+  20,000 writes and 1 GiB stored per day for free; it never bills, and past a
+  limit syncing pauses until the next day while scoring carries on offline.
+  Analytics stays off.
 
-**Phase 3: live viewers and push**
-- A Cloud Function runs the same engine rules (share the Dart engine via a
-  Dart-on-server function, or port the projection) and maintains
-  `matches/{id}/live/state`, a small document that spectators listen to. This
-  costs 1 read per update per viewer instead of streaming every event.
-- FCM pushes for wickets, milestones and results. Share a match link.
+Design:
+- `matches/{matchId}` holds one match whole, as `MatchRecord` already does: the
+  setup, the event list, `ownerUid`, the scorer's display name, `createdAt`,
+  `updatedAt`, and a few summary fields for lists (teams, score, status). One ball
+  is one document write; a watcher pays one read per update. A long match stays
+  far below the 1 MiB document limit (about 150 bytes per event).
+- Local storage stays the scorer's source of truth. A cloud repository wraps the
+  local one: save locally first, then write to Firestore, whose offline queue
+  sends it when the phone is back online.
+- Security rules: anyone may read; only a signed-in user may create a match with
+  their own `ownerUid`; only that owner may change or delete it, and never its
+  owner field. Rules cannot run the engine, so viewers replay defensively and
+  show "can't display this match" on a broken log. A bad owner can only spoil
+  their own match.
+- Old local matches stay private unless the scorer chooses to publish them.
+- New screens: a public "Live and recent" list and a read-only match view (no
+  pad, no scoring menu) that streams updates.
+- Teams and tournaments move to the cloud after matches, with the same rules.
+- The app gains the internet permission. The privacy policy and Play Data
+  safety must be updated **before** that build ships: account name and email,
+  and public match content including player names.
+
+Order of work:
+1. Owner: create the Firebase project, Firestore (Mumbai, `asia-south1`), Google
+   sign-in, and the Android app with the debug and upload key fingerprints, then
+   put `google-services.json` in `app/android/app/` (gitignored).
+2. Sign-in and the cloud match repository, with security rules in the repo and
+   tests against a fake cloud.
+3. The public list and the read-only live view.
+4. Privacy policy, in-app notice before publishing, beta.2 to testers.
+5. Teams and tournaments in the cloud; handing a match to another scorer.
+
+**Phase 3: push**
+- FCM pushes for wickets, milestones and results. Share a match link that opens
+  the live view.
 
 **Phase 4: tournaments and stats**
 - Tournaments, fixtures, points tables, NRR, career stats and leaderboards work
@@ -141,4 +166,4 @@ In priority order:
 
 ## Out of scope for v0.1
 - DLS, Test / multi-day formats, follow-on.
-- Player photos and cloud sync (phases 1 and 2).
+- Player photos. Cloud sync is planned in "Cloud: shared matches".

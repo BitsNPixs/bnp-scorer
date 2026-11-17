@@ -54,8 +54,7 @@ Still to do, all free unless noted:
    reinstall once.
 2. Push the repo to a private GitHub repository: today it exists on one disk.
 3. Score full matches on the phone covering the cases in Phase 0 step 1, plus
-   the open issues below that a real match will hit (two-bowler deadlock,
-   run-out strike).
+   the open issue below that a real match will hit (run-out strike).
 4. Replace the real names in `demo_data.dart` before any public screenshot, or
    get consent.
 5. Privacy policy page for the store listing (Google Sites, or a public repo with
@@ -129,21 +128,17 @@ In priority order:
    - groups are split by list order and cannot be arranged by hand.
 4. **Closing an innings early** still decides on runs. Use "Abandon match" for a
    game that should have no result. Rain rules such as DLS are not implemented.
-5. **Two-bowler deadlock.** With strict Law 17.8, a side with only 2 bowlers
-   that changes bowler mid-over has nobody eligible for the next over. "End
-   innings" is the only way out. Consider allowing it with a warning in local
-   mode.
-6. **Run-out strike.** After a run out, strike follows the runs completed. If
+5. **Run-out strike.** After a run out, strike follows the runs completed. If
    the batters crossed, the scorer must tap "swap strike". Consider asking
    "who's on strike?" in the wicket sheet.
-7. **Large text / long names.** The "Players · N" label is fixed. Other rows
+6. **Large text / long names.** The "Players · N" label is fixed. Other rows
    have not been checked at 200% text size.
-8. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
+7. **Last man stands margin** reads "won by 11 wickets" for 11 players (it
    counts the extra wicket). Decide the wording with the owner.
-9. **Untested:** the new-match "Start" blocker, including the new bowler-limit
+8. **Untested:** the new-match "Start" blocker, including the new bowler-limit
    check. Add a widget test or extract the validation into a pure function and
    unit test it.
-10. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
+9. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
 
 ## Out of scope for v0.1

@@ -229,6 +229,10 @@ Set<DismissalType> allowedDismissals(ExtraType extra, {required bool freeHit}) {
   };
 }
 
+/// Something that stops a player bowling: the first relaxation that lifts it
+/// (null: never), the sentence for an error, and a short label for a picker.
+typedef _BowlerBlock = ({BowlingRelaxation? liftedBy, String reason, String label});
+
 class _InningsBuilder {
   _InningsBuilder({
     required this.number,
@@ -334,36 +338,83 @@ class _InningsBuilder {
       (strikerId == null || nonStrikerId == null) &&
       availableBatterIds.isNotEmpty;
 
+  /// Everyone who may bowl now. When nobody may under the usual rules, the
+  /// first [bowlingRelaxation] that frees someone applies, so the scorer is
+  /// never stuck. It is worked out from the state, so replays agree.
   List<String> get eligibleBowlerIds {
     if (!openersSet || complete) return const [];
+    final relaxation = bowlingRelaxation;
     return [
       for (final p in bowlingTeam.players)
-        if (_bowlerIneligibleReason(p.id) == null) p.id,
+        if (_blockingReason(p.id, relaxation) == null) p.id,
     ];
   }
 
-  String? _bowlerIneligibleReason(String playerId) {
-    if (!bowlingTeam.hasPlayer(playerId)) {
-      return '${_name(playerId)} is not in the bowling side.';
-    }
-    if (_previousOverBowlerIds.contains(playerId)) {
-      return '${_name(playerId)} bowled in the previous over.';
-    }
-    if (playerId == bowlerId && currentOver.isNotEmpty) {
-      return '${_name(playerId)} is already bowling this over.';
-    }
-    final max = rules.maxOversPerBowler;
-    final figures = _bowlerOrNull(playerId);
-    if (max != null && figures != null) {
-      final limit = max * rules.ballsPerOver;
-      // A part over counts as a whole over against the limit, so a full new
-      // over must still fit within it.
-      final needed = currentOver.isEmpty ? rules.ballsPerOver : 1;
-      if (figures.legalBalls + needed > limit) {
-        return '${_name(playerId)} has bowled the maximum $max overs.';
+  BowlingRelaxation get bowlingRelaxation {
+    if (!openersSet || complete) return BowlingRelaxation.none;
+    for (final relaxation in BowlingRelaxation.values) {
+      if (bowlingTeam.players.any((p) => _blockingReason(p.id, relaxation) == null)) {
+        return relaxation;
       }
     }
+    return BowlingRelaxation.none;
+  }
+
+  Map<String, String> get bowlerBlockReasons {
+    if (!openersSet || complete) return const {};
+    final relaxation = bowlingRelaxation;
+    return {
+      for (final p in bowlingTeam.players) p.id: ?_block(p.id, relaxation)?.label,
+    };
+  }
+
+  /// The full sentence for the first thing that stops [playerId] bowling
+  /// under [relaxation], or null if they may bowl.
+  String? _blockingReason(String playerId, BowlingRelaxation relaxation) =>
+      _block(playerId, relaxation)?.reason;
+
+  _BowlerBlock? _block(String playerId, BowlingRelaxation relaxation) {
+    for (final block in _bowlerBlocks(playerId)) {
+      final liftedBy = block.liftedBy;
+      if (liftedBy == null || liftedBy.index > relaxation.index) return block;
+    }
     return null;
+  }
+
+  /// What stops [playerId] bowling under the usual rules, each with the first
+  /// relaxation that lifts it (null: never).
+  List<_BowlerBlock> _bowlerBlocks(String playerId) {
+    final name = _name(playerId);
+    if (!bowlingTeam.hasPlayer(playerId)) {
+      return [(liftedBy: null, reason: '$name is not in the bowling side.', label: 'Not fielding')];
+    }
+    return [
+      if (playerId == bowlerId && currentOver.isNotEmpty)
+        (liftedBy: null, reason: '$name is already bowling this over.', label: 'Bowling now'),
+      // Law 17.8: no one may bowl parts of two consecutive overs.
+      if (_previousOverBowlerIds.contains(playerId))
+        (
+          liftedBy: playerId == lastOverBowlerId ? BowlingRelaxation.anyone : BowlingRelaxation.partOver,
+          reason: '$name bowled in the previous over.',
+          label: 'Bowled last over',
+        ),
+      if (_overLimitReached(playerId))
+        (
+          liftedBy: BowlingRelaxation.oversLimit,
+          reason: '$name has bowled the maximum ${rules.maxOversPerBowler} overs.',
+          label: 'Overs used up',
+        ),
+    ];
+  }
+
+  bool _overLimitReached(String playerId) {
+    final max = rules.maxOversPerBowler;
+    final figures = _bowlerOrNull(playerId);
+    if (max == null || figures == null) return false;
+    // A part over counts as a whole over against the limit, so a full new
+    // over must still fit within it.
+    final needed = currentOver.isEmpty ? rules.ballsPerOver : 1;
+    return figures.legalBalls + needed > max * rules.ballsPerOver;
   }
 
   // ---- events -------------------------------------------------------------
@@ -389,7 +440,7 @@ class _InningsBuilder {
     if (needsBatter) {
       throw const ScoringException('Select the next batter first.');
     }
-    final reason = _bowlerIneligibleReason(e.bowlerId);
+    final reason = _blockingReason(e.bowlerId, bowlingRelaxation);
     if (reason != null) throw ScoringException(reason);
     if (bowlerId != null && currentOver.isNotEmpty) _overSingleBowler = false;
     // Figures are created on the first ball, so a bowler replaced before
@@ -739,6 +790,8 @@ class _InningsBuilder {
         closeReason: closeReason,
         availableBatterIds: List.unmodifiable(availableBatterIds),
         eligibleBowlerIds: List.unmodifiable(eligibleBowlerIds),
+        bowlingRelaxation: bowlingRelaxation,
+        bowlerBlockReasons: Map.unmodifiable(bowlerBlockReasons),
       );
 }
 

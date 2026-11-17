@@ -20,6 +20,7 @@ import '../widgets/score_pad.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/share_scorecard_sheet.dart';
 import '../widgets/stadium_effects.dart';
+import '../widgets/surface_panel.dart';
 import '../widgets/wicket_sheet.dart';
 
 class ScoringScreen extends ConsumerWidget {
@@ -205,7 +206,7 @@ class _ScoringView extends ConsumerWidget {
               ScoreHeader(state: state),
               if (live.saveFailed) ...[
                 const SizedBox(height: 12),
-                const _Banner(
+                const NoticeBanner(
                   icon: Icons.cloud_off_rounded,
                   text: 'Could not save the last change. It will be saved with the next one.',
                   background: AppColors.wicket,
@@ -214,7 +215,7 @@ class _ScoringView extends ConsumerWidget {
               ],
               if (inn.isFreeHit) ...[
                 const SizedBox(height: 12),
-                const _Banner(
+                const NoticeBanner(
                   icon: Icons.bolt_rounded,
                   text: 'FREE HIT · only a run out counts',
                   background: AppColors.neon,
@@ -547,43 +548,4 @@ class _BottomPanel extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Banner extends StatelessWidget {
-  const _Banner({
-    required this.icon,
-    required this.text,
-    required this.background,
-    required this.foreground,
-  });
-
-  final IconData icon;
-  final String text;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: foreground),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                text,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      color: foreground,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.4,
-                    ),
-              ),
-            ),
-          ],
-        ),
-      );
 }

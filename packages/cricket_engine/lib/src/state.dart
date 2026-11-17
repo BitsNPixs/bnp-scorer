@@ -192,6 +192,8 @@ class InningsState {
     required this.closeReason,
     required this.availableBatterIds,
     required this.eligibleBowlerIds,
+    this.bowlingRelaxation = BowlingRelaxation.none,
+    this.bowlerBlockReasons = const {},
   });
 
   /// 1 or 2.
@@ -235,6 +237,13 @@ class InningsState {
 
   /// Bowling-side players allowed to bowl right now.
   final List<String> eligibleBowlerIds;
+
+  /// The rule set aside so that [eligibleBowlerIds] is not empty, if any.
+  final BowlingRelaxation bowlingRelaxation;
+
+  /// Why each bowling-side player outside [eligibleBowlerIds] cannot bowl
+  /// now, short enough for a picker, e.g. "Bowled last over".
+  final Map<String, String> bowlerBlockReasons;
 
   /// Scoring shots with a recorded direction, oldest first.
   List<BallSummary> get shots => [

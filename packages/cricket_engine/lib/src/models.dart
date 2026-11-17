@@ -71,6 +71,20 @@ enum ShotZone {
   double get angleDegrees => index * 45 + 22.5;
 }
 
+/// A rule set aside so that someone can bowl, used only when nobody is free
+/// under the usual rules. Each step also keeps the ones before it.
+enum BowlingRelaxation {
+  none(''),
+  partOver('Rule eased so play goes on: a bowler from part of the last over may bowl.'),
+  oversLimit('Rule eased so play goes on: the overs limit is lifted.'),
+  anyone('Rule eased so play goes on: the bowler of the last over may bowl.');
+
+  const BowlingRelaxation(this.message);
+
+  /// Why the picker looks different, for the scorer. Empty for [none].
+  final String message;
+}
+
 enum PlayerRole {
   batter('Batter'),
   bowler('Bowler'),

@@ -117,6 +117,11 @@
   stats are not split across two identities.
 
 ### Fixed
+- A side short of bowlers could get stuck with nobody allowed to bowl (two
+  bowlers and a mid-over change, or everyone at the overs limit), leaving only
+  "End innings". The engine now eases the rules one step at a time until someone
+  can bowl, and the picker says which rule was eased. Greyed-out bowlers show why
+  ("Bowled last over", "Overs used up", "Bowling now").
 - A run out off a bye or leg bye gave the completed runs to the batter. The
   wicket sheet now offers Bye and Leg bye deliveries, which need at least one
   run, and the runs go to extras.

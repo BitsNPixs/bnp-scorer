@@ -144,6 +144,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Avatars / team badges | `PlayerAvatar`, `TeamBadge`, `colorForName` (`widgets/avatars.dart`) |
 | Ball chips (dot/4/6/W/extras) | `BallChip` (`widgets/over_strip.dart`) |
 | Live indicator | `LivePill` (`widgets/score_header.dart`) |
+| Coloured notice strip (failed save, free hit, eased rule) | `NoticeBanner` (`widgets/surface_panel.dart`) |
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
 | Names, scores, figures, dismissal text, result line | `ui/format.dart` |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |

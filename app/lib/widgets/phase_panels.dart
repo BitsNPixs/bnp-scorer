@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import 'player_choice_grid.dart';
+import 'surface_panel.dart';
 
 /// Title + prompt used by every phase panel.
 class PanelHeading extends StatelessWidget {
@@ -98,7 +99,8 @@ class _OpenersPanelState extends State<OpenersPanel> {
   }
 }
 
-/// Pick the bowler. Ineligible bowlers are shown greyed out with a reason.
+/// Pick the bowler. Ineligible bowlers are shown greyed out with a reason, and
+/// a note explains any rule the engine set aside so someone can bowl.
 class BowlerPanel extends StatelessWidget {
   const BowlerPanel({
     super.key,
@@ -116,6 +118,7 @@ class BowlerPanel extends StatelessWidget {
     final inn = state.current;
     final team = state.setup.teamById(inn.bowlingTeamId);
     final eligible = inn.eligibleBowlerIds.toSet();
+    final relaxation = inn.bowlingRelaxation;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -123,6 +126,15 @@ class BowlerPanel extends StatelessWidget {
           title: title ?? 'Over ${inn.completedOvers.length + 1}',
           subtitle: 'Who is bowling?',
         ),
+        if (relaxation != BowlingRelaxation.none) ...[
+          NoticeBanner(
+            icon: Icons.rule_rounded,
+            text: relaxation.message,
+            background: AppColors.extra,
+            foreground: Colors.white,
+          ),
+          const SizedBox(height: 12),
+        ],
         PlayerChoiceGrid(
           players: team.players,
           disabledIds: {
@@ -131,7 +143,8 @@ class BowlerPanel extends StatelessWidget {
           },
           subtitles: {
             for (final f in inn.bowlers) f.playerId: figures(f, inn.ballsPerOver),
-            ?inn.lastOverBowlerId: 'Bowled last over',
+            // Why a greyed-out bowler cannot bowl, in place of their figures.
+            ...inn.bowlerBlockReasons,
           },
           onSelected: (p) => onSelected(p.id),
         ),

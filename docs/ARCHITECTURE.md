@@ -105,6 +105,13 @@ with target = first innings runs + 1), then `completed` (result set).
     (Law 17.8);
   - a mid-over change is allowed, and that over can't be a maiden;
   - optional max overs per bowler, where a part over counts against the limit;
+  - nobody is ever left unable to bowl. When no one is free under the usual
+    rules, `bowlingRelaxation` eases them in steps and uses the first that frees
+    someone: a bowler from part of the last over (not the bowler of its last
+    ball), then the overs limit lifted, then the bowler of the last over (only
+    needed mid-over). It is derived from the state, so nothing new is stored and
+    old matches replay the same. `bowlerBlockReasons` gives each greyed-out
+    bowler a short reason for the picker;
   - a bowler gets a figures row only after bowling a ball.
 - **Innings end:**
   - all out (`teamSize - 1` wickets, or `teamSize` with last man stands);

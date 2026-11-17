@@ -533,8 +533,73 @@ void main() {
       // b1 (0.2) and b2 (0.4) have each started an over.
       expect(s.inn.eligibleBowlerIds, isNot(contains('b1')));
       expect(s.inn.eligibleBowlerIds, isNot(contains('b2')));
-      s.rejects(s.bowlerEvent('b1'));
+      expect(s.inn.bowlerBlockReasons, {'b1': 'Overs used up', 'b2': 'Overs used up', 'b3': 'Bowled last over'});
+      expect(
+        () => ScoringEngine.apply(s.setup, s.events, s.bowlerEvent('b1')),
+        throwsA(isA<ScoringException>().having((e) => e.message, 'message', 'b player 1 has bowled the maximum 1 overs.')),
+      );
       s.bowler('b4');
+    });
+
+    test('usual play relaxes nothing and says why a bowler is out', () {
+      final s = Scorer(setup())..start();
+      s.dots(6);
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.none);
+      expect(s.inn.bowlerBlockReasons, {'b1': 'Bowled last over'});
+      expect(s.inn.eligibleBowlerIds, hasLength(10));
+    });
+
+    test('two bowlers and a mid-over change: the part-over bowler may bowl next', () {
+      final s = Scorer(setup(overs: 3, sizeB: 2))..start();
+      s.dots(2);
+      s.bowler('b2');
+      s.dots(4);
+      // Strictly, b1 and b2 both bowled part of the last over.
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.partOver);
+      expect(s.inn.eligibleBowlerIds, ['b1']);
+      expect(s.inn.bowlerBlockReasons, {'b2': 'Bowled last over'});
+      s.rejects(s.bowlerEvent('b2'));
+      s.bowler('b1');
+      s.dots(6);
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.none, reason: 'back to the usual rules');
+      expect(s.inn.eligibleBowlerIds, ['b2']);
+    });
+
+    test('a bowler hurt mid-over with no one else free: the bowler of the last over finishes it', () {
+      final s = Scorer(setup(overs: 3, sizeB: 2))..start();
+      s.dots(6);
+      s.bowler('b2');
+      s.dots(2);
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.anyone);
+      expect(s.inn.eligibleBowlerIds, ['b1']);
+      expect(s.inn.bowlerBlockReasons['b2'], 'Bowling now');
+      s.bowler('b1');
+      s.dots(4);
+      expect(s.inn.bowler('b1')!.legalBalls, 10);
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.partOver);
+      expect(s.inn.eligibleBowlerIds, ['b2']);
+    });
+
+    test('everyone at the overs limit: the limit is lifted', () {
+      final s = Scorer(setup(overs: 4, sizeB: 3, maxOversPerBowler: 1))..start();
+      s.dots(6);
+      s.bowler('b2');
+      s.dots(6);
+      s.bowler('b3');
+      s.dots(6);
+      expect(s.inn.bowlingRelaxation, BowlingRelaxation.oversLimit);
+      expect(s.inn.eligibleBowlerIds, ['b1', 'b2']);
+      expect(s.inn.bowlerBlockReasons, {'b3': 'Bowled last over'});
+      s.bowler('b1');
+      s.dots(6);
+      expect(s.inn.bowler('b1')!.legalBalls, 12);
+    });
+
+    test('each relaxation explains itself, and none says nothing', () {
+      expect(BowlingRelaxation.none.message, isEmpty);
+      for (final r in BowlingRelaxation.values.skip(1)) {
+        expect(r.message, startsWith('Rule eased so play goes on: '));
+      }
     });
 
     test('bowler must be in the fielding side', () {

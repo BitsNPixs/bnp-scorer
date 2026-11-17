@@ -6,11 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/ids.dart';
 import '../data/match_record.dart';
+import '../data/scheduled_match.dart';
 import '../data/team_repository.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
+import '../ui/format.dart';
 import '../ui/inputs.dart';
+import '../ui/pickers.dart';
 import '../widgets/avatars.dart';
 import '../widgets/overs_picker.dart';
 import '../widgets/saved_teams_sheet.dart';
@@ -34,11 +37,59 @@ class FixtureMatch {
   final Team away;
 }
 
+/// A scheduled friendly about to start, with the latest saved squads.
+class ScheduledStart {
+  const ScheduledStart({required this.schedule, required this.home, required this.away});
+
+  final ScheduledMatch schedule;
+  final Team home;
+  final Team away;
+}
+
+/// Opens New match filled in from a fixture, with the latest saved squads,
+/// falling back to the squad the tournament started with if a team has since
+/// been deleted.
+Future<void> startFixtureMatch(BuildContext context, WidgetRef ref, Tournament tournament, Fixture fixture) async {
+  final navigator = Navigator.of(context);
+  final saved = await ref.read(teamRepositoryProvider).loadAll();
+  Team latest(String id) => saved.where((t) => t.id == id).firstOrNull ?? tournament.teamById(id);
+  await navigator.push(
+    MaterialPageRoute<void>(
+      builder: (_) => NewMatchScreen(
+        fixture: FixtureMatch(
+          tournament: tournament,
+          fixture: fixture,
+          home: latest(fixture.teamAId),
+          away: latest(fixture.teamBId),
+        ),
+      ),
+    ),
+  );
+}
+
+/// Opens New match filled in from a scheduled friendly, the same way.
+Future<void> startScheduledMatch(BuildContext context, WidgetRef ref, ScheduledMatch schedule) async {
+  final navigator = Navigator.of(context);
+  final saved = await ref.read(teamRepositoryProvider).loadAll();
+  Team latest(Team team) => saved.where((t) => t.id == team.id).firstOrNull ?? team;
+  await navigator.push(
+    MaterialPageRoute<void>(
+      builder: (_) => NewMatchScreen(
+        scheduled: ScheduledStart(schedule: schedule, home: latest(schedule.teamA), away: latest(schedule.teamB)),
+      ),
+    ),
+  );
+}
+
 class NewMatchScreen extends ConsumerStatefulWidget {
-  const NewMatchScreen({super.key, this.fixture});
+  const NewMatchScreen({super.key, this.fixture, this.scheduled});
 
   /// When set, the teams, overs and title come from the tournament.
   final FixtureMatch? fixture;
+
+  /// When set, the teams, overs and ground come from a scheduled friendly,
+  /// which is removed once its match starts.
+  final ScheduledStart? scheduled;
 
   @override
   ConsumerState<NewMatchScreen> createState() => _NewMatchScreenState();
@@ -71,6 +122,13 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       _teamB.load(fixture.away);
       _overs = fixture.fixture.isDecider ? 1 : fixture.tournament.oversPerInnings;
       _venue.text = fixture.tournament.titleOf(fixture.fixture);
+    }
+    final scheduled = widget.scheduled;
+    if (scheduled != null) {
+      _teamA.load(scheduled.home);
+      _teamB.load(scheduled.away);
+      _overs = scheduled.schedule.oversPerInnings;
+      _venue.text = scheduled.schedule.venue ?? '';
     }
   }
 
@@ -155,6 +213,15 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
       return;
     }
     await _rememberTeams(savedTeams, [teamA, teamB]);
+    if (widget.scheduled case final scheduled?) {
+      try {
+        await ref.read(scheduleRepositoryProvider).delete(scheduled.schedule.id);
+      } on Object catch (e) {
+        // The match has started; a schedule left behind can be cancelled.
+        debugPrint('Removing the schedule failed: $e');
+      }
+      if (mounted) ref.invalidate(schedulesProvider);
+    }
     final fixture = widget.fixture;
     String? linkError;
     if (fixture != null && tournaments != null) {
@@ -172,6 +239,46 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     await Navigator.of(context).pushReplacement(
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: setup.id)),
     );
+  }
+
+  /// Saves the teams, overs and ground for later, without a toss.
+  Future<void> _scheduleForLater() async {
+    if (_blocker != null || _saving) return;
+    final startsAt = await pickDateTime(context);
+    if (startsAt == null || !mounted) return;
+    setState(() => _saving = true);
+    final savedTeams = ref.read(teamRepositoryProvider);
+    final schedules = ref.read(scheduleRepositoryProvider);
+    await _linkTypedTeams(savedTeams);
+    final teamA = _teamA.build();
+    final teamB = _teamB.build();
+    final venue = _venue.text.trim();
+    try {
+      await schedules.save(ScheduledMatch(
+        id: newId(),
+        teamA: teamA,
+        teamB: teamB,
+        oversPerInnings: _overs,
+        startsAt: startsAt,
+        createdAt: DateTime.now(),
+        venue: venue.isEmpty ? null : venue,
+        publishedBy: ref.read(accountsProvider).current?.uid,
+      ));
+    } on Object catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        showMessage(context, 'Could not schedule the match: $e', isError: true);
+      }
+      return;
+    }
+    await _rememberTeams(savedTeams, [teamA, teamB]);
+    if (!mounted) return;
+    ref
+      ..invalidate(schedulesProvider)
+      ..invalidate(savedTeamsProvider);
+    final messenger = ScaffoldMessenger.of(context);
+    Navigator.of(context).pop();
+    messenger.showSnackBar(SnackBar(content: Text('Scheduled for ${fixtureDate(startsAt)}')));
   }
 
   /// Career stats follow ids, so a team typed by hand must share the ids of the
@@ -369,6 +476,12 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
                 icon: const Icon(Icons.play_arrow_rounded),
                 label: const Text('Start match'),
               ),
+              if (widget.fixture == null && widget.scheduled == null)
+                TextButton.icon(
+                  onPressed: blocker == null && !_saving ? _scheduleForLater : null,
+                  icon: const Icon(Icons.event_rounded),
+                  label: const Text('Schedule for later'),
+                ),
             ],
           ),
         ),

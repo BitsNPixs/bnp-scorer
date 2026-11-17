@@ -82,6 +82,7 @@ void main() {
       matchRepositoryProvider.overrideWithValue(matches),
       teamRepositoryProvider.overrideWithValue(teams),
       tournamentRepositoryProvider.overrideWithValue(tournaments),
+      scheduleRepositoryProvider.overrideWithValue(InMemoryScheduleRepository()),
     ];
     await tester.pumpWidget(ProviderScope(
       overrides: overrides,

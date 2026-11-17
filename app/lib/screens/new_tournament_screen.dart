@@ -9,6 +9,7 @@ import '../state/providers.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/inputs.dart';
+import '../ui/pickers.dart';
 import '../widgets/avatars.dart';
 import '../widgets/overs_picker.dart';
 import '../widgets/scoring_sheets.dart';
@@ -129,17 +130,8 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
   }
 
   Future<void> _pickStart() async {
-    final now = DateTime.now();
-    final day = await showDatePicker(
-      context: context,
-      initialDate: _startsAt ?? now,
-      firstDate: DateTime(now.year - 1),
-      lastDate: DateTime(now.year + 2),
-    );
-    if (day == null || !mounted) return;
-    final time = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
-    if (time == null || !mounted) return;
-    setState(() => _startsAt = DateTime(day.year, day.month, day.day, time.hour, time.minute));
+    final start = await pickDateTime(context, initial: _startsAt);
+    if (start != null && mounted) setState(() => _startsAt = start);
   }
 
   String? get _blocker {

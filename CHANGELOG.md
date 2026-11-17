@@ -28,6 +28,14 @@
   winner's prize.
 - `rupees()`: whole rupees with Indian grouping (Rs 1,00,000).
 
+- Upcoming matches: a strip on Matches with dated fixtures not started and
+  scheduled friendlies, soonest first ("Today, 6:00 PM"; "Due since 6:00 PM"
+  once late). Each opens a sheet to start it (New match filled in), change the
+  time or ground, send a WhatsApp-ready invite, or cancel it. New match has
+  "Schedule for later" (teams, overs and ground; the toss comes at the start).
+  A long press on a tournament fixture opens the same sheet, which is where a
+  fixture's own ground is set.
+
 ### Changed
 - Every knockout game now comes from one bracket (`Tournament.bracket`), and a
   game is offered as soon as both its teams are known. Leagues with a final or

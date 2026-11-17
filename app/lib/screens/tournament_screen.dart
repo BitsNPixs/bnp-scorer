@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state/providers.dart';
+import '../state/upcoming.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
@@ -11,6 +12,7 @@ import '../widgets/avatars.dart';
 import '../widgets/prizes_tab.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
+import '../widgets/upcoming.dart';
 import 'new_match_screen.dart';
 import 'scoring_screen.dart';
 import 'stats_screen.dart';
@@ -92,28 +94,6 @@ class _MatchesTab extends ConsumerWidget {
     if (context.mounted) ref.invalidate(tournamentsProvider);
   }
 
-  Future<void> _reschedule(BuildContext context, WidgetRef ref, Fixture fixture) async {
-    final repository = ref.read(tournamentRepositoryProvider);
-    final current = fixture.scheduledAt?.toLocal() ?? DateTime.now();
-    final day = await showDatePicker(
-      context: context,
-      initialDate: current,
-      firstDate: DateTime(current.year - 1),
-      lastDate: DateTime(current.year + 2),
-    );
-    if (day == null || !context.mounted) return;
-    final time = await showTimePicker(context: context, initialTime: TimeOfDay.fromDateTime(current));
-    if (time == null || !context.mounted) return;
-    final date = DateTime(day.year, day.month, day.day, time.hour, time.minute);
-    try {
-      await repository.save(progress.tournament.withFixtureDate(fixture.id, date));
-    } on Object catch (e) {
-      if (context.mounted) showMessage(context, 'Could not save the date: $e', isError: true);
-      return;
-    }
-    if (context.mounted) ref.invalidate(tournamentsProvider);
-  }
-
   Future<void> _correct(BuildContext context, WidgetRef ref, List<Fixture> fixtures) async {
     final repository = ref.read(tournamentRepositoryProvider);
     try {
@@ -175,7 +155,10 @@ class _MatchesTab extends ConsumerWidget {
             item: item,
             tournament: tournament,
             onTap: () => _openFixture(context, ref, progress.tournament, item),
-            onLongPress: () => _reschedule(context, ref, item.fixture),
+            // Time, ground and invite, until it starts.
+            onLongPress: item.match == null
+                ? () => showUpcomingSheet(context, ref, UpcomingMatch.fixture(tournament, item.fixture))
+                : null,
           ),
           const SizedBox(height: 10),
         ],
@@ -207,29 +190,9 @@ Future<void> _openFixture(BuildContext context, WidgetRef ref, Tournament tourna
       MaterialPageRoute<void>(builder: (_) => ScoringScreen(matchId: match.setup.id)),
     );
   } else {
-    await _startFixture(context, ref, tournament, item.fixture);
+    await startFixtureMatch(context, ref, tournament, item.fixture);
   }
   if (context.mounted) ref.invalidate(matchListProvider);
-}
-
-/// Fills the setup from the latest saved squads, falling back to the squad
-/// the tournament started with if a team has since been deleted.
-Future<void> _startFixture(BuildContext context, WidgetRef ref, Tournament tournament, Fixture fixture) async {
-  final navigator = Navigator.of(context);
-  final saved = await ref.read(teamRepositoryProvider).loadAll();
-  Team latest(String id) => saved.where((t) => t.id == id).firstOrNull ?? tournament.teamById(id);
-  await navigator.push(
-    MaterialPageRoute<void>(
-      builder: (_) => NewMatchScreen(
-        fixture: FixtureMatch(
-          tournament: tournament,
-          fixture: fixture,
-          home: latest(fixture.teamAId),
-          away: latest(fixture.teamBId),
-        ),
-      ),
-    ),
-  );
 }
 
 /// Every knockout game, round by round, with the teams known so far and who
@@ -532,8 +495,8 @@ class _FixtureCard extends StatelessWidget {
   final Tournament tournament;
   final VoidCallback onTap;
 
-  /// Sets the date.
-  final VoidCallback onLongPress;
+  /// Sets the time and ground, or sends an invite.
+  final VoidCallback? onLongPress;
 
   @override
   Widget build(BuildContext context) {
@@ -544,6 +507,7 @@ class _FixtureCard extends StatelessWidget {
     final teamA = tournament.teamById(fixture.teamAId).name;
     final teamB = tournament.teamById(fixture.teamBId).name;
     final date = fixture.scheduledAt;
+    final when = [if (date != null) fixtureDate(date), ?fixture.venue].join(' · ');
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
@@ -558,11 +522,11 @@ class _FixtureCard extends StatelessWidget {
               Row(
                 children: [
                   Expanded(child: SectionLabel(fixture.label)),
-                  if (date != null) ...[
+                  if (when.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     Flexible(
                       child: Text(
-                        fixtureDate(date),
+                        when,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: text.labelSmall?.copyWith(color: scheme.onSurfaceVariant),

@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
+import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
+import 'package:bnp_scorer/data/scheduled_match.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
 import 'package:bnp_scorer/data/tournament_repository.dart';
 
@@ -53,6 +56,20 @@ class InMemoryTournamentRepository implements TournamentRepository {
   Future<void> delete(String id) async {
     tournaments.remove(id);
   }
+}
+
+class InMemoryScheduleRepository implements ScheduleRepository {
+  final schedules = <String, ScheduledMatch>{};
+
+  @override
+  Future<List<ScheduledMatch>> loadAll() async =>
+      schedules.values.toList()..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+
+  @override
+  Future<void> save(ScheduledMatch match) async => schedules[match.id] = match;
+
+  @override
+  Future<void> delete(String id) async => schedules.remove(id);
 }
 
 class InMemoryTeamRepository implements TeamRepository {
@@ -211,4 +228,27 @@ class FakeCloudMatches implements CloudMatches {
       yield current();
     }
   }
+}
+
+/// Records the last text shared through the share sheet.
+class TextShares implements DeviceFiles {
+  String? text;
+  String? subject;
+  bool fail = false;
+
+  @override
+  Future<void> shareText(String text, {required String subject}) async {
+    if (fail) throw StateError('No apps to share with');
+    this.text = text;
+    this.subject = subject;
+  }
+
+  @override
+  Future<void> shareImage(Uint8List png, {required String caption}) async {}
+
+  @override
+  Future<void> shareTextFile(String name, String contents) async {}
+
+  @override
+  Future<String?> pickTextFile() async => null;
 }

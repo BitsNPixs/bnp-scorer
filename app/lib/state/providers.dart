@@ -10,8 +10,10 @@ import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
+import '../data/scheduled_match.dart';
 import '../data/team_repository.dart';
 import '../data/tournament_repository.dart';
+import 'upcoming.dart';
 
 /// Overridden in `main()` with the real implementation.
 final matchRepositoryProvider = Provider<MatchRepository>(
@@ -125,6 +127,22 @@ final tournamentsProvider = FutureProvider.autoDispose<List<TournamentProgress>>
   final matches = await ref.watch(matchListProvider.future);
   final byId = {for (final m in matches) m.record.id: m.state};
   return [for (final t in tournaments) progressOf(t, byId)];
+});
+
+/// Overridden in `main()` with the real implementation.
+final scheduleRepositoryProvider = Provider<ScheduleRepository>(
+  (ref) => throw UnimplementedError('scheduleRepositoryProvider must be overridden'),
+);
+
+final schedulesProvider = FutureProvider.autoDispose<List<ScheduledMatch>>(
+  (ref) => ref.watch(scheduleRepositoryProvider).loadAll(),
+);
+
+/// Dated fixtures not started yet and scheduled friendlies, soonest first.
+final upcomingProvider = FutureProvider.autoDispose<List<UpcomingMatch>>((ref) async {
+  final tournaments = await ref.watch(tournamentsProvider.future);
+  final schedules = await ref.watch(schedulesProvider.future);
+  return upcomingMatches([for (final p in tournaments) p.tournament], schedules, DateTime.now());
 });
 
 /// A stored match with its replayed state, for lists.

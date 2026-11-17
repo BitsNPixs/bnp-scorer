@@ -13,6 +13,7 @@ import '../widgets/stadium_effects.dart';
 import '../widgets/stumps_art.dart';
 import '../widgets/summary_tiles.dart';
 import '../widgets/surface_panel.dart';
+import '../widgets/upcoming.dart';
 import 'watch_match_screen.dart';
 
 const _allMatches = 'all';
@@ -66,6 +67,7 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
     final isLight = Theme.of(context).brightness == Brightness.light;
     final hasCloud = ref.watch(cloudMatchesProvider) != null;
     final everyone = hasCloud && _everyone;
+    final upcoming = ref.watch(upcomingProvider).value ?? const [];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
@@ -94,6 +96,13 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
                 ),
                 _EveryoneList(),
               ] else ...[
+                if (upcoming.isNotEmpty) ...[
+                  const SliverToBoxAdapter(
+                    child: Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 10), child: SectionTitle('Upcoming')),
+                  ),
+                  SliverToBoxAdapter(child: UpcomingStrip(matches: upcoming)),
+                  const SliverToBoxAdapter(child: SizedBox(height: 8)),
+                ],
                 if (list.isNotEmpty) ...[
                   SliverToBoxAdapter(
                     child: Padding(

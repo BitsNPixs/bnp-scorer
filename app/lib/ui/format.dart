@@ -1,5 +1,7 @@
 import 'package:cricket_engine/cricket_engine.dart';
 
+import '../state/upcoming.dart';
+
 const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -9,10 +11,39 @@ String shortDate(DateTime date) => '${date.day} ${_months[date.month - 1]}';
 /// "Sat 5 Dec, 9:00 AM", in the device's time zone.
 String fixtureDate(DateTime date) {
   final local = date.toLocal();
+  return '${_days[local.weekday - 1]} ${shortDate(local)}, ${clockTime(local)}';
+}
+
+/// "9:00 AM", in the device's time zone.
+String clockTime(DateTime date) {
+  final local = date.toLocal();
   final hour = local.hour % 12 == 0 ? 12 : local.hour % 12;
   final minute = local.minute.toString().padLeft(2, '0');
-  return '${_days[local.weekday - 1]} ${shortDate(local)}, $hour:$minute '
-      '${local.hour < 12 ? 'AM' : 'PM'}';
+  return '$hour:$minute ${local.hour < 12 ? 'AM' : 'PM'}';
+}
+
+/// "Today, 6:00 PM", "Tomorrow, 9:00 AM", or the full date further off.
+String upcomingWhen(DateTime date, DateTime now) {
+  final local = date.toLocal();
+  final today = DateTime(now.year, now.month, now.day);
+  final day = DateTime(local.year, local.month, local.day);
+  return switch (day.difference(today).inDays) {
+    0 => 'Today, ${clockTime(local)}',
+    1 => 'Tomorrow, ${clockTime(local)}',
+    _ => fixtureDate(local),
+  };
+}
+
+/// A message inviting players and followers to a match, for WhatsApp.
+String inviteText(UpcomingMatch match) {
+  final when = match.startsAt;
+  return [
+    '\u{1F3CF} ${match.homeName} v ${match.awayName}',
+    match.title,
+    if (when != null) fixtureDate(when),
+    ?match.venue,
+    '${plural(match.overs, 'over')} a side. Follow it ball by ball on BNP Scorer.',
+  ].join('\n');
 }
 
 /// "2026-03-09", which sorts by date in a file list.

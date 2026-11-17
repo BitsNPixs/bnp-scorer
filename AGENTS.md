@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 181 engine and 286 app tests passing,
+- Latest run (2026-11-17): analyze clean, 181 engine and 298 app tests passing,
   beta 0.9.0-beta.2 (build 3) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.2.apk`). The owner's phone runs the same code as
   an earlier cloud test build.
@@ -110,8 +110,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   is in `Tournament.bracket`; `TournamentProgress.nextRound` offers each as soon
   as its teams are known, and the scorer confirms with one tap. Prizes, entry
   fee, amounts paid (never published: `toPublicJson`) and rules are on the
-  Prizes tab. A ground per fixture is in the engine only, for step 3
-  (docs/ROADMAP.md "Cups, prizes and upcoming matches").
+  Prizes tab.
+- **Upcoming (2026-11-17):** an Upcoming strip on Matches (dated fixtures not
+  started, and friendlies set with "Schedule for later" on New match), with a
+  sheet to start, change the time or ground, send a WhatsApp invite, or cancel.
+  A long press on a fixture opens the same sheet. Tests and real-font renders
+  only so far.
 - Backups (`data/backup.dart`) are versioned JSON. Bump the version only for a
   change old readers cannot handle, and keep old files readable. Restore adds
   missing records and never overwrites.
@@ -193,6 +197,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
+| Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
+| Upcoming matches: list, strip, sheet, invite | `upcomingMatches`, `UpcomingMatch` (`state/upcoming.dart`), `upcomingProvider`, `UpcomingStrip`, `showUpcomingSheet` (`widgets/upcoming.dart`), `inviteText`, `upcomingWhen` (`ui/format.dart`) |
+| Start a fixture or scheduled friendly | `startFixtureMatch`, `startScheduledMatch` (`screens/new_match_screen.dart`) |
+| Fake share sheet in tests | `TextShares` (`test/fakes.dart`) |
 | Colours, fonts, numbers | `AppColors`, `AppTheme`, `AppFonts.display`, `AppFonts.body` (outside the theme), `scoreStyle()` (`theme/app_theme.dart`) |
 | Card edge, section heading | `cardShape`, `SectionTitle` (`widgets/surface_panel.dart`) |
 | Entrance, pop and reduced motion | `EntranceFade`, `PopIn`, `reduceMotion` (`ui/motion.dart`) |
@@ -239,7 +247,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   wildcard `_` parameters. Don't lower the SDK constraint.
 - Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
-  `bnp_scorer.tournament.<id>`, `bnp_scorer.themeMode` and
+  `bnp_scorer.tournament.<id>`, `bnp_scorer.scheduleIds`,
+  `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode` and
   `bnp_scorer.errorLog`. Changing them loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a

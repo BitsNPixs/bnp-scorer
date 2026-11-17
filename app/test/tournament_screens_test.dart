@@ -642,6 +642,8 @@ void main() {
 
       await tester.longPress(find.text('MATCH 2'));
       await settle(tester);
+      await tester.tap(find.text('Set a time'));
+      await settle(tester);
       await tester.tap(find.text('OK'));
       await settle(tester);
       await tester.tap(find.text('OK'));

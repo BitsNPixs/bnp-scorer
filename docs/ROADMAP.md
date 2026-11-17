@@ -167,7 +167,8 @@ Order of work (each step tested and committed):
    prize on the champion banner (2b). A ground per fixture moved to step 3,
    with the fixture's time, on one fixture sheet.
 3. Upcoming: fixture start times shown and editable, an Upcoming strip on My
-   matches, "Schedule for later" for friendlies, and a WhatsApp invite.
+   matches, "Schedule for later" for friendlies, and a WhatsApp invite. Done
+   2026-11-17, with a ground per fixture on the same sheet.
 4. Cloud: publish cups (without paid status) and scheduled friendlies; Everyone
    gains Upcoming and Cups.
 5. Then update the privacy policy for cups and schedules (organiser name,

@@ -14,6 +14,7 @@ import 'data/error_log.dart';
 import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
 import 'data/match_repository.dart';
+import 'data/scheduled_match.dart';
 import 'data/syncing_match_repository.dart';
 import 'data/tournament_repository.dart';
 import 'state/providers.dart';
@@ -49,6 +50,7 @@ Future<void> main() async {
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),
+        scheduleRepositoryProvider.overrideWithValue(LocalScheduleRepository(prefs)),
       ],
       child: const BnpScorerApp(),
     ),

@@ -238,6 +238,11 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   stays whole, newcomers are added, and "Fill to 11" placeholders are dropped.
 - `TournamentRepository`: newest first. `LocalTournamentRepository` stores
   `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`.
+- `ScheduleRepository`: scheduled friendlies (`ScheduledMatch`), soonest first.
+  `LocalScheduleRepository` stores `bnp_scorer.scheduleIds` and
+  `bnp_scorer.schedule.<id>`. Not in backups: a schedule is short-lived.
+  `upcomingMatches` (`state/upcoming.dart`) joins them with dated fixtures into
+  `UpcomingMatch`es for `upcomingProvider`.
 - `Backup`: versioned JSON of matches, teams and tournaments. `Backup.decode` checks
   the whole file first, and `restoreBackup` only adds missing records.
 - **Cloud** (docs/ROADMAP.md "Cloud: shared matches"):
@@ -305,7 +310,14 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   licences), a floodlit hero card with a "New match" button and stumps art, three
   number tiles (played, live, tournaments), filter chips, match cards (live pill
   with an overs bar and a neon edge, or a result tag with the winner's trophy),
-  long-press to delete with a warning for tournament matches, empty state. In
+  long-press to delete with a warning for tournament matches, empty state.
+  Above it all, when there is any, an Upcoming strip (`UpcomingStrip`): dated
+  fixtures not started yet and scheduled friendlies, soonest first, as cards
+  ("Today, 6:00 PM", "Due since 6:00 PM" once the time has passed, kept for 12
+  hours). A card, or a long press on a fixture in its tournament, opens the
+  upcoming sheet: Start match (New match filled in), Change time, Change
+  ground, Send invite (a WhatsApp-ready message, `inviteText`), and Cancel this
+  match (a friendly) or Remove the time (a fixture). In
   cloud builds a "My matches / Everyone" switch sits under the header; Everyone
   shows published matches, live, with who scores each, and opens them to watch.
 - **New match:**
@@ -316,7 +328,11 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - house rules: wide / no-ball runs, free hit, last man stands, max overs per
     bowler (ceil(overs/5)), shot direction;
   - venue;
-  - a sticky Start button that explains what is missing (`_blocker`);
+  - a sticky Start button that explains what is missing (`_blocker`), and under
+    it "Schedule for later": a day and time, then the teams, overs and ground
+    are saved as a `ScheduledMatch` (no toss, no match yet);
+  - from a scheduled friendly, teams, overs and ground are filled in (latest
+    saved squads), and starting the match removes the schedule;
   - for a tournament fixture, teams and title are filled and locked. A Super Over
     also hides the overs and toss, because the rules decide them.
 - **Scoring:**

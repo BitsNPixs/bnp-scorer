@@ -19,8 +19,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 161 engine and 242 app tests passing,
-  debug APK built. Not installed on the phone since 2026-11-10.
+- Latest run (2026-11-17): analyze clean, 161 engine and 259 app tests passing,
+  release APK built with Firebase (upload-signed). The phone runs beta
+  0.9.0-beta.1, without the cloud code.
+- **Cloud, step 1 (2026-11-17):** Google sign-in in Settings and publishing a
+  signed-in scorer's matches to Firestore (README "Cloud", docs/ROADMAP.md
+  "Cloud: shared matches"). **`main` now has the internet permission and
+  publishes data: do not give a build from it to testers until the privacy
+  policy and Play Data safety are updated (Cloud step 4).** The public list and
+  live view (step 3) are not built yet. Not yet tried on a phone.
 - **Beta prep (2026-11-17):** run outs off a bye or leg bye and leg byes off a
   no-ball now score correctly; release signing reads `app/android/key.properties`
   (README "Release signing"; the key is `C:/Users/AswinBlix/bnp-upload-keystore.jks`
@@ -179,6 +186,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
+| Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
+| Published matches | `CloudMatches` (`data/cloud_matches.dart`), `SyncingMatchRepository`; `FakeCloudMatches` in tests |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
@@ -209,6 +218,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
   `bnp_scorer.tournament.<id>`, `bnp_scorer.themeMode` and
   `bnp_scorer.errorLog`. Changing them loses users' data.
+- **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
+  without it have no sign-in. Firestore field names on `matches/{id}` are a
+  storage format: never rename them. Rule changes go in `firestore.rules` and
+  are pasted into the console by the owner.
 - **Version:** bump `version:` in `app/pubspec.yaml` and `data/app_info.dart`
   together (`test/app_info_test.dart` fails otherwise). The build number must
   rise with every Play upload.

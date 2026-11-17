@@ -214,6 +214,19 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`.
 - `Backup`: versioned JSON of matches, teams and tournaments. `Backup.decode` checks
   the whole file first, and `restoreBackup` only adds missing records.
+- **Cloud** (docs/ROADMAP.md "Cloud: shared matches"):
+  - `Accounts` (`data/accounts.dart`): Google sign-in through Firebase Auth
+    (`FirebaseAccounts`), or `LocalOnlyAccounts` in builds without the cloud and
+    in tests. `accountsProvider`, `scorerProvider`.
+  - `CloudMatches` (`data/cloud_matches.dart`): `matches/{id}` in Firestore, the
+    `MatchRecord` JSON plus `ownerUid`, `ownerName`, `schema` and `savedAt`. The
+    field names are a storage format, like the event JSON: never rename them.
+  - `SyncingMatchRepository`: wraps the local repository. Saves locally first,
+    then publishes the match if `MatchRecord.publishedBy` is the signed-in
+    scorer, without awaiting the cloud (Firestore queues writes offline).
+  - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
+    comes from `google-services.json` through the Google Services Gradle plugin,
+    which `app/build.gradle.kts` applies only when the file exists.
 - `DeviceFiles`: the share sheet (image, file or plain text) and file picker,
   replaced in tests.
 - `ErrorLog`: the last 20 uncaught errors with the top of their stack, in
@@ -257,7 +270,7 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   tab. Tabs live in an `IndexedStack`, are built on first visit and fade in when
   chosen. Back on another tab returns to Matches.
 - **Matches tab:** brand header with a Settings button (System / Light / Dark,
-  Backup, then About: version and privacy note inline, Report a problem and the
+  Account with Google sign-in in cloud builds, Backup, then About: version and privacy note inline, Report a problem and the
   licences), a floodlit hero card with a "New match" button and stumps art, three
   number tiles (played, live, tournaments), filter chips, match cards (live pill
   with an overs bar and a neon edge, or a result tag with the winner's trophy),

@@ -171,6 +171,27 @@ have a debug-signed build must uninstall it before installing a release-signed
 one (Android refuses an update signed with a different key), which deletes
 their data, so back up first.
 
+## Cloud
+
+Signed-in scorers publish their matches to Firebase (project `bnp-scorer`, free
+Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
+"Cloud: shared matches".
+
+- **Config:** `app/android/app/google-services.json`, downloaded from the Firebase
+  console (Project settings > Your apps > BNP Scorer). It is gitignored. Without
+  it the app still builds and runs on the phone only, with no sign-in.
+- **Sign-in fingerprints:** Google sign-in only works in builds signed with a key
+  whose SHA-1 and SHA-256 are listed on that console page: the debug key, the
+  upload key, and later the Play app-signing key. Read them with
+  `keytool -list -v -keystore <file>`, or from an APK with
+  `apksigner verify --print-certs`.
+- **Security rules:** `firestore.rules` in the repo root. After changing it, paste
+  it into Firestore Database > Rules and Publish. Anyone may read; only a match's
+  owner may write it.
+- **Privacy:** a cloud build uses the internet and publishes match content,
+  including player names. Update `site/privacy.html` and the Play Data safety
+  answers before such a build reaches testers.
+
 ## Beta builds
 
 Testers get the APK directly, over WhatsApp or Google Drive. It costs nothing,

@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/accounts.dart';
 import '../data/app_settings.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
@@ -39,6 +40,16 @@ class ThemeModeNotifier extends Notifier<ThemeMode> {
     }
   }
 }
+
+/// Google sign-in. `main()` overrides it when the cloud is set up; tests and
+/// builds without `google-services.json` get no sign-in.
+final accountsProvider = Provider<Accounts>((ref) => const LocalOnlyAccounts());
+
+/// The signed-in scorer, or null.
+final scorerProvider = StreamProvider<Scorer?>((ref) {
+  final accounts = ref.watch(accountsProvider);
+  return accounts.changes;
+});
 
 /// Overridden in `main()` with the log the error handlers write to.
 final errorLogProvider = Provider<ErrorLog>(

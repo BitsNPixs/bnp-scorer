@@ -138,7 +138,14 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
     );
     try {
       await ref.read(matchRepositoryProvider).save(
-            MatchRecord(setup: setup, events: const [], createdAt: now, updatedAt: now),
+            MatchRecord(
+              setup: setup,
+              events: const [],
+              createdAt: now,
+              updatedAt: now,
+              // A signed-in scorer publishes the match for everyone to follow.
+              publishedBy: ref.read(accountsProvider).current?.uid,
+            ),
           );
     } on Object catch (e) {
       if (mounted) {

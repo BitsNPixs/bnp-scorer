@@ -1,3 +1,4 @@
+import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/demo_data.dart';
 import 'package:bnp_scorer/screens/new_match_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
@@ -36,7 +37,7 @@ void main() {
     teams = InMemoryTeamRepository();
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(WidgetTester tester, {Accounts? accounts}) async {
     tester.view
       // 360 dp wide, and tall enough that the lazy list builds both teams.
       ..physicalSize = const Size(1080, 9000)
@@ -46,6 +47,7 @@ void main() {
       overrides: [
         matchRepositoryProvider.overrideWithValue(matches),
         teamRepositoryProvider.overrideWithValue(teams),
+        if (accounts != null) accountsProvider.overrideWithValue(accounts),
       ],
       child: MaterialApp(theme: AppTheme.light(), home: const NewMatchScreen()),
     ));
@@ -121,6 +123,26 @@ void main() {
     expect(setup.teamB.id, 'b');
     expect(teams.teams['a']!.players, hasLength(13), reason: 'nobody leaves the squad');
     expect(teams.teams, hasLength(2));
+  });
+
+  testWidgets("a signed-in scorer's new match is published; signed out it stays private", (tester) async {
+    await teams.save(_squad('a', 'Alpha', 11));
+    await teams.save(_squad('b', 'Bravo', 11));
+    await pump(tester, accounts: FakeAccounts(signedIn: const Scorer(uid: 'u1', name: 'Asha Scorer')));
+    await pick(tester, 'Alpha');
+    await pick(tester, 'Bravo', side: 1);
+    await start(tester);
+    expect(matches.records.values.single.publishedBy, 'u1');
+  });
+
+  testWidgets('without signing in, a new match is not published', (tester) async {
+    await teams.save(_squad('a', 'Alpha', 11));
+    await teams.save(_squad('b', 'Bravo', 11));
+    await pump(tester);
+    await pick(tester, 'Alpha');
+    await pick(tester, 'Bravo', side: 1);
+    await start(tester);
+    expect(matches.records.values.single.publishedBy, isNull);
   });
 
   testWidgets('a player can be swapped in from the bench', (tester) async {

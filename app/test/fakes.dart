@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:cricket_engine/cricket_engine.dart';
+import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
@@ -102,4 +106,72 @@ MatchRecord sampleRecord({
     createdAt: at,
     updatedAt: updatedAt ?? at,
   );
+}
+
+/// Sign-in without Google. [nextSignIn] is who the next sign-in returns; null
+/// acts as the scorer cancelling.
+class FakeAccounts implements Accounts {
+  FakeAccounts({Scorer? signedIn}) : _current = signedIn;
+
+  Scorer? _current;
+  Scorer? nextSignIn = const Scorer(uid: 'u1', name: 'Asha Scorer');
+
+  /// When set, sign-in fails with this message.
+  String? failWith;
+  int signInCalls = 0;
+  final _changes = StreamController<Scorer?>.broadcast();
+
+  @override
+  bool get available => true;
+
+  @override
+  Scorer? get current => _current;
+
+  @override
+  Stream<Scorer?> get changes async* {
+    yield _current;
+    yield* _changes.stream;
+  }
+
+  @override
+  Future<Scorer?> signIn() async {
+    signInCalls++;
+    final failure = failWith;
+    if (failure != null) throw AccountsException(failure);
+    if (nextSignIn != null) {
+      _current = nextSignIn;
+      _changes.add(_current);
+    }
+    return nextSignIn;
+  }
+
+  @override
+  Future<void> signOut() async {
+    _current = null;
+    _changes.add(null);
+  }
+}
+
+/// The cloud as two maps: what is published, and by whom.
+class FakeCloudMatches implements CloudMatches {
+  final published = <String, MatchRecord>{};
+  final owners = <String, Scorer>{};
+  final unpublished = <String>[];
+
+  /// When true, every write fails, as with no connection and no queue.
+  bool failWrites = false;
+
+  @override
+  Future<void> publish(MatchRecord record, Scorer owner) async {
+    if (failWrites) throw StateError('No connection');
+    published[record.id] = record;
+    owners[record.id] = owner;
+  }
+
+  @override
+  Future<void> unpublish(String matchId) async {
+    if (failWrites) throw StateError('No connection');
+    published.remove(matchId);
+    unpublished.add(matchId);
+  }
 }

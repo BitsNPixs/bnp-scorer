@@ -6,6 +6,15 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Firebase (sign-in and published matches) reads google-services.json, which
+// is gitignored. Without the file the app still builds, and runs on the phone
+// only (README "Cloud").
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+} else {
+    logger.warn("BNP Scorer: android/app/google-services.json not found, building without the cloud.")
+}
+
 // Release signing reads android/key.properties (gitignored; README "Release
 // signing"). Without it, release builds fall back to the debug key, which
 // installs on a phone but cannot go to the Play Store.

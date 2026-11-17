@@ -58,6 +58,9 @@ void main() {
   });
 
   setUp(() async {
+    // A test runner script, like the files in test/, so the test-only helper is
+    // the right tool here.
+    // ignore: invalid_use_of_visible_for_testing_member
     SharedPreferences.setMockInitialValues({AppSettings.themeModeKey: 'dark'});
     prefs = await SharedPreferences.getInstance();
     matches = InMemoryMatchRepository();

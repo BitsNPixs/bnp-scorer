@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Publishing matches and signing in. Scoring itself works offline. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="BNP Scorer"
         android:name="${applicationName}"

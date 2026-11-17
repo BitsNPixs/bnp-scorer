@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:bnp_scorer/app.dart';
+import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/app_info.dart';
 import 'package:bnp_scorer/data/app_settings.dart';
 import 'package:bnp_scorer/data/device_files.dart';
@@ -59,7 +60,7 @@ void main() {
   }
 
   /// The whole app at 360 dp, as main() builds it.
-  Future<void> pumpApp(WidgetTester tester, {Map<String, Object> stored = const {}}) async {
+  Future<void> pumpApp(WidgetTester tester, {Map<String, Object> stored = const {}, Accounts? accounts}) async {
     tester.view
       ..physicalSize = const Size(1080, 2400)
       ..devicePixelRatio = 3;
@@ -74,6 +75,7 @@ void main() {
         appSettingsProvider.overrideWithValue(AppSettings(prefs)),
         errorLogProvider.overrideWithValue(ErrorLog(prefs)),
         deviceFilesProvider.overrideWithValue(shares),
+        if (accounts != null) accountsProvider.overrideWithValue(accounts),
         matchRepositoryProvider.overrideWithValue(matches),
         teamRepositoryProvider.overrideWithValue(InMemoryTeamRepository()),
         tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
@@ -315,6 +317,86 @@ void main() {
       await tester.tap(find.text('Report a problem'));
       await settle(tester);
       expect(find.textContaining('Could not open sharing'), findsOneWidget);
+    });
+  });
+
+  group('Settings › Account', () {
+    Future<void> openSettings(WidgetTester tester) async {
+      await tester.tap(find.byTooltip('Settings'));
+      await settle(tester);
+    }
+
+    Future<void> tapSignIn(WidgetTester tester) async {
+      await tester.ensureVisible(find.text('Sign in with Google'));
+      await tester.tap(find.text('Sign in with Google'));
+      await settle(tester);
+    }
+
+    testWidgets('a build without the cloud offers no sign-in', (tester) async {
+      await pumpApp(tester);
+      await openSettings(tester);
+      expect(find.text('ACCOUNT'), findsNothing);
+      expect(find.text('Sign in with Google'), findsNothing);
+    });
+
+    testWidgets('signing in first says matches become public, then shows the scorer', (tester) async {
+      final accounts = FakeAccounts();
+      await pumpApp(tester, accounts: accounts);
+      await openSettings(tester);
+      await tapSignIn(tester);
+
+      expect(find.text('Publish your matches?'), findsOneWidget);
+      expect(find.textContaining('including the player names'), findsOneWidget);
+      expect(accounts.signInCalls, 0, reason: 'nothing happens before the scorer agrees');
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+      await settle(tester);
+      expect(accounts.signInCalls, 1);
+      expect(find.text('Signed in as Asha Scorer'), findsOneWidget);
+      expect(find.text('Asha Scorer'), findsOneWidget);
+      expect(find.text('New matches you score are public'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('"Not now" and a cancelled Google sign-in leave the scorer signed out', (tester) async {
+      final accounts = FakeAccounts()..nextSignIn = null;
+      await pumpApp(tester, accounts: accounts);
+      await openSettings(tester);
+
+      await tapSignIn(tester);
+      await tester.tap(find.text('Not now'));
+      await settle(tester);
+      expect(accounts.signInCalls, 0);
+
+      await tapSignIn(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+      await settle(tester);
+      expect(accounts.signInCalls, 1);
+      expect(find.text('Sign in with Google'), findsOneWidget);
+      expect(find.textContaining('Signed in as'), findsNothing);
+    });
+
+    testWidgets('a failed sign-in is explained', (tester) async {
+      final accounts = FakeAccounts()..failWith = 'Could not sign in with Google (network).';
+      await pumpApp(tester, accounts: accounts);
+      await openSettings(tester);
+      await tapSignIn(tester);
+      await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+      await settle(tester);
+      expect(find.text('Could not sign in with Google (network).'), findsOneWidget);
+      expect(find.text('Sign in with Google'), findsOneWidget);
+    });
+
+    testWidgets('signing out goes back to private matches', (tester) async {
+      final accounts = FakeAccounts(signedIn: const Scorer(uid: 'u1', name: 'Asha Scorer'));
+      await pumpApp(tester, accounts: accounts);
+      await openSettings(tester);
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.tap(find.text('Sign out'));
+      await settle(tester);
+      expect(accounts.current, isNull);
+      expect(find.text('Signed out. New matches stay on this phone.'), findsOneWidget);
+      expect(find.text('Sign in with Google'), findsOneWidget);
     });
   });
 

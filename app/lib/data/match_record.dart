@@ -8,12 +8,17 @@ class MatchRecord {
     required List<MatchEvent> events,
     required this.createdAt,
     required this.updatedAt,
+    this.publishedBy,
   }) : events = List.unmodifiable(events);
 
   final MatchSetup setup;
   final List<MatchEvent> events;
   final DateTime createdAt;
   final DateTime updatedAt;
+
+  /// The signed-in scorer (their account id) who publishes this match for
+  /// everyone to follow. Null for a match that stays on this phone.
+  final String? publishedBy;
 
   String get id => setup.id;
 
@@ -22,6 +27,7 @@ class MatchRecord {
         events: events,
         createdAt: createdAt,
         updatedAt: DateTime.now(),
+        publishedBy: publishedBy,
       );
 
   Json toJson() => {
@@ -29,6 +35,8 @@ class MatchRecord {
         'events': [for (final e in events) e.toJson()],
         'createdAt': createdAt.toUtc().toIso8601String(),
         'updatedAt': updatedAt.toUtc().toIso8601String(),
+        // Written only when set, so private matches read the same as before.
+        if (publishedBy != null) 'publishedBy': publishedBy,
       };
 
   factory MatchRecord.fromJson(Json json) => MatchRecord(
@@ -39,5 +47,6 @@ class MatchRecord {
         ],
         createdAt: DateTime.parse(json['createdAt']! as String),
         updatedAt: DateTime.parse(json['updatedAt']! as String),
+        publishedBy: json['publishedBy'] as String?,
       );
 }

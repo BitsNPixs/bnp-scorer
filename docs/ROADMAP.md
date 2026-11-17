@@ -108,9 +108,10 @@ Design:
 Order of work:
 1. Owner: create the Firebase project, Firestore (Mumbai, `asia-south1`), Google
    sign-in, and the Android app with the debug and upload key fingerprints, then
-   put `google-services.json` in `app/android/app/` (gitignored).
+   put `google-services.json` in `app/android/app/` (gitignored). Done 2026-11-17.
 2. Sign-in and the cloud match repository, with security rules in the repo and
-   tests against a fake cloud.
+   tests against a fake cloud. Done in code on 2026-11-17 (the project exists,
+   the owner pastes `firestore.rules`); not yet tried on a phone.
 3. The public list and the read-only live view.
 4. Privacy policy, in-app notice before publishing, beta.2 to testers.
 5. Teams and tournaments in the cloud; handing a match to another scorer.

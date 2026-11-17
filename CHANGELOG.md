@@ -3,6 +3,17 @@
 ## Unreleased
 
 ### Added
+- Cloud, step 1: Google sign-in in Settings, behind a notice that new matches
+  become public including player names. A signed-in scorer's new matches are
+  marked `publishedBy` and sent to Firestore on every save; the phone stays the
+  source of truth and a failed or offline cloud write never fails a save.
+  Deleting a published match unpublishes it. Matches already on the phone, demo
+  matches and matches scored signed out stay private. `firestore.rules` lets
+  anyone read and only the owner write. Adds `firebase_core`, `firebase_auth`,
+  `cloud_firestore` and `google_sign_in`, and the internet permission. Builds
+  without `google-services.json` have no sign-in and work as before.
+
+### Added
 - A full home page for the website: a live scoreboard whose over is bowled ball
   by ball on load, the match day from squads to the points table beside real
   screens of the app, house rules, privacy, how to get the beta, and questions.

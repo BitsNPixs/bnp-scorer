@@ -3,12 +3,14 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/accounts.dart';
 import '../data/app_info.dart';
 import '../data/error_log.dart';
 import '../screens/backup_screen.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
+import 'avatars.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
 
@@ -26,6 +28,7 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
         const SectionLabel('Appearance'),
         const SizedBox(height: 10),
         const _ThemePicker(),
+        const _AccountSection(),
         const SizedBox(height: 24),
         const SectionLabel('Data'),
         const SizedBox(height: 10),
@@ -85,6 +88,85 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
     ),
   ),
 );
+
+/// Google sign-in, so the matches a scorer starts are published for everyone.
+/// Hidden in a build without the cloud.
+class _AccountSection extends ConsumerWidget {
+  const _AccountSection();
+
+  static const publicNotice = "While you're signed in, every new match you score is public: anyone "
+      'with BNP Scorer can follow it, including the player names. Matches already on this phone '
+      'stay private.';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final accounts = ref.watch(accountsProvider);
+    if (!accounts.available) return const SizedBox.shrink();
+    final scorer = ref.watch(scorerProvider).value ?? accounts.current;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 24),
+        const SectionLabel('Account'),
+        const SizedBox(height: 10),
+        SurfacePanel(
+          padding: EdgeInsets.zero,
+          child: scorer == null
+              ? ListTile(
+                  leading: const Icon(Icons.public_rounded),
+                  title: const Text('Sign in with Google'),
+                  subtitle: const Text('Publish the matches you score so everyone can follow them'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () => _signIn(context, accounts),
+                )
+              : ListTile(
+                  leading: PlayerAvatar(name: scorer.name, radius: 18),
+                  title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                  subtitle: const Text('New matches you score are public'),
+                  trailing: TextButton(
+                    onPressed: () => _signOut(context, accounts),
+                    child: const Text('Sign out'),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _signIn(BuildContext context, Accounts accounts) async {
+    final agreed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Publish your matches?'),
+        content: const Text(publicNotice),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Not now')),
+          FilledButton(
+            style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Sign in'),
+          ),
+        ],
+      ),
+    );
+    if (agreed != true || !context.mounted) return;
+    try {
+      final scorer = await accounts.signIn();
+      if (scorer != null && context.mounted) showMessage(context, 'Signed in as ${scorer.name}');
+    } on AccountsException catch (e) {
+      if (context.mounted) showMessage(context, e.message, isError: true);
+    }
+  }
+
+  Future<void> _signOut(BuildContext context, Accounts accounts) async {
+    try {
+      await accounts.signOut();
+      if (context.mounted) showMessage(context, 'Signed out. New matches stay on this phone.');
+    } on Object catch (e) {
+      if (context.mounted) showMessage(context, 'Could not sign out: $e', isError: true);
+    }
+  }
+}
 
 /// Opens the share sheet with a problem report. Reads everything it needs
 /// before the first await, as the sheet that called it is closing.

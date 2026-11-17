@@ -183,6 +183,9 @@ upload key. Everything below since 0.1.0 is in it.
   cache and project were on different drives, which is the suspected cause.
 
 ### Verified
+- 2026-11-17, cloud step 3 across two phones: the owner scored on their phone
+  while a Pixel 9a (Android 16, not signed in) watched from Everyone, and every
+  ball appeared on the Pixel live. No errors in the Pixel's log.
 - 2026-11-17, cloud step 1 on the owner's phone: Google sign-in worked with the
   upload-signed build, a new match appeared in Firestore with its owner as it
   was scored, older matches stayed private, the security rules allowed public

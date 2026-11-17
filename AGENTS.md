@@ -30,7 +30,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Cloud, step 3 (2026-11-17):** in cloud builds the Matches tab has a "My
   matches / Everyone" switch; Everyone lists the latest 30 published matches
   live, and tapping one opens `WatchMatchScreen`, a read-only view with the same
-  tabs as scoring. Tested with a fake cloud and in renders; not yet on a phone.
+  tabs as scoring. Tried on 2026-11-17 across two phones: a match scored on the
+  owner's phone updated live on a Pixel 9a (Android 16) that was not signed in.
   Step 1 was tried on the owner's phone on
   2026-11-17: Google sign-in worked, a new match was published as it was
   scored, older matches stayed private, and the cloud copy replays to the same

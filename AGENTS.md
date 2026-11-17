@@ -132,7 +132,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | --- | --- |
 | Card / panel surface | `SurfacePanel`, `SectionLabel` (`widgets/surface_panel.dart`) |
 | Pick players | `PlayerChoiceGrid` (`widgets/player_choice_grid.dart`) |
-| Bottom sheets | `SheetBody`, `RoundOption` (`widgets/scoring_sheets.dart`) |
+| Bottom sheets | `SheetBody`, `RoundOption`, `OptionChips` (one choice as wrapping chips) (`widgets/scoring_sheets.dart`) |
 | Avatars / team badges | `PlayerAvatar`, `TeamBadge`, `colorForName` (`widgets/avatars.dart`) |
 | Ball chips (dot/4/6/W/extras) | `BallChip` (`widgets/over_strip.dart`) |
 | Live indicator | `LivePill` (`widgets/score_header.dart`) |

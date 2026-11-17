@@ -82,7 +82,8 @@ with target = first innings runs + 1), then `completed` (result set).
   bowler.
 - **No-ball:** not a legal ball, but faced. Bat runs go to the batter. The
   penalty (`noBallRuns`) and bat runs are charged to the bowler; other runs off
-  a no-ball are counted as byes. The next ball is a **free hit** (configurable)
+  a no-ball are byes, or leg byes when `BallBowled.legByes` is set (only allowed
+  on a no-ball, with no bat runs). The next ball is a **free hit** (configurable)
   and stays a free hit through wides / no-balls.
 - **Byes / leg byes:** legal and faced, at least 1 run, not charged to the
   bowler.
@@ -270,10 +271,11 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **Score pad (3×4):**
   - `0 1 2 3` (long-press 3 for 5+);
   - `4 6 WD NB`: WD and NB open sheets for extra runs; the NB sheet chooses bat
-    runs or byes;
-  - `BYE LB OUT Undo`: OUT opens the wicket sheet, which offers only the
-    dismissal types the engine allows for the chosen delivery, plus who is out,
-    runs completed and the fielder / keeper.
+    runs, byes or leg byes;
+  - `BYE LB OUT Undo`: OUT opens the wicket sheet. Its delivery is legal, wide,
+    no-ball, bye or leg bye, and it offers only the dismissal types the engine
+    allows for that delivery, plus who is out, runs completed (extras on a
+    wide, bye or leg bye) and the fielder / keeper.
 - **Scorecard (tabs on the Scoring screen):** a tab per innings
   (`InningsScorecard`), then an Overs tab and a Charts tab. Each innings tab has:
   - `ResultHero`: every innings, the result or the state of play (LIVE), and the

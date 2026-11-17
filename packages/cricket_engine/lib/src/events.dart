@@ -48,6 +48,8 @@ sealed class MatchEvent {
             final String zone => ShotZone.values.byName(zone),
             _ => null,
           },
+          // Added after v0.1: older logs have no field and mean byes.
+          legByes: json['legByes'] as bool? ?? false,
         ),
       NewBatter.typeName =>
         NewBatter(id: id, at: at, batterId: json['batterId']! as String),
@@ -131,6 +133,7 @@ class Wicket {
 /// * [extraRuns]: runs that are extras on top of any wide/no-ball penalty:
 ///   runs run (or a boundary) off a wide, byes off a no-ball, or the byes /
 ///   leg byes themselves.
+/// * [legByes]: on a no-ball, [extraRuns] are leg byes rather than byes.
 /// * [boundary]: [runsOffBat] was a 4 or 6 that reached the rope.
 final class BallBowled extends MatchEvent {
   const BallBowled({
@@ -142,6 +145,7 @@ final class BallBowled extends MatchEvent {
     this.boundary = false,
     this.wicket,
     this.shotZone,
+    this.legByes = false,
   });
 
   static const typeName = 'ballBowled';
@@ -154,6 +158,9 @@ final class BallBowled extends MatchEvent {
   /// Where [runsOffBat] went, when the scorer records it.
   final ShotZone? shotZone;
 
+  /// On a no-ball, [extraRuns] were leg byes. Only valid on a no-ball.
+  final bool legByes;
+
   @override
   String get type => typeName;
 
@@ -165,6 +172,8 @@ final class BallBowled extends MatchEvent {
         'boundary': boundary,
         'wicket': wicket?.toJson(),
         'shotZone': shotZone?.name,
+        // Written only when set, so every other ball reads the same as before.
+        if (legByes) 'legByes': true,
       };
 }
 

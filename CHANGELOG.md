@@ -106,6 +106,14 @@
   stats are not split across two identities.
 
 ### Fixed
+- A run out off a bye or leg bye gave the completed runs to the batter. The
+  wicket sheet now offers Bye and Leg bye deliveries, which need at least one
+  run, and the runs go to extras.
+- Leg byes off a no-ball were recorded as byes. The no-ball sheet now offers
+  Off the bat, Byes or Leg byes. `BallBowled` has an optional `legByes` field,
+  written only when true, so older match logs and backups read as before.
+- The delivery and no-ball choices are chips that wrap (`OptionChips`), since
+  five segments would clip on a 360 dp phone.
 - Filter chips on Home lost their last letter ("Pongal Trophy"). The fonts now
   load before the first frame, so no text is laid out in the narrower fallback
   font first. Not reproducible in tests; confirmed fixed on the phone.

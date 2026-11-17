@@ -69,9 +69,19 @@ Future<ShotZone?> showShotSheet(BuildContext context) => showModalBottomSheet<Sh
       },
     );
 
-typedef NoBallInput = ({int runs, bool byes});
+/// Where the runs off a no-ball came from.
+enum NoBallRuns {
+  bat('Off the bat'),
+  byes('Byes'),
+  legByes('Leg byes');
 
-/// No-ball: runs off the bat (default) or byes.
+  const NoBallRuns(this.label);
+  final String label;
+}
+
+typedef NoBallInput = ({int runs, NoBallRuns from});
+
+/// No-ball: runs off the bat (default), byes or leg byes.
 Future<NoBallInput?> showNoBallSheet(BuildContext context) =>
     showModalBottomSheet<NoBallInput>(
       context: context,
@@ -88,24 +98,23 @@ class _NoBallSheet extends StatefulWidget {
 }
 
 class _NoBallSheetState extends State<_NoBallSheet> {
-  bool _byes = false;
+  NoBallRuns _from = NoBallRuns.bat;
 
   @override
   Widget build(BuildContext context) {
-    final options = _byes ? const [1, 2, 3, 4] : const [0, 1, 2, 3, 4, 6];
+    final options = _from == NoBallRuns.bat ? const [0, 1, 2, 3, 4, 6] : const [1, 2, 3, 4];
     return SheetBody(
       title: 'No-ball',
       subtitle: 'Next ball is a free hit (if enabled). How many runs were scored?',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SegmentedButton<bool>(
-            segments: const [
-              ButtonSegment(value: false, label: Text('Off the bat')),
-              ButtonSegment(value: true, label: Text('Byes')),
-            ],
-            selected: {_byes},
-            onSelectionChanged: (s) => setState(() => _byes = s.first),
+          OptionChips<NoBallRuns>(
+            options: NoBallRuns.values,
+            labelOf: (o) => o.label,
+            selected: _from,
+            color: AppColors.extra,
+            onSelected: (o) => setState(() => _from = o),
           ),
           const SizedBox(height: 20),
           Wrap(
@@ -116,12 +125,57 @@ class _NoBallSheetState extends State<_NoBallSheet> {
                 RoundOption(
                   label: '$r',
                   color: AppColors.extra,
-                  onTap: () => Navigator.of(context).pop((runs: r, byes: _byes)),
+                  onTap: () => Navigator.of(context).pop((runs: r, from: _from)),
                 ),
             ],
           ),
         ],
       ),
+    );
+  }
+}
+
+/// One choice from a few labelled options, as chips that wrap onto a new line
+/// instead of clipping on narrow phones or with large text.
+class OptionChips<T> extends StatelessWidget {
+  const OptionChips({
+    super.key,
+    required this.options,
+    required this.labelOf,
+    required this.selected,
+    required this.color,
+    required this.onSelected,
+  });
+
+  final List<T> options;
+  final String Function(T option) labelOf;
+  final T? selected;
+
+  /// Fill of the selected chip.
+  final Color color;
+  final ValueChanged<T> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final onColor =
+        ThemeData.estimateBrightnessForColor(color) == Brightness.dark ? Colors.white : AppColors.night;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final o in options)
+          ChoiceChip(
+            label: Text(labelOf(o)),
+            selected: selected == o,
+            selectedColor: color,
+            checkmarkColor: onColor,
+            labelStyle: TextStyle(
+              color: selected == o ? onColor : null,
+              fontWeight: FontWeight.w600,
+            ),
+            onSelected: (_) => onSelected(o),
+          ),
+      ],
     );
   }
 }

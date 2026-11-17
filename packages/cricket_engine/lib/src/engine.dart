@@ -410,7 +410,11 @@ class _InningsBuilder {
         wides += penalty + e.extraRuns;
       case ExtraType.noBall:
         noBalls += penalty;
-        byes += e.extraRuns;
+        if (e.legByes) {
+          legByes += e.extraRuns;
+        } else {
+          byes += e.extraRuns;
+        }
       case ExtraType.bye:
         byes += e.extraRuns;
       case ExtraType.legBye:
@@ -503,6 +507,17 @@ class _InningsBuilder {
         }
       case ExtraType.none || ExtraType.noBall:
         break;
+    }
+    if (e.legByes) {
+      if (e.extra != ExtraType.noBall) {
+        throw const ScoringException('Only a no-ball can have leg byes added.');
+      }
+      if (e.runsOffBat != 0) {
+        throw const ScoringException('Leg byes cannot have runs off the bat.');
+      }
+      if (e.extraRuns < 1) {
+        throw const ScoringException('Leg byes need at least 1 run.');
+      }
     }
     if (e.boundary && e.runsOffBat != 4 && e.runsOffBat != 6) {
       throw const ScoringException('A boundary must be a 4 or a 6.');

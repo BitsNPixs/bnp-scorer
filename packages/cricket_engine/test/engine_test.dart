@@ -69,6 +69,7 @@ class Scorer {
     int extraRuns = 0,
     bool boundary = false,
     Wicket? wicket,
+    bool legByes = false,
   }) =>
       BallBowled(
         id: _id(),
@@ -78,6 +79,7 @@ class Scorer {
         extraRuns: extraRuns,
         boundary: boundary,
         wicket: wicket,
+        legByes: legByes,
       );
 
   void openers(String s, String ns) => add(openersEvent(s, ns));
@@ -301,6 +303,30 @@ void main() {
       expect(s.inn.extras.byes, 2);
       expect(s.inn.bowler('b1')!.runs, 1);
       expect(s.inn.batter('a1')!.runs, 0);
+    });
+
+    test('no-ball leg byes go to leg byes, not byes or the bowler', () {
+      final s = Scorer(setup())..start();
+      s.add(s.ballEvent(extra: ExtraType.noBall, extraRuns: 3, legByes: true));
+      expect(s.inn.runs, 4);
+      expect(s.inn.extras.legByes, 3);
+      expect(s.inn.extras.byes, 0);
+      expect(s.inn.extras.noBalls, 1);
+      expect(s.inn.bowler('b1')!.runs, 1);
+      expect(s.inn.batter('a1')!.runs, 0);
+      expect(s.inn.batter('a1')!.balls, 1);
+      expect(s.inn.legalBalls, 0);
+      expect(s.inn.strikerId, 'a2', reason: '3 completed runs change ends');
+      expect(s.inn.isFreeHit, isTrue);
+    });
+
+    test('leg byes only on a no-ball, with runs and none off the bat', () {
+      final s = Scorer(setup())..start();
+      s.rejects(s.ballEvent(extraRuns: 1, legByes: true));
+      s.rejects(s.ballEvent(extra: ExtraType.wide, extraRuns: 1, legByes: true));
+      s.rejects(s.ballEvent(extra: ExtraType.bye, extraRuns: 1, legByes: true));
+      s.rejects(s.ballEvent(extra: ExtraType.noBall, legByes: true));
+      s.rejects(s.ballEvent(extra: ExtraType.noBall, bat: 1, extraRuns: 1, legByes: true));
     });
 
     test('byes and leg byes: legal, faced, not charged to the bowler', () {
@@ -648,6 +674,20 @@ void main() {
       expect(restored.extras.total, original.extras.total);
       expect(restoredSetup.teamA.players.length, 11);
       expect(restoredEvents.map((e) => e.id), s.events.map((e) => e.id));
+    });
+
+    test('no-ball leg byes survive JSON, and older logs read as byes', () {
+      final s = Scorer(setup())..start();
+      final legByes = s.ballEvent(extra: ExtraType.noBall, extraRuns: 2, legByes: true);
+      final byes = s.ballEvent(extra: ExtraType.noBall, extraRuns: 2);
+      expect(byes.toJson().containsKey('legByes'), isFalse,
+          reason: 'balls without leg byes keep the original format');
+
+      final restored = MatchEvent.fromJson(
+        jsonDecode(jsonEncode(legByes.toJson())) as Map<String, Object?>,
+      ) as BallBowled;
+      expect(restored.legByes, isTrue);
+      expect((MatchEvent.fromJson(byes.toJson()) as BallBowled).legByes, isFalse);
     });
 
     test('unknown event types are rejected', () {

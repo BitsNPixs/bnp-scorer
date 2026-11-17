@@ -320,13 +320,16 @@ class _ScoringView extends ConsumerWidget {
     final notifier = _notifier(ref);
     reportResult(
       context,
-      input.byes
-          ? notifier.ball(extra: ExtraType.noBall, extraRuns: input.runs)
-          : notifier.ball(
-              extra: ExtraType.noBall,
-              runsOffBat: input.runs,
-              boundary: input.runs == 4 || input.runs == 6,
-            ),
+      switch (input.from) {
+        NoBallRuns.bat => notifier.ball(
+            extra: ExtraType.noBall,
+            runsOffBat: input.runs,
+            boundary: input.runs == 4 || input.runs == 6,
+          ),
+        NoBallRuns.byes => notifier.ball(extra: ExtraType.noBall, extraRuns: input.runs),
+        NoBallRuns.legByes =>
+          notifier.ball(extra: ExtraType.noBall, extraRuns: input.runs, legByes: true),
+      },
     );
   }
 

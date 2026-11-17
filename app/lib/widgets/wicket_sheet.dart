@@ -18,7 +18,7 @@ class WicketInput {
 
   final DismissalType type;
 
-  /// Legal ball, wide or no-ball.
+  /// Legal ball, wide, no-ball, bye or leg bye.
   final ExtraType delivery;
   final String batterOutId;
 
@@ -28,10 +28,20 @@ class WicketInput {
 
   Wicket get wicket => Wicket(type: type, batterOutId: batterOutId, fielderId: fielderId);
 
-  /// Runs off the bat; on a wide, completed runs are wides instead.
-  int get runsOffBat => delivery == ExtraType.wide ? 0 : runs;
-  int get extraRuns => delivery == ExtraType.wide ? runs : 0;
+  bool get _runsOffBat => delivery == ExtraType.none || delivery == ExtraType.noBall;
+
+  /// Runs off the bat; on a wide, bye or leg bye, completed runs are extras.
+  int get runsOffBat => _runsOffBat ? runs : 0;
+  int get extraRuns => _runsOffBat ? 0 : runs;
 }
+
+const _deliveries = {
+  ExtraType.none: 'Legal',
+  ExtraType.wide: 'Wide',
+  ExtraType.noBall: 'No-ball',
+  ExtraType.bye: 'Bye',
+  ExtraType.legBye: 'Leg bye',
+};
 
 Future<WicketInput?> showWicketSheet(BuildContext context, MatchState state) =>
     showModalBottomSheet<WicketInput>(
@@ -76,6 +86,10 @@ class _WicketSheetState extends State<_WicketSheet> {
     final canPickBatter = type != null && type.canDismissNonStriker && inn.nonStrikerId != null;
     final outId = canPickBatter ? _outId : inn.strikerId!;
     final runsAllowed = type == DismissalType.runOut || type == DismissalType.obstructingTheField;
+    // A bye needs a run; a run out with none completed is off a legal ball.
+    final byes = _delivery == ExtraType.bye || _delivery == ExtraType.legBye;
+    final runOptions = byes ? const [1, 2, 3] : const [0, 1, 2, 3];
+    final runs = runOptions.contains(_runs) ? _runs : runOptions.first;
     final fielders = setup.teamById(inn.bowlingTeamId).players;
 
     return SheetBody(
@@ -86,34 +100,22 @@ class _WicketSheetState extends State<_WicketSheet> {
         children: [
           const SectionLabel('Delivery'),
           const SizedBox(height: 8),
-          SegmentedButton<ExtraType>(
-            segments: const [
-              ButtonSegment(value: ExtraType.none, label: Text('Legal')),
-              ButtonSegment(value: ExtraType.wide, label: Text('Wide')),
-              ButtonSegment(value: ExtraType.noBall, label: Text('No-ball')),
-            ],
-            selected: {_delivery},
-            onSelectionChanged: (s) => setState(() => _delivery = s.first),
+          OptionChips<ExtraType>(
+            options: _deliveries.keys.toList(),
+            labelOf: (d) => _deliveries[d]!,
+            selected: _delivery,
+            color: Theme.of(context).colorScheme.primary,
+            onSelected: (d) => setState(() => _delivery = d),
           ),
           const SizedBox(height: 20),
           const SectionLabel('How out'),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final t in allowed)
-                ChoiceChip(
-                  label: Text(t.label),
-                  selected: type == t,
-                  selectedColor: AppColors.wicket,
-                  labelStyle: TextStyle(
-                    color: type == t ? Colors.white : null,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  onSelected: (_) => setState(() => _type = t),
-                ),
-            ],
+          OptionChips<DismissalType>(
+            options: allowed,
+            labelOf: (t) => t.label,
+            selected: type,
+            color: AppColors.wicket,
+            onSelected: (t) => setState(() => _type = t),
           ),
           if (canPickBatter) ...[
             const SizedBox(height: 20),
@@ -141,11 +143,11 @@ class _WicketSheetState extends State<_WicketSheet> {
             Wrap(
               spacing: 12,
               children: [
-                for (final r in const [0, 1, 2, 3])
+                for (final r in runOptions)
                   RoundOption(
                     label: '$r',
                     color: Theme.of(context).colorScheme.primary,
-                    selected: _runs == r,
+                    selected: runs == r,
                     onTap: () => setState(() => _runs = r),
                   ),
               ],
@@ -175,7 +177,7 @@ class _WicketSheetState extends State<_WicketSheet> {
                       type: type,
                       delivery: _delivery,
                       batterOutId: outId,
-                      runs: runsAllowed ? _runs : 0,
+                      runs: runsAllowed ? runs : 0,
                       fielderId: _fielderTypes.contains(type) ? _fielderId : null,
                     )),
             child: Text(type == null ? 'Choose how they were out' : 'Confirm wicket'),

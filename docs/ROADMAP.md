@@ -112,7 +112,8 @@ Order of work:
 2. Sign-in and the cloud match repository, with security rules in the repo and
    tests against a fake cloud. Done and tried on the owner's phone on
    2026-11-17, with `firestore.rules` published in the console.
-3. The public list and the read-only live view.
+3. The public list and the read-only live view. Done in code on 2026-11-17;
+   not yet tried on a phone.
 4. Privacy policy, in-app notice before publishing, beta.2 to testers.
 5. Teams and tournaments in the cloud; handing a match to another scorer.
 

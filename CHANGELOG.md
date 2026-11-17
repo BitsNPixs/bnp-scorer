@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- Cloud, step 3: a "My matches / Everyone" switch on the Matches tab in cloud
+  builds. Everyone lists the latest 30 published matches, live, with who scores
+  each. Tapping one opens a read-only live view with the same tabs as scoring
+  and no pad or scoring menu; it follows every ball, and says so plainly if the
+  match is unpublished or comes from a newer app version.
+- `MatchTabsView`: the match screen's frame, now shared by scoring and watching.
 - Cloud, step 1: Google sign-in in Settings, behind a notice that new matches
   become public including player names. A signed-in scorer's new matches are
   marked `publishedBy` and sent to Firestore on every save; the phone stays the

@@ -29,9 +29,8 @@ Future<void> main() async {
   installErrorHandlers(errors);
   final local = LocalMatchRepository(prefs);
   final accounts = await _startCloud();
-  final MatchRepository repository = accounts is FirebaseAccounts
-      ? SyncingMatchRepository(local, FirestoreCloudMatches(FirebaseFirestore.instance), accounts)
-      : local;
+  final cloud = accounts is FirebaseAccounts ? FirestoreCloudMatches(FirebaseFirestore.instance) : null;
+  final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
   final teams = LocalTeamRepository(prefs);
   final tournaments = LocalTournamentRepository(prefs);
   if (demoMode) {
@@ -46,6 +45,7 @@ Future<void> main() async {
         appSettingsProvider.overrideWithValue(AppSettings(prefs)),
         errorLogProvider.overrideWithValue(errors),
         accountsProvider.overrideWithValue(accounts),
+        cloudMatchesProvider.overrideWithValue(cloud),
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),

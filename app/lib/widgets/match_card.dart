@@ -14,10 +14,17 @@ import 'surface_panel.dart';
 
 /// One match on the home list: tap to open it, long-press to delete it.
 class MatchCard extends ConsumerWidget {
-  const MatchCard({super.key, required this.summary, this.tournamentName});
+  const MatchCard({super.key, required this.summary, this.tournamentName, this.scoredBy, this.onTap});
 
   final MatchSummary summary;
   final String? tournamentName;
+
+  /// Who scores a published match, shown under its status.
+  final String? scoredBy;
+
+  /// Replaces opening the match for scoring, e.g. with watching someone
+  /// else's match. Such a card cannot be deleted with a long press.
+  final VoidCallback? onTap;
 
   Future<void> _open(BuildContext context, WidgetRef ref) async {
     await Navigator.of(
@@ -128,8 +135,8 @@ class MatchCard extends ConsumerWidget {
       shape: cardShape(context, accent: live ? scheme.primary.withValues(alpha: 0.55) : null),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => _open(context, ref),
-        onLongPress: () => _confirmDelete(context, ref),
+        onTap: onTap ?? () => _open(context, ref),
+        onLongPress: onTap == null ? () => _confirmDelete(context, ref) : null,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -165,6 +172,23 @@ class MatchCard extends ConsumerWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
+              if (scoredBy case final scorer?) ...[
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(Icons.sports_cricket_rounded, size: 14, color: scheme.onSurfaceVariant),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        'Scored by $scorer',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: text.labelMedium?.copyWith(color: scheme.onSurfaceVariant),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

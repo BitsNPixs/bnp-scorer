@@ -19,15 +19,19 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 161 engine and 259 app tests passing,
+- Latest run (2026-11-17): analyze clean, 161 engine and 270 app tests passing,
   release APK built with Firebase (upload-signed). Since 19:10 the owner's
   phone runs this cloud build (still numbered 0.9.0-beta.1, build 2).
 - **Cloud, step 1 (2026-11-17):** Google sign-in in Settings and publishing a
   signed-in scorer's matches to Firestore (README "Cloud", docs/ROADMAP.md
   "Cloud: shared matches"). **`main` now has the internet permission and
   publishes data: do not give a build from it to testers until the privacy
-  policy and Play Data safety are updated (Cloud step 4).** The public list and
-  live view (step 3) are not built yet. Tried on the owner's phone on
+  policy and Play Data safety are updated (Cloud step 4).**
+- **Cloud, step 3 (2026-11-17):** in cloud builds the Matches tab has a "My
+  matches / Everyone" switch; Everyone lists the latest 30 published matches
+  live, and tapping one opens `WatchMatchScreen`, a read-only view with the same
+  tabs as scoring. Tested with a fake cloud and in renders; not yet on a phone.
+  Step 1 was tried on the owner's phone on
   2026-11-17: Google sign-in worked, a new match was published as it was
   scored, older matches stayed private, and the cloud copy replays to the same
   score.
@@ -148,7 +152,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match (`liveMatchProvider(matchId)`). Notifier actions return
   `String?` (null = OK, else the error message to show).
 - **Stats are derived too:** add a number to `stats.dart`, never store one.
-- **Navigation:** plain `Navigator` (12 screens). `HomeScreen` is the shell:
+- **Navigation:** plain `Navigator` (13 screens, with `WatchMatchScreen`). `HomeScreen` is the shell:
   a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
   `IndexedStack`, built on first visit. Every other screen is pushed over it.
   Back on a tab other than Matches returns to Matches. Add go_router only with
@@ -180,6 +184,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
 | Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
 | Match card, number tiles, stumps art | `MatchCard`, `SummaryTiles`, `StumpsArt` (`widgets/`) |
+| A match screen's frame (title, Live/Result, innings, Overs, Charts, confetti) | `MatchTabsView` (`widgets/match_tabs_view.dart`), used by scoring and watching |
 | Match summary card, one innings' scorecard, finished-match tab | `ResultHero` (`widgets/result_hero.dart`), `InningsScorecard` (`widgets/innings_scorecard.dart`), `MatchResultTab` (`widgets/match_result_tab.dart`) |
 | Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |
 | New ids | `newId()` (`data/ids.dart`) |
@@ -190,7 +195,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
 | Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
-| Published matches | `CloudMatches` (`data/cloud_matches.dart`), `SyncingMatchRepository`; `FakeCloudMatches` in tests |
+| Published matches | `CloudMatches`, `PublishedMatch`, `parsePublishedMatch` (`data/cloud_matches.dart`), `SyncingMatchRepository`, `cloudMatchesProvider`, `publicMatchesProvider`, `publishedMatchProvider`; `FakeCloudMatches` in tests |
 | Overs stepper and presets | `OversPicker` (`widgets/overs_picker.dart`) |
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |

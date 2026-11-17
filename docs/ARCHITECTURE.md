@@ -221,6 +221,11 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   - `CloudMatches` (`data/cloud_matches.dart`): `matches/{id}` in Firestore, the
     `MatchRecord` JSON plus `ownerUid`, `ownerName`, `schema` and `savedAt`. The
     field names are a storage format, like the event JSON: never rename them.
+  - Reading: `CloudMatches.recent` (newest 30 by `savedAt`, live) and `watch`
+    (one match, live); `parsePublishedMatch` refuses a newer `schema`.
+    `publicMatchesProvider` replays each match and leaves out ones that do not
+    replay; `publishedMatchProvider` streams one. Neither retries on error:
+    Firestore reconnects by itself, and retries cost reads.
   - `SyncingMatchRepository`: wraps the local repository. Saves locally first,
     then publishes the match if `MatchRecord.publishedBy` is the signed-in
     scorer, without awaiting the cloud (Firestore queues writes offline).
@@ -274,7 +279,9 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   licences), a floodlit hero card with a "New match" button and stumps art, three
   number tiles (played, live, tournaments), filter chips, match cards (live pill
   with an overs bar and a neon edge, or a result tag with the winner's trophy),
-  long-press to delete with a warning for tournament matches, empty state.
+  long-press to delete with a warning for tournament matches, empty state. In
+  cloud builds a "My matches / Everyone" switch sits under the header; Everyone
+  shows published matches, live, with who scores each, and opens them to watch.
 - **New match:**
   - teams and players (type names, "Fill to 11", or pick a saved team, with extra
     squad members sitting out);
@@ -338,6 +345,10 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **New tournament:** name, venue, teams, overs, optional dates, format.
 - **Teams and Team edit:** squads, roles, captain, vice-captain, keeper.
 - **Backup:** create a backup file, or restore from one.
+- **Watch match:** someone else's published match, read-only and live. Same
+  frame as scoring (`MatchTabsView`), with the score, this over and the crease on
+  the Live tab, who scores it, and Share; no pad, undo or scoring menu. A match
+  that is unpublished, or that this app cannot read, gets a plain message.
 
 ### Design system
 - Light, dark, or follow the phone, chosen in Settings and stored as

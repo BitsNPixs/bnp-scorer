@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/accounts.dart';
 import '../data/app_settings.dart';
+import '../data/cloud_matches.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
@@ -50,6 +51,51 @@ final scorerProvider = StreamProvider<Scorer?>((ref) {
   final accounts = ref.watch(accountsProvider);
   return accounts.changes;
 });
+
+/// Published matches. `main()` overrides it when the cloud is set up; null in
+/// tests and builds without `google-services.json`.
+final cloudMatchesProvider = Provider<CloudMatches?>((ref) => null);
+
+/// A published match and its state, for the "Everyone" list.
+typedef PublishedSummary = ({PublishedMatch match, MatchState state});
+
+/// The latest published matches, live. Empty without the cloud. A match whose
+/// log does not replay is left out, like a broken match on the phone.
+///
+/// No automatic retry: Firestore reconnects by itself, and its errors (such
+/// as a refused read) do not mend on their own, while each retry costs reads.
+final publicMatchesProvider = StreamProvider.autoDispose<List<PublishedSummary>>(
+  (ref) {
+    final cloud = ref.watch(cloudMatchesProvider);
+    if (cloud == null) return Stream.value(const []);
+    return cloud.recent().map((matches) => [
+          for (final match in matches) ?_summaryOf(match),
+        ]);
+  },
+  retry: _noRetry,
+);
+
+Duration? _noRetry(int retryCount, Object error) => null;
+
+PublishedSummary? _summaryOf(PublishedMatch match) {
+  try {
+    return (match: match, state: ScoringEngine.replay(match.record.setup, match.record.events));
+  } on Object catch (e) {
+    debugPrint('Leaving out published match ${match.record.id}: $e');
+    return null;
+  }
+}
+
+/// One published match as it is scored. Null once it is unpublished. A match
+/// this app cannot read stays an error: retrying would not help.
+final publishedMatchProvider = StreamProvider.autoDispose.family<PublishedMatch?, String>(
+  (ref, matchId) {
+    final cloud = ref.watch(cloudMatchesProvider);
+    if (cloud == null) return Stream.value(null);
+    return cloud.watch(matchId);
+  },
+  retry: _noRetry,
+);
 
 /// Overridden in `main()` with the log the error handlers write to.
 final errorLogProvider = Provider<ErrorLog>(

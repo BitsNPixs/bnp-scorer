@@ -7,19 +7,14 @@ import '../state/live_match.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
-import '../ui/motion.dart';
 import '../widgets/crease_panel.dart';
-import '../widgets/innings_scorecard.dart';
-import '../widgets/match_charts.dart';
-import '../widgets/match_result_tab.dart';
+import '../widgets/match_tabs_view.dart';
 import '../widgets/over_strip.dart';
-import '../widgets/overs_timeline.dart';
 import '../widgets/phase_panels.dart';
 import '../widgets/score_header.dart';
 import '../widgets/score_pad.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/share_scorecard_sheet.dart';
-import '../widgets/stadium_effects.dart';
 import '../widgets/surface_panel.dart';
 import '../widgets/wicket_sheet.dart';
 
@@ -61,7 +56,6 @@ class _ScoringView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = live.state;
-    final setup = state.setup;
     final inn = state.current;
     final phase = state.phase;
     final isLive = phase == MatchPhase.inPlay ||
@@ -73,115 +67,59 @@ class _ScoringView extends ConsumerWidget {
 
     void act(String? error) => reportResult(context, error);
 
-    final tabs = [
-      if (state.isCompleted) 'Result' else 'Live',
-      for (final innings in state.innings) '${setup.teamById(innings.battingTeamId).name} ${scoreLine(innings)}',
-      'Overs',
-      'Charts',
-    ];
-
-    return DefaultTabController(
-      // A new innings adds a tab, which needs a fresh controller.
-      key: ValueKey(tabs.length),
-      length: tabs.length,
-      child: Builder(
-        builder: (context) {
-          void jumpTo(int tab) => DefaultTabController.of(context).animateTo(tab);
-          void openInnings(int index) => jumpTo(1 + index);
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor: Colors.transparent,
-              scrolledUnderElevation: 0,
-              title: Text(
-                '${setup.teamA.name} vs ${setup.teamB.name}',
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-              actions: [
-                IconButton(
-                  tooltip: 'Undo last action',
-                  onPressed: live.canUndo ? () => _undo(context, ref) : null,
-                  icon: const Icon(Icons.undo_rounded),
-                ),
-                IconButton(
-                  tooltip: 'Share',
-                  onPressed: () => showShareScorecardSheet(context, state),
-                  icon: const Icon(Icons.share_rounded),
-                ),
-                PopupMenuButton<_MenuAction>(
-                  enabled: phase != MatchPhase.completed,
-                  onSelected: (action) => _onMenu(context, ref, action),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: _MenuAction.changeBowler,
-                      enabled: phase == MatchPhase.inPlay,
-                      child: const ListTile(
-                        leading: Icon(Icons.sports_baseball_outlined),
-                        title: Text('Change bowler'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _MenuAction.retire,
-                      enabled: isLive && phase != MatchPhase.awaitingBatter,
-                      child: const ListTile(
-                        leading: Icon(Icons.personal_injury_outlined),
-                        title: Text('Retire batter'),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      value: _MenuAction.endInnings,
-                      enabled: isLive,
-                      child: const ListTile(
-                        leading: Icon(Icons.flag_outlined),
-                        title: Text('End innings'),
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: _MenuAction.abandon,
-                      child: ListTile(
-                        leading: Icon(Icons.umbrella_outlined),
-                        title: Text('Abandon match'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-              bottom: TabBar(
-                isScrollable: true,
-                tabAlignment: TabAlignment.start,
-                // Keeps the first pill off the screen edge. Compact, so the
-                // Live tab keeps as much room as it can for scoring.
-                padding: const EdgeInsets.fromLTRB(12, 0, 12, 6),
-                tabs: [for (final t in tabs) Tab(height: 38, text: t)],
+    return MatchTabsView(
+      state: state,
+      lockSwipeWhileLive: true,
+      actions: [
+        IconButton(
+          tooltip: 'Undo last action',
+          onPressed: live.canUndo ? () => _undo(context, ref) : null,
+          icon: const Icon(Icons.undo_rounded),
+        ),
+        IconButton(
+          tooltip: 'Share',
+          onPressed: () => showShareScorecardSheet(context, state),
+          icon: const Icon(Icons.share_rounded),
+        ),
+        PopupMenuButton<_MenuAction>(
+          enabled: phase != MatchPhase.completed,
+          onSelected: (action) => _onMenu(context, ref, action),
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: _MenuAction.changeBowler,
+              enabled: phase == MatchPhase.inPlay,
+              child: const ListTile(
+                leading: Icon(Icons.sports_baseball_outlined),
+                title: Text('Change bowler'),
               ),
             ),
-            body: _ResultCelebration(
-              state: state,
-              child: TabBarView(
-                // While scoring, a hurried drag on the pad must not flip tabs.
-                // Tapping a tab still works; swiping returns with the result.
-                physics: state.isCompleted ? null : const NeverScrollableScrollPhysics(),
-                children: [
-                  Floodlight(
-                    child: state.isCompleted
-                        ? MatchResultTab(
-                            state: state,
-                            onInnings: openInnings,
-                            onOvers: () => jumpTo(tabs.length - 2),
-                            onCharts: () => jumpTo(tabs.length - 1),
-                          )
-                        : _liveTab(context, ref, act: act, canSwap: canSwap),
-                  ),
-                  for (final innings in state.innings)
-                    InningsScorecard(state: state, innings: innings, onInnings: openInnings),
-                  OversTimeline(state: state),
-                  MatchCharts(state: state),
-                ],
+            PopupMenuItem(
+              value: _MenuAction.retire,
+              enabled: isLive && phase != MatchPhase.awaitingBatter,
+              child: const ListTile(
+                leading: Icon(Icons.personal_injury_outlined),
+                title: Text('Retire batter'),
               ),
             ),
-          );
-        },
-      ),
+            PopupMenuItem(
+              value: _MenuAction.endInnings,
+              enabled: isLive,
+              child: const ListTile(
+                leading: Icon(Icons.flag_outlined),
+                title: Text('End innings'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: _MenuAction.abandon,
+              child: ListTile(
+                leading: Icon(Icons.umbrella_outlined),
+                title: Text('Abandon match'),
+              ),
+            ),
+          ],
+        ),
+      ],
+      liveTab: _liveTab(context, ref, act: act, canSwap: canSwap),
     );
   }
 
@@ -485,38 +423,6 @@ class _ScoringView extends ConsumerWidget {
 
 /// Throws confetti when the match is won while the scorer watches. Opening a
 /// finished match does not.
-class _ResultCelebration extends StatefulWidget {
-  const _ResultCelebration({required this.state, required this.child});
-
-  final MatchState state;
-  final Widget child;
-
-  @override
-  State<_ResultCelebration> createState() => _ResultCelebrationState();
-}
-
-class _ResultCelebrationState extends State<_ResultCelebration> {
-  /// Bumped per celebration, so a second win (after an undo) replays it.
-  int _bursts = 0;
-
-  @override
-  void didUpdateWidget(_ResultCelebration old) {
-    super.didUpdateWidget(old);
-    final justWon = !old.state.isCompleted &&
-        widget.state.isCompleted &&
-        widget.state.result?.winnerTeamId != null;
-    if (justWon && !reduceMotion(context)) setState(() => _bursts++);
-  }
-
-  @override
-  Widget build(BuildContext context) => Stack(
-        children: [
-          widget.child,
-          if (_bursts > 0) Positioned.fill(child: ConfettiBurst(key: ValueKey(_bursts))),
-        ],
-      );
-}
-
 class _BottomPanel extends StatelessWidget {
   const _BottomPanel({required this.child});
 

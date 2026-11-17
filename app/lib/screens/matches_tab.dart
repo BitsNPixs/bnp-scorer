@@ -7,16 +7,19 @@ import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/motion.dart';
 import '../widgets/match_card.dart';
+import '../widgets/scoring_sheets.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/stadium_effects.dart';
 import '../widgets/stumps_art.dart';
 import '../widgets/summary_tiles.dart';
 import '../widgets/surface_panel.dart';
+import 'watch_match_screen.dart';
 
 const _allMatches = 'all';
 const _friendlies = 'friendlies';
 
-/// Every match on the device, newest first, with a filter per tournament.
+/// Every match on the device, newest first, with a filter per tournament. In a
+/// cloud build, a switch at the top also shows everyone's published matches.
 class MatchesTab extends ConsumerStatefulWidget {
   const MatchesTab({super.key, required this.onNewMatch});
 
@@ -29,6 +32,9 @@ class MatchesTab extends ConsumerStatefulWidget {
 class _MatchesTabState extends ConsumerState<MatchesTab> {
   /// [_allMatches], [_friendlies] or a tournament id.
   String _filter = _allMatches;
+
+  /// Showing everyone's published matches instead of this phone's.
+  bool _everyone = false;
 
   /// Which tournament each of its matches belongs to, for the delete warning.
   Map<String, String> _tournamentNames(List<TournamentProgress> tournaments) => {
@@ -58,6 +64,8 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
     final tournaments = ref.watch(tournamentsProvider).value ?? const <TournamentProgress>[];
     final list = matches.value ?? const <MatchSummary>[];
     final isLight = Theme.of(context).brightness == Brightness.light;
+    final hasCloud = ref.watch(cloudMatchesProvider) != null;
+    final everyone = hasCloud && _everyone;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isLight ? SystemUiOverlayStyle.dark : SystemUiOverlayStyle.light,
@@ -67,40 +75,60 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
           child: CustomScrollView(
             slivers: [
               const SliverToBoxAdapter(child: _HomeHeader()),
-              if (list.isNotEmpty) ...[
+              if (hasCloud)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
-                    child: EntranceFade(child: _HeroCard(onStart: widget.onNewMatch)),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    child: OptionChips<bool>(
+                      options: const [false, true],
+                      labelOf: (e) => e ? 'Everyone' : 'My matches',
+                      selected: everyone,
+                      color: Theme.of(context).colorScheme.primary,
+                      onSelected: (e) => setState(() => _everyone = e),
+                    ),
                   ),
                 ),
+              if (everyone) ...const [
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    child: SummaryTiles(matches: list, tournamentCount: tournaments.length),
-                  ),
+                  child: Padding(padding: EdgeInsets.fromLTRB(20, 14, 20, 4), child: SectionTitle('Live and recent')),
                 ),
-                const SliverToBoxAdapter(
-                  child: Padding(padding: EdgeInsets.fromLTRB(20, 22, 20, 4), child: SectionTitle('Matches')),
+                _EveryoneList(),
+              ] else ...[
+                if (list.isNotEmpty) ...[
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+                      child: EntranceFade(child: _HeroCard(onStart: widget.onNewMatch)),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                      child: SummaryTiles(matches: list, tournamentCount: tournaments.length),
+                    ),
+                  ),
+                  const SliverToBoxAdapter(
+                    child: Padding(padding: EdgeInsets.fromLTRB(20, 22, 20, 4), child: SectionTitle('Matches')),
+                  ),
+                ],
+                if (tournaments.isNotEmpty && list.isNotEmpty)
+                  SliverToBoxAdapter(
+                    child: _MatchFilter(
+                      selected: _filter,
+                      tournaments: tournaments,
+                      onSelected: (filter) => setState(() => _filter = filter),
+                    ),
+                  ),
+                matches.when(
+                  loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+                  error: (error, _) => SliverFillRemaining(
+                    child: Center(child: Text('Could not load matches.\n$error', textAlign: TextAlign.center)),
+                  ),
+                  data: (all) => all.isEmpty
+                      ? SliverFillRemaining(hasScrollBody: false, child: _EmptyState(onStart: widget.onNewMatch))
+                      : _MatchList(matches: _filtered(all, tournaments), tournamentNames: _tournamentNames(tournaments)),
                 ),
               ],
-              if (tournaments.isNotEmpty && list.isNotEmpty)
-                SliverToBoxAdapter(
-                  child: _MatchFilter(
-                    selected: _filter,
-                    tournaments: tournaments,
-                    onSelected: (filter) => setState(() => _filter = filter),
-                  ),
-                ),
-              matches.when(
-                loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-                error: (error, _) => SliverFillRemaining(
-                  child: Center(child: Text('Could not load matches.\n$error', textAlign: TextAlign.center)),
-                ),
-                data: (all) => all.isEmpty
-                    ? SliverFillRemaining(hasScrollBody: false, child: _EmptyState(onStart: widget.onNewMatch))
-                    : _MatchList(matches: _filtered(all, tournaments), tournamentNames: _tournamentNames(tournaments)),
-              ),
             ],
           ),
         ),
@@ -133,6 +161,52 @@ class _MatchFilter extends StatelessWidget {
           for (final p in tournaments) chip(p.tournament.id, p.tournament.name),
         ],
       ),
+    );
+  }
+}
+
+/// Everyone's published matches, newest first, updating live. Tapping one
+/// watches it.
+class _EveryoneList extends ConsumerWidget {
+  const _EveryoneList();
+
+  static const emptyMessage = 'No public matches yet.\nSign in from Settings, and the matches you score '
+      'show up here for everyone.';
+  static const errorMessage = 'Could not load public matches. Check your connection and try again.';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final matches = ref.watch(publicMatchesProvider);
+    Widget message(String text) => SliverFillRemaining(
+      hasScrollBody: false,
+      child: Padding(padding: const EdgeInsets.all(32), child: Center(child: Text(text, textAlign: TextAlign.center))),
+    );
+    return matches.when(
+      loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
+      error: (_, _) => message(errorMessage),
+      data: (list) => list.isEmpty
+          ? message(emptyMessage)
+          : SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+              sliver: SliverList.separated(
+                itemCount: list.length,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, i) {
+                  final published = list[i].match;
+                  return EntranceFade(
+                    key: ValueKey('public-${published.record.id}'),
+                    index: i,
+                    child: MatchCard(
+                      summary: (record: published.record, state: list[i].state),
+                      scoredBy: published.ownerName,
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(builder: (_) => WatchMatchScreen(matchId: published.record.id)),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
     );
   }
 }

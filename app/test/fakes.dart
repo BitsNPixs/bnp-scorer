@@ -152,7 +152,8 @@ class FakeAccounts implements Accounts {
   }
 }
 
-/// The cloud as two maps: what is published, and by whom.
+/// The cloud as two maps: what is published, and by whom. [recent] and
+/// [watch] act like Firestore snapshots: the current state, then every change.
 class FakeCloudMatches implements CloudMatches {
   final published = <String, MatchRecord>{};
   final owners = <String, Scorer>{};
@@ -161,11 +162,17 @@ class FakeCloudMatches implements CloudMatches {
   /// When true, every write fails, as with no connection and no queue.
   bool failWrites = false;
 
+  /// Documents this app cannot read, by match id: [watch] reports an error.
+  final unreadable = <String>{};
+
+  final _changes = StreamController<void>.broadcast();
+
   @override
   Future<void> publish(MatchRecord record, Scorer owner) async {
     if (failWrites) throw StateError('No connection');
     published[record.id] = record;
     owners[record.id] = owner;
+    _changes.add(null);
   }
 
   @override
@@ -173,5 +180,35 @@ class FakeCloudMatches implements CloudMatches {
     if (failWrites) throw StateError('No connection');
     published.remove(matchId);
     unpublished.add(matchId);
+    _changes.add(null);
+  }
+
+  PublishedMatch _published(String id) =>
+      PublishedMatch(record: published[id]!, ownerUid: owners[id]!.uid, ownerName: owners[id]!.name);
+
+  List<PublishedMatch> _recent(int limit) {
+    final newest = published.values.toList()..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    return [for (final r in newest.take(limit)) _published(r.id)];
+  }
+
+  @override
+  Stream<List<PublishedMatch>> recent({int limit = 30}) async* {
+    yield _recent(limit);
+    await for (final _ in _changes.stream) {
+      yield _recent(limit);
+    }
+  }
+
+  @override
+  Stream<PublishedMatch?> watch(String matchId) async* {
+    PublishedMatch? current() {
+      if (unreadable.contains(matchId)) throw const FormatException('Cannot read this match');
+      return published.containsKey(matchId) ? _published(matchId) : null;
+    }
+
+    yield current();
+    await for (final _ in _changes.stream) {
+      yield current();
+    }
   }
 }

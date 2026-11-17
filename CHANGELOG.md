@@ -177,6 +177,11 @@ upload key. Everything below since 0.1.0 is in it.
   cache and project were on different drives, which is the suspected cause.
 
 ### Verified
+- 2026-11-17, cloud step 1 on the owner's phone: Google sign-in worked with the
+  upload-signed build, a new match appeared in Firestore with its owner as it
+  was scored, older matches stayed private, the security rules allowed public
+  reads, and the cloud copy replayed through the engine to the score on the
+  phone (57/0 after 2 overs). No errors in the phone's log.
 - 2026-11-17, on the owner's phone: the old demo build was backed up and
   uninstalled, beta 0.9.0-beta.1 installed and launched without errors, and the
   restore brought back every match, team and tournament. First real backup and

@@ -20,14 +20,17 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Current status (keep this section up to date)
 - Latest run (2026-11-17): analyze clean, 161 engine and 259 app tests passing,
-  release APK built with Firebase (upload-signed). The phone runs beta
-  0.9.0-beta.1, without the cloud code.
+  release APK built with Firebase (upload-signed). Since 19:10 the owner's
+  phone runs this cloud build (still numbered 0.9.0-beta.1, build 2).
 - **Cloud, step 1 (2026-11-17):** Google sign-in in Settings and publishing a
   signed-in scorer's matches to Firestore (README "Cloud", docs/ROADMAP.md
   "Cloud: shared matches"). **`main` now has the internet permission and
   publishes data: do not give a build from it to testers until the privacy
   policy and Play Data safety are updated (Cloud step 4).** The public list and
-  live view (step 3) are not built yet. Not yet tried on a phone.
+  live view (step 3) are not built yet. Tried on the owner's phone on
+  2026-11-17: Google sign-in worked, a new match was published as it was
+  scored, older matches stayed private, and the cloud copy replays to the same
+  score.
 - **Beta prep (2026-11-17):** run outs off a bye or leg bye and leg byes off a
   no-ball now score correctly; release signing reads `app/android/key.properties`
   (README "Release signing"; the key is `C:/Users/AswinBlix/bnp-upload-keystore.jks`

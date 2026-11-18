@@ -11,10 +11,12 @@
   the app icon (adaptive, legacy and monochrome layers), the splash mark, the
   website's favicon and header mark (`site/img/icon-64.png`, the ball alone),
   its touch icon (`icon-512.png`, on night) and the logo on the link preview
-  (`logo.png`). All of it is drawn as paths by
-  `app/tool/generate_app_icon_test.dart`, no font needed;
-  `AppColors.brandGreen` holds the company green, used nowhere else. Not yet
-  seen on a phone.
+  (`logo.png`), and the ball replaces the bat-and-ball icon in the Matches
+  header and on the shared scorecard card. The art is `paintLogo` in
+  `widgets/logo_mark.dart` (`LogoMark` shows it), drawn as paths with no
+  font; `app/tool/generate_app_icon_test.dart` writes the files from it.
+  `AppColors.brandGreen` holds the company green, used nowhere else. The
+  icon has been installed on the owner's phone; not yet confirmed there.
 
 ## 0.9.0-beta.3 — 2026-11-17
 

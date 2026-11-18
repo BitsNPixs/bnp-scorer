@@ -93,10 +93,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   it, after the owner's sketch `bnp-logo-idea.png` (repo root, untracked,
   like the company logo `bitsnpixs-offical-logo.webp`). On night the b is a
   cut-out and the p chalk, its stem running out of the ball.
-  `app/tool/generate_app_icon_test.dart` draws it all as paths: the Android
-  icon layers, the splash mark and the website's `site/img/icon-64.png`
-  (ball alone), `icon-512.png` (on night) and `logo.png` (ball, for the link
-  preview); edit the art there and run it
+  The art is `paintLogo` in `lib/widgets/logo_mark.dart`; `LogoMark` shows
+  the ball in the Matches header and on the shared scorecard card, and
+  `app/tool/generate_app_icon_test.dart` writes the Android icon layers, the
+  splash mark and the website's `site/img/icon-64.png` (ball alone),
+  `icon-512.png` (on night) and `logo.png` (ball, for the link preview) from
+  it; edit the art in the widget and run the generator
   (`flutter test tool/generate_app_icon_test.dart`), never by hand, then
   `python tool/build_site_assets.py`. `test/app_icon_test.dart` checks sizes
   and wiring, site included. An upload-signed release (still beta.3, build 4)
@@ -228,6 +230,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Screen glow, confetti | `Floodlight`, `ConfettiBurst` (`widgets/stadium_effects.dart`) |
 | Bottom bar | `AppBottomBar` (`widgets/app_bottom_bar.dart`) |
 | Match card, number tiles, stumps art | `MatchCard`, `SummaryTiles`, `StumpsArt` (`widgets/`) |
+| The logo (ball), in a header or drawn to a canvas | `LogoMark`, `paintLogo` (`widgets/logo_mark.dart`) |
 | A match screen's frame (title, Live/Result, innings, Overs, Charts, confetti) | `MatchTabsView` (`widgets/match_tabs_view.dart`), used by scoring and watching |
 | Match summary card, one innings' scorecard, finished-match tab | `ResultHero` (`widgets/result_hero.dart`), `InningsScorecard` (`widgets/innings_scorecard.dart`), `MatchResultTab` (`widgets/match_result_tab.dart`) |
 | Light / dark choice | `themeModeProvider`, `AppSettings` (`data/app_settings.dart`), `showSettingsSheet` |

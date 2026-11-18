@@ -7,6 +7,7 @@ import '../data/cloud_cups.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/motion.dart';
+import '../widgets/logo_mark.dart';
 import '../widgets/match_card.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/settings_sheet.dart';
@@ -382,7 +383,7 @@ class _HomeHeader extends StatelessWidget {
               border: Border.all(color: AppColors.neon.withValues(alpha: 0.35)),
               boxShadow: AppColors.glow(AppColors.neon, strength: 0.25, blur: 16),
             ),
-            child: const Icon(Icons.sports_cricket_rounded, color: AppColors.neon),
+            child: const Center(child: LogoMark(size: 36)),
           ),
           const SizedBox(width: 12),
           Expanded(

@@ -9,6 +9,7 @@ import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
+import 'logo_mark.dart';
 import 'scoring_sheets.dart';
 
 const _imageScale = 3.0;
@@ -90,7 +91,7 @@ class ScorecardCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Icon(Icons.sports_cricket_rounded, color: AppColors.neon, size: 20),
+              const LogoMark(size: 22),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

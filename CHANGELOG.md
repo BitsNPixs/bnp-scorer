@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Changed
+- The website's footer names the company in full, "© 2026 BitsNPixs
+  Technologies Private Limited. All rights reserved.", with BitsNPixs linking
+  to https://bitsnpixs.com/, on the home page and the privacy policy.
+
 ## 0.9.0-beta.5 — 2026-11-18
 
 Squads without typing: paste a list from WhatsApp, or import teams from a sheet.

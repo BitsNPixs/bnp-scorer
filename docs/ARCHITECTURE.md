@@ -438,13 +438,16 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - Light, dark, or follow the phone, chosen in Settings and stored as
   `bnp_scorer.themeMode` (`AppSettings`, `themeModeProvider`).
 - **Brand:**
-  - night `#07100C`, with the hero gradient `#173F2F` to `#0B1A14`. Hero cards
+  - night `#081008`, with the hero gradient `#1F3F17` to `#0D1A0B`. Hero cards
     (score, champions, leaders, share card) stay dark in both themes, like a
     floodlit scoreboard;
-  - neon green `#2CF59E` as the accent and the fill of primary buttons, always
-    with night text;
-  - turf green `#007A4D` as `colorScheme.primary` in the light theme, for text
-    and icons on light surfaces, where neon is too faint;
+  - the Bits N Pixs green as the accent and the fill of primary buttons, always
+    with night text: `#7DC43A` (`AppColors.neon`, the name kept from the
+    earlier mint), a shade brighter than the logo's `#6FAE29`
+    (`AppColors.brandGreen`) so it carries on night;
+  - deep brand green `#3F7A14` (`AppColors.turf`) as `colorScheme.primary` in
+    the light theme, for text and icons on light surfaces, where the accent is
+    too faint;
   - cards have a hairline edge (`cardShape`) for a glassy look in the dark.
 - **Outcome colours** (the same in both themes):
   - four: amber `#FFB21E`;

@@ -25,11 +25,11 @@ SHOTS = APP / 'build' / 'screenshots'
 FONTS = APP / 'assets' / 'google_fonts'
 SITE = APP.parent / 'site'
 
-NIGHT = (7, 16, 12)
-PITCH = (23, 63, 47)
-NEON = (44, 245, 158)
-CHALK = (232, 241, 236)
-MUTED = (142, 163, 152)
+NIGHT = (8, 16, 8)
+PITCH = (31, 63, 23)
+NEON = (125, 196, 58)
+CHALK = (234, 241, 230)
+MUTED = (149, 163, 140)
 
 # Screens and how much of their height to keep (the table ends early).
 SCREENS = {'scoring': 1.0, 'home': 1.0, 'team': 1.0, 'result': 1.0, 'scorecard': 1.0, 'charts': 1.0, 'table': 0.52}

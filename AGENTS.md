@@ -88,6 +88,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked;
   the owner is fine with them being public (2026-11-17).
+- **Brand green (2026-11-18):** the app and website accent moved from mint
+  neon to the Bits N Pixs green, with the night surfaces warmed to match, after
+  the owner approved a preview of every screen in both themes. Chart colours
+  passed the dataviz check on the new card surfaces. Website screens and the
+  link preview were re-rendered.
 - Logo, app icon and splash (2026-11-18): a cricket ball in the Bits N Pixs
   green (`AppColors.brandGreen`) with the company logo's thin b and p across
   it, after the owner's sketch `bnp-logo-idea.png` (repo root, untracked,
@@ -200,8 +205,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   Back on a tab other than Matches returns to Matches. Add go_router only with
   deep links (shared scorecards).
 - **Theme:** colours come from `Theme.of(context).colorScheme` or `AppColors`.
-  Neon (`AppColors.neon`) is a fill and an accent on dark surfaces. Text on light
-  surfaces uses `colorScheme.primary`, which is deep green in the light theme.
+  The accent (`AppColors.neon`, the brand green since 2026-11-18; the name is
+  kept) is a fill and an accent on dark surfaces. Text on light surfaces uses
+  `colorScheme.primary`, which is deep brand green in the light theme.
   Hero cards stay dark in both themes.
 - **No code generation in v0.1** (no freezed, json_serializable, Drift or
   riverpod_generator). Models are hand-written and immutable.

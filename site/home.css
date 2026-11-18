@@ -3,20 +3,20 @@
    appear only where they mean what they mean in the app. */
 :root {
   color-scheme: dark;
-  --night: #07100c;
-  --pitch: #173f2f;
-  --pitch-deep: #0b1a14;
-  --surface: #0f1612;
-  --raised: #18221c;
-  --line: #24312a;
-  --chalk: #e8f1ec;
-  --muted: #9db2a6;
-  --neon: #2cf59e;
+  --night: #081008;
+  --pitch: #1f3f17;
+  --pitch-deep: #0d1a0b;
+  --surface: #10160e;
+  --raised: #192217;
+  --line: #26311f;
+  --chalk: #eaf1e6;
+  --muted: #a3b29a;
+  --neon: #7dc43a;
   --four: #ffb21e;
   --six: #7c4dff;
   --wicket: #ff4d5e;
   --wide: #1c72d8;
-  --dot: #2a3530;
+  --dot: #2c3528;
   --display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --text: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -104,8 +104,8 @@ a { color: var(--neon); }
   inset: -120px -20vw auto;
   height: 680px;
   background:
-    radial-gradient(ellipse 50% 60% at 15% 20%, rgba(44, 245, 158, 0.13), transparent 70%),
-    radial-gradient(ellipse 40% 50% at 85% 10%, rgba(44, 245, 158, 0.08), transparent 70%);
+    radial-gradient(ellipse 50% 60% at 15% 20%, rgba(125, 196, 58, 0.13), transparent 70%),
+    radial-gradient(ellipse 40% 50% at 85% 10%, rgba(125, 196, 58, 0.08), transparent 70%);
   pointer-events: none;
   z-index: -1;
 }
@@ -120,7 +120,7 @@ a { color: var(--neon); }
   margin: 22px 0 0;
   max-width: 34em;
   font-size: 19px;
-  color: #c9dbd1;
+  color: #d0dcc8;
 }
 
 .actions {
@@ -144,10 +144,10 @@ a { color: var(--neon); }
 .button.primary {
   background: var(--neon);
   color: var(--night);
-  box-shadow: 0 10px 30px -10px rgba(44, 245, 158, 0.6);
+  box-shadow: 0 10px 30px -10px rgba(125, 196, 58, 0.6);
 }
 
-.button.primary:hover { background: #5cf8b4; }
+.button.primary:hover { background: #a6e55c; }
 
 .button.ghost {
   color: var(--chalk);
@@ -164,7 +164,7 @@ a { color: var(--neon); }
   padding: 20px 22px 18px;
   border-radius: 24px;
   background: linear-gradient(135deg, var(--pitch), var(--pitch-deep));
-  border: 1px solid rgba(44, 245, 158, 0.25);
+  border: 1px solid rgba(125, 196, 58, 0.25);
 }
 
 .scoreboard .top {
@@ -174,7 +174,7 @@ a { color: var(--neon); }
   gap: 12px;
 }
 
-.scoreboard .team { font-weight: 600; color: #cfe3d8; }
+.scoreboard .team { font-weight: 600; color: #d8e6cf; }
 
 .live {
   display: inline-flex;
@@ -235,7 +235,7 @@ a { color: var(--neon); }
   animation: bowl 0.4s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
-.ball.dot { color: #8ea398; }
+.ball.dot { color: #95a38c; }
 .ball.wide { background: var(--wide); }
 .ball.wicket { background: var(--wicket); }
 .ball.six { background: var(--six); }
@@ -258,9 +258,9 @@ a { color: var(--neon); }
   width: min(300px, 100%);
   padding: 9px;
   border-radius: 40px;
-  background: #1b2620;
-  border: 1px solid #2c3a33;
-  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8), 0 0 60px -20px rgba(44, 245, 158, 0.25);
+  background: #1c261a;
+  border: 1px solid #2f3a2a;
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8), 0 0 60px -20px rgba(125, 196, 58, 0.25);
 }
 
 .phone img { border-radius: 31px; }
@@ -330,7 +330,7 @@ h2 {
   font: 800 clamp(30px, 4vw, 40px)/1.05 var(--display);
 }
 
-.stage .intro { margin: 10px 0 18px; color: #c9dbd1; font-size: 18px; max-width: 32em; }
+.stage .intro { margin: 10px 0 18px; color: #d0dcc8; font-size: 18px; max-width: 32em; }
 
 .points { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 
@@ -366,7 +366,7 @@ h2 {
   width: min(300px, 100%);
   border-radius: 28px;
   overflow: hidden;
-  border: 1px solid #2c3a33;
+  border: 1px solid #2f3a2a;
   box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.8);
 }
 
@@ -406,12 +406,12 @@ h2 {
   border-radius: 32px;
   padding: clamp(28px, 5vw, 56px);
   background: linear-gradient(135deg, var(--pitch), var(--pitch-deep));
-  border: 1px solid rgba(44, 245, 158, 0.2);
+  border: 1px solid rgba(125, 196, 58, 0.2);
 }
 
 .privacy h2 { max-width: 12em; }
 
-.privacy .button.ghost { border-color: rgba(232, 241, 236, 0.35); }
+.privacy .button.ghost { border-color: rgba(234, 241, 230, 0.35); }
 
 .facts {
   display: grid;
@@ -428,7 +428,7 @@ h2 {
   color: var(--neon);
 }
 
-.facts span { color: #c9dbd1; }
+.facts span { color: #d0dcc8; }
 
 @media (max-width: 700px) {
   .facts { grid-template-columns: 1fr; }

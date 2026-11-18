@@ -4,20 +4,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Brand palette: a floodlit night pitch with a neon green accent. Scoring
+/// Brand palette: a floodlit night pitch with the Bits N Pixs green as the
+/// accent (the field is still called neon). Scoring
 /// colours are fixed across light and dark themes so a "4" always looks like
 /// a 4.
 abstract final class AppColors {
   /// Floodlit night: hero cards in both themes, and the dark theme's base.
-  static const night = Color(0xFF07100C);
-  static const nightRaised = Color(0xFF173F2F);
+  static const night = Color(0xFF081008);
+  static const nightRaised = Color(0xFF1F3F17);
 
-  /// Neon pitch green: the accent on night and the fill of primary actions.
-  static const neon = Color(0xFF2CF59E);
-  static const neonDeep = Color(0xFF14CC80);
+  /// The brand green, a shade brighter than the logo's so it carries on night:
+  /// the accent on night and the fill of primary actions.
+  static const neon = Color(0xFF7DC43A);
+  static const neonDeep = Color(0xFF5A9420);
 
   /// Green for text and icons on light surfaces, where neon is too faint.
-  static const turf = Color(0xFF007A4D);
+  static const turf = Color(0xFF3F7A14);
 
   /// Bits N Pixs' green, the "n" of the company logo. Only the BNP Scorer
   /// logo uses it (`tool/generate_app_icon_test.dart`); the app itself stays
@@ -43,14 +45,14 @@ abstract final class AppColors {
   static const heroGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [nightRaised, Color(0xFF0B1A14)],
+    colors: [nightRaised, Color(0xFF0D1A0B)],
   );
 
   /// Fill of the big call-to-action buttons.
   static const neonGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF6BFFC2), neonDeep],
+    colors: [Color(0xFFA6E55C), neonDeep],
   );
 
   /// A soft coloured glow under a raised element.
@@ -134,19 +136,19 @@ abstract final class AppTheme {
     final scheme = ColorScheme.fromSeed(seedColor: AppColors.neonDeep, brightness: brightness).copyWith(
       primary: isLight ? AppColors.turf : AppColors.neon,
       onPrimary: isLight ? Colors.white : AppColors.night,
-      primaryContainer: isLight ? const Color(0xFFC6F6DE) : const Color(0xFF0F3D2A),
-      onPrimaryContainer: isLight ? const Color(0xFF00391F) : AppColors.neon,
-      secondaryContainer: isLight ? const Color(0xFFDDEEE5) : const Color(0xFF1A2A22),
-      onSecondaryContainer: isLight ? const Color(0xFF0A1A12) : const Color(0xFFDDF7EA),
-      surface: isLight ? const Color(0xFFEEF3F0) : const Color(0xFF060A08),
-      onSurface: isLight ? const Color(0xFF0A1A12) : const Color(0xFFE8F1EC),
-      onSurfaceVariant: isLight ? const Color(0xFF4F6157) : const Color(0xFF8EA398),
-      surfaceContainerLowest: isLight ? Colors.white : const Color(0xFF0F1612),
-      surfaceContainerLow: isLight ? const Color(0xFFF8FBF9) : const Color(0xFF131B16),
-      surfaceContainer: isLight ? const Color(0xFFE3EBE6) : const Color(0xFF18221C),
-      surfaceContainerHigh: isLight ? const Color(0xFFD8E2DC) : const Color(0xFF1F2A24),
-      outline: isLight ? const Color(0xFF8A9A91) : const Color(0xFF3A4A41),
-      outlineVariant: isLight ? const Color(0xFFD2DDD6) : const Color(0xFF223029),
+      primaryContainer: isLight ? const Color(0xFFDDF2C4) : const Color(0xFF203D14),
+      onPrimaryContainer: isLight ? const Color(0xFF1E3A08) : AppColors.neon,
+      secondaryContainer: isLight ? const Color(0xFFE3EDDA) : const Color(0xFF1E2A1A),
+      onSecondaryContainer: isLight ? const Color(0xFF121A0A) : const Color(0xFFE6F5D8),
+      surface: isLight ? const Color(0xFFF0F3EC) : const Color(0xFF070A06),
+      onSurface: isLight ? const Color(0xFF121A0C) : const Color(0xFFEAF1E6),
+      onSurfaceVariant: isLight ? const Color(0xFF56614C) : const Color(0xFF95A38C),
+      surfaceContainerLowest: isLight ? Colors.white : const Color(0xFF10160E),
+      surfaceContainerLow: isLight ? const Color(0xFFF8FBF6) : const Color(0xFF141B11),
+      surfaceContainer: isLight ? const Color(0xFFE5EBDF) : const Color(0xFF192217),
+      surfaceContainerHigh: isLight ? const Color(0xFFDAE2D3) : const Color(0xFF202A1D),
+      outline: isLight ? const Color(0xFF8E9A85) : const Color(0xFF3E4A37),
+      outlineVariant: isLight ? const Color(0xFFD4DDCC) : const Color(0xFF253021),
       error: AppColors.wicket,
     );
 

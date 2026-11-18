@@ -2,35 +2,35 @@
    light or dark. Fonts come from this site (fonts.css), so a visit sends
    nothing to a font server. */
 :root {
-  --bg: #eef3f0;
+  --bg: #f0f3ec;
   --surface: #ffffff;
-  --text: #0a1a12;
-  --muted: #4f6157;
-  --line: #d8e2dc;
-  --accent: #007a4d;
-  --hero: linear-gradient(135deg, #173f2f, #0b1a14);
-  --neon: #2cf59e;
-  --night: #07100c;
+  --text: #121a0c;
+  --muted: #56614c;
+  --line: #dae2d3;
+  --accent: #3f7a14;
+  --hero: linear-gradient(135deg, #1f3f17, #0d1a0b);
+  --neon: #7dc43a;
+  --night: #081008;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #060a08;
-    --surface: #0f1612;
-    --text: #e8f1ec;
-    --muted: #8ea398;
-    --line: #1f2a24;
-    --accent: #2cf59e;
+    --bg: #070a06;
+    --surface: #10160e;
+    --text: #eaf1e6;
+    --muted: #95a38c;
+    --line: #202a1d;
+    --accent: #7dc43a;
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #060a08;
-  --surface: #0f1612;
-  --text: #e8f1ec;
-  --muted: #8ea398;
-  --line: #1f2a24;
-  --accent: #2cf59e;
+  --bg: #070a06;
+  --surface: #10160e;
+  --text: #eaf1e6;
+  --muted: #95a38c;
+  --line: #202a1d;
+  --accent: #7dc43a;
 }
 
 * { box-sizing: border-box; }
@@ -68,7 +68,7 @@ main {
   font: italic 800 clamp(40px, 9vw, 60px)/1 "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 
-.hero p { margin: 0; color: #cfe3d8; }
+.hero p { margin: 0; color: #d8e6cf; }
 
 h2 {
   font: 800 26px/1.1 "Barlow Condensed", "Arial Narrow", sans-serif;

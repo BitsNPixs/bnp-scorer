@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Changed
+- The accent is the Bits N Pixs green instead of mint neon, in the app and on
+  the website, and the night surfaces lean toward that green so the hero cards
+  match the logo. The light theme uses a deep brand green for text and icons.
+  Scoring colours (4, 6, wicket, extras) and the chart series are unchanged;
+  the charts passed the colour check on the new card surfaces, and every text
+  pair stays above 4.5:1. The website screens and link preview were redrawn.
 - A logo of its own, after the owner's sketch: a cricket ball in the Bits N
   Pixs green, lit from the top left with a stitched seam, and the company
   logo's thin geometric b and p drawn across it, the p's stem running out of

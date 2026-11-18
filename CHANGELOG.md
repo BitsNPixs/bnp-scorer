@@ -5,7 +5,9 @@
 ### Changed
 - The website's footer names the company in full, "© 2026 BitsNPixs
   Technologies Private Limited. All rights reserved.", with BitsNPixs linking
-  to https://bitsnpixs.com/, on the home page and the privacy policy.
+  to https://bitsnpixs.com/, on the home page and the privacy policy. The
+  site spells the name BitsNPixs everywhere, and the privacy policy names the
+  company in full in its first line.
 
 ## 0.9.0-beta.5 — 2026-11-18
 

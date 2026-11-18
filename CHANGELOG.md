@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.0-beta.6 — 2026-11-18
+
+The company's name, BitsNPixs, in the app and on the website.
+
 ### Changed
 - The website's footer names the company in full, "© 2026 BitsNPixs
   Technologies Private Limited. All rights reserved.", with BitsNPixs linking

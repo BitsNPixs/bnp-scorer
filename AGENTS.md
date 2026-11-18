@@ -20,13 +20,14 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Current status (keep this section up to date)
 - Latest run (2026-11-18): analyze clean, 182 engine and 357 app tests passing,
-  beta 0.9.0-beta.5 (build 6) built with Firebase and upload-signed
-  (`dist/bnp-scorer-0.9.0-beta.5.apk`): beta.4 (cups, prizes, upcoming
-  matches, cloud, ball logo, brand green) plus pasting and importing squads
-  and the CSV template. Published as GitHub Release `v0.9.0-beta.5` (asset
+  beta 0.9.0-beta.6 (build 7) built with Firebase and upload-signed
+  (`dist/bnp-scorer-0.9.0-beta.6.apk`): beta.5 (cups, prizes, upcoming
+  matches, cloud, ball logo, brand green, pasting and importing squads, the
+  CSV template) with the company spelled BitsNPixs in Settings and the
+  licences screen. Published as GitHub Release `v0.9.0-beta.6` (asset
   `bnp-scorer.apk`), which the website's Download for Android button serves
-  (README "Beta builds"), and installed on the owner's phone. The privacy
-  policy now covers the clipboard read and imported files. A two-phone try of
+  (README "Beta builds"). Beta.5 is on the owner's phone. The privacy policy
+  covers the clipboard read and imported files. A two-phone try of
   cups and schedules is still to come. **What to do next is in
   docs/ROADMAP.md "Next, in order".**
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text

@@ -35,6 +35,9 @@
 ### Fixed
 - The website no longer scrolls sideways: the floodlight glow behind the hero
   stuck out past both edges, and is now part of the page background.
+- The website served the CSV template with Unix line ends while the app
+  shares CRLF, and the test comparing them only passed on Windows.
+  `.gitattributes` now keeps CSV files at CRLF on every checkout.
 
 ## 0.9.0-beta.4 — 2026-11-18
 

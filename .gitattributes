@@ -1,0 +1,4 @@
+# CSV files keep the CRLF line ends the CSV standard uses, on every checkout and
+# on the website, so the template the app shares matches site/teams-template.csv
+# byte for byte (app/test/squad_import_test.dart checks).
+*.csv text eol=crlf

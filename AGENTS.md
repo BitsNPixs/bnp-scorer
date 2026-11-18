@@ -26,7 +26,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   CSV template) with the company spelled BitsNPixs in Settings and the
   licences screen. Published as GitHub Release `v0.9.0-beta.6` (asset
   `bnp-scorer.apk`), which the website's Download for Android button serves
-  (README "Beta builds"). Beta.5 is on the owner's phone. The privacy policy
+  (README "Beta builds"), and installed on the owner's phone. The privacy policy
   covers the clipboard read and imported files. A two-phone try of
   cups and schedules is still to come. **What to do next is in
   docs/ROADMAP.md "Next, in order".**

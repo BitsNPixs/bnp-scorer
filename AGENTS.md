@@ -25,9 +25,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   matches, cloud, ball logo, brand green) plus pasting and importing squads
   and the CSV template. Published as GitHub Release `v0.9.0-beta.5` (asset
   `bnp-scorer.apk`), which the website's Download for Android button serves
-  (README "Beta builds"). The privacy policy now covers the clipboard read
-  and imported files. A two-phone try of cups and schedules is still to come. **What to do next is
-  in docs/ROADMAP.md "Next, in order".**
+  (README "Beta builds"), and installed on the owner's phone. The privacy
+  policy now covers the clipboard read and imported files. A two-phone try of
+  cups and schedules is still to come. **What to do next is in
+  docs/ROADMAP.md "Next, in order".**
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
   cover sign-in and publishing, and the scorer name never falls back to the
   email. Beta.2 may go to testers once the site is pushed, so the policy link
@@ -72,11 +73,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   after an uninstall and launched cleanly, and a backup made on the old build
   restored everything on it. On 2026-11-18: beta.4 installed over beta.3
   keeping data, and a screenshot showed Home in the brand green with the ball
-  logo in the header.
-- **Not yet checked on a real phone:** the ball logo as launcher icon and
-  splash, the scorecard tabs and Result tab (seen only in test renders with
-  the real fonts), the
-  bursts and confetti, the Settings sheet and its Report a problem, the new
+  logo in the header; beta.5 then installed over it, keeping data.
+- **Not yet checked on a real phone:** pasting a list, importing a CSV and
+  sharing the template (tests and real-font renders only), the ball logo as
+  launcher icon and splash, the scorecard tabs and Result tab (seen only in
+  test renders with the real fonts), the bursts and confetti, the Settings sheet and its Report a problem, the new
   wicket and no-ball sheet choices, the run-out end and the eased-rule note in
   the bowler picker, and the error panel (test renders only), the Tournaments and Stats tabs,
   sharing a scorecard image to WhatsApp (the tests replace the share sheet),
@@ -123,8 +124,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   the Teams tab imports a CSV saved from Excel or Google Sheets, in either of
   two shapes, with a preview before saving, after a first sheet that shows the
   format and shares the CSV template. No new dependency: .xlsx is refused with
-  save-as-CSV steps. Paste and import were installed on the owner's phone on
-  2026-11-18, not yet tried there; the template sheet is tests and renders only.
+  save-as-CSV steps. Released in beta.5 and on the owner's phone, not yet
+  tried there.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.

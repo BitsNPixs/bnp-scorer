@@ -25,7 +25,7 @@
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
 
 ## Next, in order (as of 2026-11-18)
-1. **Two-phone try of beta.5 on the real Firestore:** on the owner's phone,
+1. **Two-phone try of beta.6 on the real Firestore:** on the owner's phone,
    signed in, create a knockout cup with a date, add prizes, a fee and a
    payment, and "Schedule for later" a friendly. On a second phone, check
    Everyone > Upcoming and Cups, open the cup (bracket and prize shown, no
@@ -83,7 +83,7 @@ Still to do, all free unless noted:
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
 3. Share betas from the website's Download for Android button (the latest
-   GitHub Release, since beta.3; beta.5 is the latest) or over WhatsApp (README "Beta builds"). Later, the Play Store needs a one-time $25 developer
+   GitHub Release, since beta.3; beta.6 is the latest) or over WhatsApp (README "Beta builds"). Later, the Play Store needs a one-time $25 developer
    account; a new personal account must run a closed test with about 12 testers
    for 14 days before going public.
 4. For the store: `flutter build appbundle --release --obfuscate

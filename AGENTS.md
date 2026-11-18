@@ -74,7 +74,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   after an uninstall and launched cleanly, and a backup made on the old build
   restored everything on it. On 2026-11-18: beta.4 installed over beta.3
   keeping data, and a screenshot showed Home in the brand green with the ball
-  logo in the header; beta.5 then installed over it, keeping data.
+  logo in the header; beta.5 and then beta.6 installed over it, keeping data.
 - **Not yet checked on a real phone:** pasting a list, importing a CSV and
   sharing the template (tests and real-font renders only), the ball logo as
   launcher icon and splash, the scorecard tabs and Result tab (seen only in
@@ -125,7 +125,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   the Teams tab imports a CSV saved from Excel or Google Sheets, in either of
   two shapes, with a preview before saving, after a first sheet that shows the
   format and shares the CSV template. No new dependency: .xlsx is refused with
-  save-as-CSV steps. Released in beta.5 and on the owner's phone, not yet
+  save-as-CSV steps. Released in beta.5 (beta.6 too) and on the owner's phone, not yet
   tried there.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and

@@ -34,6 +34,7 @@ void main() {
       for (final size in [64, 512]) {
         expect(_pngSize('../site/img/icon-$size.png'), (size, size), reason: 'icon-$size');
       }
+      expect(_pngSize('../site/img/logo.png'), (512, 512), reason: 'logo');
       for (final page in ['index', 'privacy']) {
         final html = _read('../site/$page.html');
         expect(html, contains('<link rel="icon" href="img/icon-64.png"'), reason: page);

@@ -88,18 +88,20 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked;
   the owner is fine with them being public (2026-11-17).
-- Logo, app icon and splash (2026-11-18): "bnp" in lowercase, the Bits N Pixs
-  logo's green n (`AppColors.brandGreen`) between a grey b and a chalk p, over
-  a red seam on night. The company logo is `bitsnpixs-offical-logo.webp` in
-  the repo root (untracked). `app/tool/generate_app_icon_test.dart` draws the
-  Android icon layers, the splash mark and the website's `site/img/icon-*.png`
-  with the bundled Inter; edit the art there and run it
+- Logo, app icon and splash (2026-11-18): a cricket ball in the Bits N Pixs
+  green (`AppColors.brandGreen`) with the company logo's thin b and p across
+  it, after the owner's sketch `bnp-logo-idea.png` (repo root, untracked,
+  like the company logo `bitsnpixs-offical-logo.webp`). On night the b is a
+  cut-out and the p chalk, its stem running out of the ball.
+  `app/tool/generate_app_icon_test.dart` draws it all as paths: the Android
+  icon layers, the splash mark and the website's `site/img/icon-64.png`
+  (ball alone), `icon-512.png` (on night) and `logo.png` (ball, for the link
+  preview); edit the art there and run it
   (`flutter test tool/generate_app_icon_test.dart`), never by hand, then
-  `python tool/build_site_assets.py` for the link preview.
-  `test/app_icon_test.dart` checks sizes and wiring, site included. An
-  upload-signed release with the new icon (still beta.3, build 4) was
-  installed over the beta on the owner's phone on 2026-11-18; whether it
-  looks right there is not yet confirmed.
+  `python tool/build_site_assets.py`. `test/app_icon_test.dart` checks sizes
+  and wiring, site included. An upload-signed release (still beta.3, build 4)
+  goes on the owner's phone after each icon change; whether it looks right
+  there is not yet confirmed.
 - Website screens: `app/tool/generate_screenshots_test.dart` renders the app with
   the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
   `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible

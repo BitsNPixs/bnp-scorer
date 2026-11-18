@@ -9,7 +9,7 @@ Writes into ../site:
   img/<screen>.webp   the app screenshots, compressed (the table is cropped to
                       its rows)
   img/share.png       the 1200x630 picture WhatsApp and others show for a link,
-                      with the logo from img/icon-512.png
+                      with the logo from img/logo.png
   fonts/*.woff2       Inter and Barlow Condensed cut down to Latin, with their
                       OFL licences, so the site loads no font from another server
 
@@ -84,8 +84,8 @@ def share_card():
     heading = ImageFont.truetype(str(FONTS / 'BarlowCondensed-Bold.ttf'), 48)
     body = ImageFont.truetype(str(FONTS / 'Inter-SemiBold.ttf'), 30)
 
-    logo = Image.open(SITE / 'img' / 'icon-512.png').convert('RGBA').resize((104, 104), Image.LANCZOS)
-    card.paste(logo, (72, 76), logo)
+    logo = Image.open(SITE / 'img' / 'logo.png').convert('RGBA').resize((112, 112), Image.LANCZOS)
+    card.paste(logo, (64, 68), logo)
     draw.text((66, 170), 'BNP Scorer', font=display, fill=CHALK)
     draw.text((72, 338), 'Ball-by-ball cricket scoring', font=heading, fill=NEON)
     draw.text((72, 396), 'for local and gully matches', font=heading, fill=NEON)

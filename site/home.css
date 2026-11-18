@@ -68,9 +68,8 @@ a { color: var(--neon); }
 }
 
 .brand .mark {
-  width: 34px;
-  height: 34px;
-  border-radius: 9px;
+  width: 36px;
+  height: 36px;
 }
 
 .topbar nav {

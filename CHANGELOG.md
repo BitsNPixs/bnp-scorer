@@ -3,14 +3,18 @@
 ## Unreleased
 
 ### Changed
-- A logo of its own, drawn from the Bits N Pixs logo: "bnp" in lowercase with
-  the company's green n between a light grey b and a chalk p, over a red
-  cricket-ball seam on night. It is the app icon (adaptive, legacy and
-  monochrome layers), the splash mark, the website's favicon and touch icon
-  (`site/img/icon-64.png`, `icon-512.png`), the mark in the website's header and
-  privacy page, and the logo on the link preview. All of it comes from
-  `app/tool/generate_app_icon_test.dart`; `AppColors.brandGreen` holds the
-  company green, used nowhere else. Not yet seen on a phone.
+- A logo of its own, after the owner's sketch: a cricket ball in the Bits N
+  Pixs green, lit from the top left with a stitched seam, and the company
+  logo's thin geometric b and p drawn across it, the p's stem running out of
+  the ball. On night the b is a cut-out of the ball and the p is chalk; the
+  themed (monochrome) icon punches both letters out of a white ball. It is
+  the app icon (adaptive, legacy and monochrome layers), the splash mark, the
+  website's favicon and header mark (`site/img/icon-64.png`, the ball alone),
+  its touch icon (`icon-512.png`, on night) and the logo on the link preview
+  (`logo.png`). All of it is drawn as paths by
+  `app/tool/generate_app_icon_test.dart`, no font needed;
+  `AppColors.brandGreen` holds the company green, used nowhere else. Not yet
+  seen on a phone.
 
 ## 0.9.0-beta.3 — 2026-11-17
 

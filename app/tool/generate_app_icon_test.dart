@@ -8,26 +8,61 @@
 // The art is on a 108-unit canvas, Android's adaptive-icon grid, and keeps
 // everything that matters inside the central 72-unit safe zone.
 //
-// The logo: "bnp" in lowercase, as the Bits N Pixs logo writes its name, with
-// the company's green n between a light grey b and a chalk p (the logo's two
-// greys, lifted for a night background), over a red cricket-ball seam.
+// The logo, after the owner's sketch (bnp-logo-idea.png in the repo root):
+// a cricket ball in the Bits N Pixs green, with the company logo's thin
+// geometric b and p drawn across it, the p's stem running out of the ball.
+// On night surfaces the b is night, a cut-out of the ball, and the p chalk.
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _res = 'android/app/src/main/res';
-const _family = 'BnpIconFace';
 
 /// Android density buckets and their pixels per dp.
 const _densities = {'mdpi': 1.0, 'hdpi': 1.5, 'xhdpi': 2.0, 'xxhdpi': 3.0, 'xxxhdpi': 4.0};
 
 /// Which layers of the art to draw.
 enum _Layer { background, foreground, monochrome, full }
+
+/// The ball: centre and radius on the 108 grid, inside the 72-unit safe zone
+/// with room below for the p's stem.
+const _ballCenter = Offset(54, 50);
+const _ballRadius = 31.0;
+
+/// Stroke of the monoline letters, as thin as still reads at 48 dp.
+const _stroke = 4.6;
+
+/// The b: a stem on the left of a round bowl, in the ball's upper left.
+Path _letterB() {
+  const bowl = Offset(43, 49);
+  const r = 11.5;
+  return Path()
+    ..moveTo(bowl.dx - r, 34)
+    ..lineTo(bowl.dx - r, bowl.dy)
+    ..addOval(Rect.fromCircle(center: bowl, radius: r));
+}
+
+/// The p: a round bowl in the ball's lower right with a long stem that runs
+/// out of the ball, as in the sketch.
+Path _letterP() {
+  const bowl = Offset(68, 53);
+  const r = 11.5;
+  return Path()
+    ..addOval(Rect.fromCircle(center: bowl, radius: r))
+    ..moveTo(bowl.dx - r, bowl.dy)
+    ..lineTo(bowl.dx - r, 86);
+}
+
+Paint _line(Color color, {BlendMode blend = BlendMode.srcOver}) => Paint()
+  ..color = color
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = _stroke
+  ..strokeCap = StrokeCap.round
+  ..blendMode = blend;
 
 void _paint(Canvas canvas, double unit, _Layer layer, {Rect? crop}) {
   canvas.save();
@@ -48,65 +83,56 @@ void _paint(Canvas canvas, double unit, _Layer layer, {Rect? crop}) {
   }
 
   if (layer != _Layer.background) {
-    final mono = layer == _Layer.monochrome;
-    final seamColor = mono ? Colors.white : AppColors.wicket;
-    // The ball's seam: an arc of a big ball below the letters, tilted up to
-    // the right like a swinging delivery, with stitches on both sides.
-    canvas.save();
-    canvas.translate(54, 83);
-    canvas.rotate(-7 * math.pi / 180);
-    final ball = Rect.fromCircle(center: const Offset(0, -96), radius: 96);
-    const sweep = 0.42; // radians each side of straight down
-    canvas.drawArc(
-      ball,
-      math.pi / 2 - sweep,
-      2 * sweep,
-      false,
-      Paint()
-        ..color = seamColor
+    final ball = Rect.fromCircle(center: _ballCenter, radius: _ballRadius);
+    if (layer == _Layer.monochrome) {
+      // Themed icons: a white ball with the letters punched out of it, and
+      // the p's stem white where it leaves the ball.
+      canvas.drawOval(ball, Paint()..color = Colors.white);
+      canvas.drawPath(_letterB(), _line(Colors.white, blend: BlendMode.clear));
+      canvas.drawPath(_letterP(), _line(Colors.white, blend: BlendMode.clear));
+      canvas.save();
+      canvas.clipPath(Path.combine(PathOperation.difference, Path()..addRect(canvasRect), Path()..addOval(ball)));
+      canvas.drawPath(_letterP(), _line(Colors.white));
+      canvas.restore();
+    } else {
+      // A lit sphere in the company green: light from the top left, a darker
+      // rim at the bottom right.
+      canvas.drawOval(
+        ball,
+        Paint()
+          ..shader = const RadialGradient(
+            center: Alignment(-0.4, -0.45),
+            radius: 1.05,
+            colors: [Color(0xFF9BD95A), AppColors.brandGreen, Color(0xFF497F1C)],
+            stops: [0, 0.55, 1],
+          ).createShader(ball),
+      );
+      // The seam: a great circle seen at a tilt, stitched on both sides, in
+      // a deeper green so it shapes the ball without fighting the letters.
+      canvas.save();
+      canvas.clipPath(Path()..addOval(ball));
+      canvas.translate(_ballCenter.dx, _ballCenter.dy);
+      canvas.rotate(-38 * math.pi / 180);
+      final stitch = Paint()
+        ..color = const Color(0xFF2F5C10).withValues(alpha: 0.75)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
-        ..strokeCap = StrokeCap.round,
-    );
-    final stitch = Paint()
-      ..color = seamColor.withValues(alpha: 0.85)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.4
-      ..strokeCap = StrokeCap.round;
-    for (final side in [-4.0, 4.0]) {
-      final row = Path()..addArc(ball.inflate(side), math.pi / 2 - sweep * 0.94, 2 * sweep * 0.94);
-      for (final metric in row.computeMetrics()) {
-        for (var d = 0.0; d < metric.length; d += 4.5) {
-          canvas.drawPath(metric.extractPath(d, math.min(d + 1.6, metric.length)), stitch);
+        ..strokeWidth = 1.5
+        ..strokeCap = StrokeCap.round;
+      for (final side in [-2.6, 2.6]) {
+        final row = Path()
+          ..addArc(Rect.fromCenter(center: Offset.zero, width: 2 * (_ballRadius + 6), height: 2 * (9 + side)), 0, math.pi);
+        for (final metric in row.computeMetrics()) {
+          for (var d = 0.0; d < metric.length; d += 4.2) {
+            canvas.drawPath(metric.extractPath(d, math.min(d + 1.8, metric.length)), stitch);
+          }
         }
       }
+      canvas.restore();
+      // The letters: the b in night, as if cut out of the ball, and the p in
+      // chalk, its stem running down out of the ball onto the night.
+      canvas.drawPath(_letterB(), _line(AppColors.night));
+      canvas.drawPath(_letterP(), _line(const Color(0xFFF6FAF7)));
     }
-    canvas.restore();
-
-    // "bnp", lowercase like the Bits N Pixs logo, with its green n. The b is
-    // the logo's lighter grey and the p its charcoal, both lifted for night.
-    TextSpan letter(String text, Color color) => TextSpan(
-      text: text,
-      style: TextStyle(
-        fontFamily: _family,
-        fontSize: 38,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.6,
-        height: 1,
-        color: mono ? Colors.white : color,
-      ),
-    );
-    final letters = TextPainter(
-      textDirection: TextDirection.ltr,
-      text: TextSpan(children: [
-        letter('b', const Color(0xFFC9D1CC)),
-        letter('n', AppColors.brandGreen),
-        letter('p', const Color(0xFFF2F7F4)),
-      ]),
-    )..layout();
-    // Centred on x 54, baseline at y 61.
-    final baseline = letters.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-    letters.paint(canvas, Offset(54 - letters.width / 2, 61 - baseline));
   }
   canvas.restore();
 }
@@ -134,9 +160,6 @@ Future<void> _write(String path, int size, void Function(Canvas canvas) draw, {d
 void main() {
   testWidgets('generate the app icon and splash', (tester) async {
     await tester.runAsync(() async {
-      final font = File('${AppFonts.assetFolder}/Inter-ExtraBold.ttf').readAsBytesSync();
-      await (FontLoader(_family)..addFont(Future.value(ByteData.sublistView(font)))).load();
-
       for (final MapEntry(key: bucket, value: px) in _densities.entries) {
         // Adaptive layers: 108 dp each.
         final layerSize = (108 * px).round();
@@ -157,16 +180,22 @@ void main() {
         );
       }
 
-      // The website: a favicon and a touch icon, the same mark with rounded
-      // corners, which the link preview (tool/build_site_assets.py) reuses.
-      for (final size in [64, 512]) {
+      // The website: the ball alone for the favicon and the header mark
+      // (icon-64) and the link preview (logo, tool/build_site_assets.py),
+      // and on night with rounded corners for the touch icon (icon-512).
+      for (final (name, size) in [('icon-64', 64), ('logo', 512)]) {
         await _write(
-          '../site/img/icon-$size.png',
+          '../site/img/$name.png',
           size,
-          (c) => _paint(c, size / 72, _Layer.full, crop: const Rect.fromLTWH(18, 18, 72, 72)),
-          cornerRadius: size * 0.22,
+          (c) => _paint(c, size / 72, _Layer.foreground, crop: const Rect.fromLTWH(18, 18, 72, 72)),
         );
       }
+      await _write(
+        '../site/img/icon-512.png',
+        512,
+        (c) => _paint(c, 512 / 72, _Layer.full, crop: const Rect.fromLTWH(18, 18, 72, 72)),
+        cornerRadius: 512 * 0.22,
+      );
 
       // Splash: Android 12+ shows a 288 dp icon whose middle 192 dp circle is
       // visible, which is exactly the safe zone scaled up. One xxxhdpi image.

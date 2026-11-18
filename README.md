@@ -227,19 +227,19 @@ and updates install over the top as long as every build is signed with the same
 upload key ("Release signing").
 
 1. Bump `version:` in `app/pubspec.yaml` and `app/lib/data/app_info.dart` together,
-   e.g. `0.9.0-beta.3+4`. The number after `+` must always go up.
+   e.g. `0.9.0-beta.6+7` after beta.5 (build 6). The number after `+` must always go up.
 2. Build and copy it out (PowerShell, from `app/`):
 
    ```powershell
    flutter build apk --release
    New-Item -ItemType Directory -Force ..\dist | Out-Null
-   Copy-Item build\app\outputs\flutter-apk\app-release.apk ..\dist\bnp-scorer-0.9.0-beta.3.apk
+   Copy-Item build\app\outputs\flutter-apk\app-release.apk ..\dist\bnp-scorer-0.9.0-beta.6.apk
    ```
 
    No `BNP_DEMO`, so testers start empty. No `--obfuscate` either, so the stack
    traces in Settings > Report a problem stay readable. `dist/` is gitignored.
 3. Check it is signed with the upload key, not the debug key:
-   `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.3.apk`
+   `apksigner verify --print-certs ..\dist\bnp-scorer-0.9.0-beta.6.apk`
    (in the Android SDK's `build-tools`) should not say `CN=Android Debug`.
 4. Publish it as a GitHub Release, which the website's "Download for Android"
    button serves. Upload the APK under the fixed name `bnp-scorer.apk` and mark
@@ -247,9 +247,9 @@ upload key ("Release signing").
    `releases/latest/download/bnp-scorer.apk`, which skips pre-releases.
 
    ```powershell
-   Copy-Item ..\dist\bnp-scorer-0.9.0-beta.3.apk $env:TEMP\bnp-scorer.apk
-   gh release create v0.9.0-beta.3 $env:TEMP\bnp-scorer.apk --target <full commit hash> `
-     --title "BNP Scorer 0.9.0-beta.3" --notes-file <notes.md> --latest
+   Copy-Item ..\dist\bnp-scorer-0.9.0-beta.6.apk $env:TEMP\bnp-scorer.apk
+   gh release create v0.9.0-beta.6 $env:TEMP\bnp-scorer.apk --target <full commit hash> `
+     --title "BNP Scorer 0.9.0-beta.6" --notes-file <notes.md> --latest
    ```
 
    The repo is public, so a release is public at once: only publish a build

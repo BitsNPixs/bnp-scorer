@@ -259,8 +259,9 @@ upload key ("Release signing").
 
 Tester message (edit the version):
 
-> BNP Scorer beta 0.9.0-beta.4 is attached. New: our own logo, a cricket ball
-> in the Bits N Pixs green, and the app in the same green. To install: tap the file, allow
+> BNP Scorer beta 0.9.0-beta.5 is attached. New: paste a team list straight
+> from WhatsApp, or import all your teams from an Excel or Google Sheets file
+> (template under Teams > import). To install: tap the file, allow
 > "install unknown apps" for WhatsApp (or Files) when asked, then Install. Updates
 > come the same way and keep your matches. Please back up from Settings now and
 > then. If anything goes wrong, use Settings > Report a problem and send it to me.

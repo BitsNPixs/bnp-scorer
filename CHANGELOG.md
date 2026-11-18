@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.0-beta.5 — 2026-11-18
+
+Squads without typing: paste a list from WhatsApp, or import teams from a sheet.
+
 ### Added
 - "Paste a list" on New match and on a team's page: paste a squad as it comes
   on WhatsApp, one name per line. Numbering, bullets, WhatsApp bold and emoji
@@ -28,6 +32,9 @@
   file that cannot be read offers the template as well. Shared files ending in
   .csv go out as CSV, so Sheets and Excel offer to open them; backups stay
   JSON. The app's copy is tested to match the website's byte for byte.
+- The privacy policy covers pasting and importing: the paste sheet reads the
+  text last copied, and import reads only the file picked; neither leaves the
+  phone.
 - The website lists every feature in the app, now including pasting and
   importing squads, following a match live, the over-by-over list, player and
   team profiles, and backup, with a question on bringing teams in from Excel.

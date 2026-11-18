@@ -19,14 +19,14 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-18): analyze clean, 182 engine and 312 app tests passing,
-  beta 0.9.0-beta.4 (build 5) built with Firebase and upload-signed
-  (`dist/bnp-scorer-0.9.0-beta.4.apk`): beta.3's cups, prizes, upcoming
-  matches and their cloud, with the ball logo and the brand green. Published
-  as GitHub Release `v0.9.0-beta.4` (asset `bnp-scorer.apk`), which the
-  website's Download for Android button serves (README "Beta builds"), and
-  installed on the owner's phone. The privacy policy needed no change (no new
-  data). A two-phone try of cups and schedules is still to come. **What to do next is
+- Latest run (2026-11-18): analyze clean, 182 engine and 357 app tests passing,
+  beta 0.9.0-beta.5 (build 6) built with Firebase and upload-signed
+  (`dist/bnp-scorer-0.9.0-beta.5.apk`): beta.4 (cups, prizes, upcoming
+  matches, cloud, ball logo, brand green) plus pasting and importing squads
+  and the CSV template. Published as GitHub Release `v0.9.0-beta.5` (asset
+  `bnp-scorer.apk`), which the website's Download for Android button serves
+  (README "Beta builds"). The privacy policy now covers the clipboard read
+  and imported files. A two-phone try of cups and schedules is still to come. **What to do next is
   in docs/ROADMAP.md "Next, in order".**
 - **Cloud, step 4 (2026-11-17):** the privacy policy, website and Settings text
   cover sign-in and publishing, and the scorer name never falls back to the

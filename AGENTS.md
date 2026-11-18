@@ -96,8 +96,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   with the bundled Inter; edit the art there and run it
   (`flutter test tool/generate_app_icon_test.dart`), never by hand, then
   `python tool/build_site_assets.py` for the link preview.
-  `test/app_icon_test.dart` checks sizes and wiring, site included. The new
-  icon has not been seen on a phone yet.
+  `test/app_icon_test.dart` checks sizes and wiring, site included. An
+  upload-signed release with the new icon (still beta.3, build 4) was
+  installed over the beta on the owner's phone on 2026-11-18; whether it
+  looks right there is not yet confirmed.
 - Website screens: `app/tool/generate_screenshots_test.dart` renders the app with
   the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
   `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible

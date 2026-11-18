@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Added
+- "Paste a list" on New match and on a team's page: paste a squad as it comes
+  on WhatsApp, one name per line. Numbering, bullets, WhatsApp bold and emoji
+  are skipped, names already in the team are left out, and on a team's page
+  (c), (vc), (wk) and roles like (bowler) set the captain, vice-captain, keeper
+  and role. A list already copied fills the sheet when it opens, and each name
+  can be taken off before adding. In a numbered list, an unnumbered line (a
+  heading, or a player whose number was forgotten) starts taken off, with a
+  tap to bring it back.
+- Import teams from a CSV file on the Teams tab, saved from Excel or Google
+  Sheets: one column per team, or Team and Player columns with an optional
+  Role column, where a blank team cell continues the team above. A preview
+  shows each team, whether it is new or adds to a saved team of that name, and
+  any team too small to save. An .xlsx file is refused with the steps to save
+  it as CSV. Picked files that are not UTF-8 are read as Windows-1252, which
+  plain Excel CSVs on Windows use. No new dependency.
+
 ## 0.9.0-beta.4 — 2026-11-18
 
 A logo of its own and the Bits N Pixs green throughout.

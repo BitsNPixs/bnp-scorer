@@ -21,7 +21,8 @@ app/                            Flutter app (package name bnp_scorer)
   lib/app.dart                  BnpScorerApp (MaterialApp, light/dark themes, saved theme mode)
   lib/data/                     Records, repositories, LocalDocuments, Backup,
                                 DeviceFiles, AppSettings, ErrorLog, app version,
-                                demo data, newId
+                                demo data, newId, squad_import.dart (pasted lists
+                                and CSV files into squads)
   lib/state/                    providers.dart (repositories, lists, stats, theme mode),
                                 live_match.dart
   lib/screens/                  Home (the shell), MatchesTab, NewMatch, Scoring (with the
@@ -30,7 +31,7 @@ app/                            Flutter app (package name bnp_scorer)
   lib/widgets/                  Score hero, over strip, crease panel, pad, sheets, panels,
                                 charts, overs timeline, wagon wheel, share card, bottom
                                 bar, settings sheet, floodlight and confetti, match card,
-                                number tiles, stumps art
+                                number tiles, stumps art, logo, paste players sheet
   lib/theme/app_theme.dart      AppColors, AppFonts, AppTheme, scoreStyle()
   lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart,
                                 error_handling.dart

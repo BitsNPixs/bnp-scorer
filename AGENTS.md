@@ -118,6 +118,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - `app/android` is generated. `app/ios` is **not generated yet** and iOS is
   unverified (needs a Mac). See README "Setup".
 - Saved teams work offline and are edited on the Teams tab.
+- **Squad import (2026-11-18):** "Paste a list" on New match and the team page
+  reads a WhatsApp-style list (marks like (c) and (wk) apply on the team page);
+  the Teams tab imports a CSV saved from Excel or Google Sheets, in either of
+  two shapes, with a preview before saving. No new dependency: .xlsx is
+  refused with save-as-CSV steps. Tests and real-font renders only so far.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.
@@ -260,6 +265,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
+| Read a pasted list or a CSV of teams, add players to a squad | `parsePlayerList`, `parsePlayerLine`, `parseTeamsCsv`, `parseCsv`, `addToSquad`, `planImport` (`data/squad_import.dart`), `showPastePlayersSheet` (`widgets/paste_players_sheet.dart`), `decodeTextFile` (`data/device_files.dart`) |
 
 ## Gotchas
 - **Overflow:** any `Text` in a `Row` must be `Expanded`/`Flexible` with

@@ -16,6 +16,7 @@ import '../ui/inputs.dart';
 import '../ui/pickers.dart';
 import '../widgets/avatars.dart';
 import '../widgets/overs_picker.dart';
+import '../widgets/paste_players_sheet.dart';
 import '../widgets/saved_teams_sheet.dart';
 import '../widgets/surface_panel.dart';
 import 'scoring_screen.dart';
@@ -617,6 +618,19 @@ class _TeamEditorState extends State<_TeamEditor> {
     widget.onChanged();
   }
 
+  /// Adds a list pasted from WhatsApp. A saved player sitting out comes back in.
+  Future<void> _pasteList() async {
+    final incoming = await showPastePlayersSheet(context, existing: _draft.players, showMarks: false);
+    if (incoming == null || !mounted) return;
+    setState(() {
+      for (final p in incoming) {
+        _draft.sittingOut.removeWhere((s) => s.toLowerCase() == p.name.toLowerCase());
+        _draft.players.add(p.name);
+      }
+    });
+    widget.onChanged();
+  }
+
   /// A saved player only sits out: they stay in the squad for next time.
   void _removePlayer(int index) {
     setState(() {
@@ -737,6 +751,12 @@ class _TeamEditorState extends State<_TeamEditor> {
                 icon: const Icon(Icons.add_circle_rounded),
               ),
             ),
+          ),
+          const SizedBox(height: 4),
+          TextButton.icon(
+            onPressed: _pasteList,
+            icon: const Icon(Icons.content_paste_rounded, size: 18),
+            label: const Text('Paste a list'),
           ),
         ],
       ),

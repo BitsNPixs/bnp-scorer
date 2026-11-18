@@ -28,6 +28,20 @@ Offline-first: scoring works with no network and every match is stored on the de
   Tournaments, Stats and Teams, with a big "+" to start a match from anywhere.
 - **Teams:** edit a squad from the Teams tab: rename players, set roles, and
   mark the captain, vice-captain and wicket-keeper. Scorecards show (c) and (wk).
+- **Paste a list:** on New match and on a team's page, "Paste a list" takes a
+  squad as it arrives on WhatsApp, one name per line. Numbering, bullets and
+  emoji are skipped; on a team's page, (c), (vc), (wk) and roles such as
+  (bowler) set the captain, vice-captain, keeper and role. A list already
+  copied is pasted in when the sheet opens, and every name can be taken off
+  before adding. In a numbered list, an unnumbered line such as the team name
+  starts taken off, with a tap to bring it back.
+- **Import teams from a sheet:** the button at the top of the Teams tab reads a
+  CSV file saved from Excel (File > Save As > CSV UTF-8) or Google Sheets (File
+  > Download > CSV). Either one column per team with its name on top, or
+  columns headed Team and Player, with an optional Role column (Captain, WK,
+  Bowler). A team with a saved team's name adds its new players to that squad.
+  A preview shows each team before anything is saved. Real .xlsx files are not
+  read: the app says how to save one as CSV.
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.

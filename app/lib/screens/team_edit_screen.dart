@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/ids.dart';
+import '../data/squad_import.dart';
 import '../state/providers.dart';
 import '../ui/feedback.dart';
+import '../ui/format.dart';
 import '../ui/inputs.dart';
 import '../widgets/avatars.dart';
+import '../widgets/paste_players_sheet.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/surface_panel.dart';
 
@@ -67,6 +70,29 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     if (name.isEmpty) return;
     setState(() => _players.add(Player(id: newId(), name: name)));
     _playerInput.clear();
+  }
+
+  /// Adds a list pasted from WhatsApp; its (c), (vc) and (wk) marks apply.
+  Future<void> _pasteList() async {
+    final incoming = await showPastePlayersSheet(context, existing: _players.map((p) => p.name));
+    if (incoming == null || !mounted) return;
+    final update = addToSquad(
+      players: _players,
+      captainId: _captainId,
+      viceCaptainId: _viceCaptainId,
+      keeperId: _keeperId,
+      incoming: incoming,
+      newId: newId,
+    );
+    setState(() {
+      _players
+        ..clear()
+        ..addAll(update.players);
+      _captainId = update.captainId;
+      _viceCaptainId = update.viceCaptainId;
+      _keeperId = update.keeperId;
+    });
+    showMessage(context, 'Added ${plural(update.added, 'player')}.');
   }
 
   void _replace(Player player, {String? name, PlayerRole? role}) {
@@ -276,6 +302,12 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
                       icon: const Icon(Icons.add_circle_rounded),
                     ),
                   ),
+                ),
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: _pasteList,
+                  icon: const Icon(Icons.content_paste_rounded, size: 18),
+                  label: const Text('Paste a list'),
                 ),
               ],
             ),

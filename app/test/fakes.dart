@@ -306,11 +306,13 @@ class FakeCloudCups implements CloudCups {
   }
 }
 
-/// Records the last text shared through the share sheet.
+/// Records the last text shared through the share sheet, and hands out
+/// [fileToPick] as the file the scorer picks (null: they cancel).
 class TextShares implements DeviceFiles {
   String? text;
   String? subject;
   bool fail = false;
+  String? fileToPick;
 
   @override
   Future<void> shareText(String text, {required String subject}) async {
@@ -326,5 +328,5 @@ class TextShares implements DeviceFiles {
   Future<void> shareTextFile(String name, String contents) async {}
 
   @override
-  Future<String?> pickTextFile() async => null;
+  Future<String?> pickTextFile() async => fileToPick;
 }

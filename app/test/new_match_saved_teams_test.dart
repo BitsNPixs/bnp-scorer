@@ -280,4 +280,25 @@ void main() {
     expect(matches.records, hasLength(1));
     expect(find.text('Start match'), findsNothing);
   });
+
+  testWidgets('a pasted list adds names, brings back a benched player and skips repeats', (tester) async {
+    await teams.save(_squad('a', 'Alpha', 13));
+    await pump(tester);
+    await pick(tester, 'Alpha');
+
+    await tapText(tester, 'Paste a list');
+    await tester.enterText(find.byKey(const ValueKey('paste-list')), 'Alpha P12\nZed (c)\nalpha p1');
+    await tester.pump(_settle);
+
+    expect(find.text('ADDING · 2'), findsOneWidget);
+    expect(find.text('Zed'), findsOneWidget, reason: 'New match takes names only, no marks');
+    expect(find.text('1 name already in the team, left out.'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Add 2 players'));
+    await settle(tester);
+    expect(find.text('PLAYERS · 13'), findsOneWidget);
+    expect(find.text('SITTING OUT · 1'), findsOneWidget);
+    expect(find.text('Zed'), findsOneWidget);
+  });
 }

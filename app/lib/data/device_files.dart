@@ -47,6 +47,18 @@ class PlatformDeviceFiles implements DeviceFiles {
   Future<String?> pickTextFile() async {
     final files = await FilePicker.pickFiles();
     if (files.isEmpty) return null;
-    return utf8.decode(await files.first.readAsBytes());
+    return decodeTextFile(await files.first.readAsBytes());
+  }
+}
+
+/// A file's text: UTF-8, as backups and "CSV UTF-8" are written, or else
+/// Windows-1252 (read as Latin-1), which plain "CSV" from Excel on Windows
+/// uses. Never throws, so a file that is not text at all reaches the caller,
+/// which can say what is wrong with it.
+String decodeTextFile(List<int> bytes) {
+  try {
+    return utf8.decode(bytes);
+  } on FormatException {
+    return latin1.decode(bytes);
   }
 }

@@ -70,9 +70,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   build, and the scoring screen through to a result, scored by the owner. The
   Home chips no longer clip. On 2026-11-17: the beta (upload-signed) installed
   after an uninstall and launched cleanly, and a backup made on the old build
-  restored everything on it.
-- **Not yet checked on a real phone:** the new logo as icon and splash, the scorecard
-  tabs and Result tab (seen only in test renders with the real fonts), the
+  restored everything on it. On 2026-11-18: beta.4 installed over beta.3
+  keeping data, and a screenshot showed Home in the brand green with the ball
+  logo in the header.
+- **Not yet checked on a real phone:** the ball logo as launcher icon and
+  splash, the scorecard tabs and Result tab (seen only in test renders with
+  the real fonts), the
   bursts and confetti, the Settings sheet and its Report a problem, the new
   wicket and no-ball sheet choices, the run-out end and the eased-rule note in
   the bowler picker, and the error panel (test renders only), the Tournaments and Stats tabs,
@@ -106,8 +109,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   it; edit the art in the widget and run the generator
   (`flutter test tool/generate_app_icon_test.dart`), never by hand, then
   `python tool/build_site_assets.py`. `test/app_icon_test.dart` checks sizes
-  and wiring, site included. Beta.4 carries it; whether it looks right on a
-  phone is not yet confirmed.
+  and wiring, site included. Beta.4 carries it. The bottom bar's Matches
+  tab keeps its bat and ball icon (owner's call, 2026-11-18).
 - Website screens: `app/tool/generate_screenshots_test.dart` renders the app with
   the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
   `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible

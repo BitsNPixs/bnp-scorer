@@ -24,8 +24,8 @@
 | Sharing, files | — | share_plus, file_picker behind `DeviceFiles` | Needs platform code |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
 
-## Next, in order (as of 2026-11-17, end of day)
-1. **Two-phone try of beta.3 on the real Firestore:** on the owner's phone,
+## Next, in order (as of 2026-11-18)
+1. **Two-phone try of beta.4 on the real Firestore:** on the owner's phone,
    signed in, create a knockout cup with a date, add prizes, a fee and a
    payment, and "Schedule for later" a friendly. On a second phone, check
    Everyone > Upcoming and Cups, open the cup (bracket and prize shown, no
@@ -33,7 +33,8 @@
    read the documents with the Firestore REST API (public read) and compare.
 2. **Check on a phone what is only tested in renders:** AGENTS.md "Current
    status" lists it (cups, bracket, prizes tab, upcoming sheet, WhatsApp invite,
-   scorecard sharing, charts, Super Overs).
+   scorecard sharing, charts, Super Overs, and the new launcher icon and
+   splash).
 3. **Before the Play Store:** in-app "Delete my account" (removes the scorer's
    published matches, tournaments and schedules, then the Firebase user) and a
    web page for the same request; a private privacy contact (a role address
@@ -54,10 +55,14 @@ Still to do:
 2. Try sharing a scorecard on a real phone (open issue 1). Backup and restore
    were confirmed on 2026-11-17.
 3. Fix the open issues below that bite during those tests.
-4. ~~App icon and splash~~ Done on 2026-11-10: the BNP letters over a red seam
-   on night (option C), as an adaptive icon with a themed-icon layer, and a
-   night splash on every Android version. Seen on the phone's install screen;
-   the home-screen icon and the splash itself are still to be checked there.
+4. ~~App icon and splash~~ Done on 2026-11-10 (the BNP letters over a red
+   seam), replaced on 2026-11-18 by the owner's ball logo: a cricket ball in
+   the Bits N Pixs green with "bp" across it, as an adaptive icon with a
+   themed-icon layer, a night splash, the Matches header and the website's
+   icons. The whole app moved to the brand green the same day (beta.4). The
+   header was seen on the owner's phone; the home-screen icon and the splash
+   are still to be checked there. The bottom bar's Matches tab keeps its bat
+   and ball icon (owner, 2026-11-18).
 5. ~~A release build~~ Done on 2026-11-10: it builds, installs over the debug
    build keeping data, and runs, with no internet permission. It is still
    signed with the debug key; the Play Store needs a real upload key. Then iOS
@@ -77,7 +82,7 @@ Still to do, all free unless noted:
 2. Score full matches on the phone covering the cases in Phase 0 step 1, plus a
    run out with the batters crossed and a side short of bowlers.
 3. Share betas from the website's Download for Android button (the latest
-   GitHub Release, since beta.3) or over WhatsApp (README "Beta builds"). Later, the Play Store needs a one-time $25 developer
+   GitHub Release, since beta.3; beta.4 is the latest) or over WhatsApp (README "Beta builds"). Later, the Play Store needs a one-time $25 developer
    account; a new personal account must run a closed test with about 12 testers
    for 14 days before going public.
 4. For the store: `flutter build appbundle --release --obfuscate

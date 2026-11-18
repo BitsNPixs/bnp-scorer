@@ -243,9 +243,8 @@ upload key ("Release signing").
 
 Tester message (edit the version):
 
-> BNP Scorer beta 0.9.0-beta.3 is attached. New: knockout cups with a bracket,
-> prizes and entry fees, upcoming matches you can schedule and share on
-> WhatsApp, and cups and upcoming matches under Matches > Everyone. To install: tap the file, allow
+> BNP Scorer beta 0.9.0-beta.4 is attached. New: our own logo, a cricket ball
+> in the Bits N Pixs green, and the app in the same green. To install: tap the file, allow
 > "install unknown apps" for WhatsApp (or Files) when asked, then Install. Updates
 > come the same way and keep your matches. Please back up from Settings now and
 > then. If anything goes wrong, use Settings > Report a problem and send it to me.

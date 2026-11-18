@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.9.0-beta.4 — 2026-11-18
+
+A logo of its own and the Bits N Pixs green throughout.
+
 ### Changed
 - The accent is the Bits N Pixs green instead of mint neon, in the app and on
   the website, and the night surfaces lean toward that green so the hero cards
@@ -21,8 +25,7 @@
   header and on the shared scorecard card. The art is `paintLogo` in
   `widgets/logo_mark.dart` (`LogoMark` shows it), drawn as paths with no
   font; `app/tool/generate_app_icon_test.dart` writes the files from it.
-  `AppColors.brandGreen` holds the company green, used nowhere else. The
-  icon has been installed on the owner's phone; not yet confirmed there.
+  `AppColors.brandGreen` holds the company green, used nowhere else.
 
 ## 0.9.0-beta.3 — 2026-11-17
 

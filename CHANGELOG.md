@@ -18,6 +18,17 @@
   any team too small to save. An .xlsx file is refused with the steps to save
   it as CSV. Picked files that are not UTF-8 are read as Windows-1252, which
   plain Excel CSVs on Windows use. No new dependency.
+- A CSV template to fill in, on the website (`site/teams-template.csv`, Team,
+  Player and Role columns). It stays a CSV when edited and saved in Excel, so
+  it avoids the .xlsx problem. The app's "could not import" message gives its
+  address, and a test imports it.
+- The website lists every feature in the app, now including pasting and
+  importing squads, following a match live, the over-by-over list, player and
+  team profiles, and backup, with a question on bringing teams in from Excel.
+
+### Fixed
+- The website no longer scrolls sideways: the floodlight glow behind the hero
+  stuck out past both edges, and is now part of the page background.
 
 ## 0.9.0-beta.4 — 2026-11-18
 

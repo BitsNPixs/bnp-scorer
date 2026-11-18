@@ -467,6 +467,8 @@ void main() {
 
       expect(find.text('Could not import that file'), findsOneWidget);
       expect(find.textContaining('CSV UTF-8'), findsOneWidget);
+      expect(find.text('A template to fill in: bitsnpixs.github.io/bnp-scorer/teams-template.csv'), findsOneWidget);
+      expect(tester.takeException(), isNull);
       await tester.tap(find.text('OK'));
       await settle(tester);
       expect(teams.teams, isEmpty);

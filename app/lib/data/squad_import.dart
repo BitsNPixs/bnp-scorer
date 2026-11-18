@@ -49,6 +49,9 @@ class ImportedTeam {
   final List<ImportedPlayer> players;
 }
 
+/// A ready CSV to fill in, on the website (`site/teams-template.csv`).
+const teamsTemplateAddress = 'bitsnpixs.github.io/bnp-scorer/teams-template.csv';
+
 /// What a CSV import needs to look like, for error messages and the help text.
 const csvFormatHelp =
     'Put each team in its own column with the team name on top, or use two columns '

@@ -27,7 +27,12 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  background: var(--night);
+  /* The floodlight glow over the hero is part of the page background, so it
+     can never stick out past the edges and make the page scroll sideways. */
+  background:
+    radial-gradient(ellipse 50% 60% at 15% 20%, rgba(125, 196, 58, 0.13), transparent 70%) top / 100% 760px no-repeat,
+    radial-gradient(ellipse 40% 50% at 85% 10%, rgba(125, 196, 58, 0.08), transparent 70%) top / 100% 760px no-repeat,
+    var(--night);
   color: var(--chalk);
   font: 400 17px/1.6 var(--text);
   -webkit-font-smoothing: antialiased;
@@ -98,17 +103,6 @@ a { color: var(--neon); }
 }
 
 /* Floodlights over the ground. */
-.hero::before {
-  content: "";
-  position: absolute;
-  inset: -120px -20vw auto;
-  height: 680px;
-  background:
-    radial-gradient(ellipse 50% 60% at 15% 20%, rgba(125, 196, 58, 0.13), transparent 70%),
-    radial-gradient(ellipse 40% 50% at 85% 10%, rgba(125, 196, 58, 0.08), transparent 70%);
-  pointer-events: none;
-  z-index: -1;
-}
 
 .hero h1 {
   margin: 0;

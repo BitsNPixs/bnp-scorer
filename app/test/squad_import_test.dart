@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/squad_import.dart';
@@ -202,6 +203,18 @@ void main() {
         throwsA(isA<FormatException>().having((e) => e.message, 'm', contains('No teams with players'))),
       );
     });
+  });
+
+  test('the template on the website imports as two full teams', () {
+    final teams = parseTeamsCsv(File('../site/teams-template.csv').readAsStringSync());
+    expect([for (final t in teams) t.name], ['Kings XI', 'Royal Strikers']);
+    expect([for (final t in teams) t.players.length], [6, 6]);
+    final kings = teams[0].players;
+    expect(kings[0].captain, isTrue);
+    expect(kings[1].keeper, isTrue);
+    expect([kings[2].role, kings[3].role, kings[4].role], [PlayerRole.bowler, PlayerRole.allRounder, PlayerRole.batter]);
+    expect(teams[1].players[2].viceCaptain, isTrue);
+    expect(teamsTemplateAddress, endsWith('/teams-template.csv'));
   });
 
   group('joining a squad', () {

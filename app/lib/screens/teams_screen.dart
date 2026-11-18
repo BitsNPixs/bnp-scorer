@@ -70,7 +70,15 @@ class TeamsScreen extends ConsumerWidget {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Could not import that file'),
-          content: Text(message),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(message),
+              const SizedBox(height: 12),
+              const SelectableText('A template to fill in: $teamsTemplateAddress'),
+            ],
+          ),
           actions: [
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),

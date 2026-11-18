@@ -175,7 +175,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
    test to make the suite pass. Find the root cause instead.
 8. Before every commit, in this order: implementation → tests → lint/analyze →
    build → docs (README / docs/ / CHANGELOG / this file's "Current status") →
-   review the full diff for dead code, duplication and side effects.
+   website → review the full diff for dead code, duplication and side effects.
+   **Website:** a feature users can see also goes into the feature list on
+   `site/index.html` (and its FAQ when it answers a common question), and a
+   change to a screen shown there re-renders the screenshots (README "Website
+   and privacy policy"). Owner's rule, 2026-11-18: the site always lists every
+   feature in the app.
 9. Don't call a task done until the checks pass. Report clearly anything you
    could not test and why.
 10. If you use sub-agents, they follow these same rules, and you review their
@@ -326,5 +331,6 @@ cd app && flutter pub get && flutter analyze && flutter test && flutter build ap
 
 ## Definition of done for a change
 Analyze is clean, all tests pass (new tests added), the debug build succeeds,
-docs are updated (incl. "Current status" above and CHANGELOG), and the diff is
-reviewed. Commit messages describe the why.
+docs are updated (incl. "Current status" above and CHANGELOG), the website lists
+any new feature and shows current screens, and the diff is reviewed. Commit
+messages describe the why.

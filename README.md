@@ -277,6 +277,11 @@ to GitHub Pages (free for this public repo) whenever `site/` changes on `main`:
 - home: https://bitsnpixs.github.io/bnp-scorer/
 - privacy policy: https://bitsnpixs.github.io/bnp-scorer/privacy.html
 
+The home page lists every feature in the app: add each new one there (and to
+its FAQ when it answers a common question) in the same change. It also offers
+`site/teams-template.csv`, the CSV template for importing teams; a test imports
+it, so keep it in step with the reader.
+
 The home page shows real screens of the app. To refresh them after a visible
 change (from `app/`):
 

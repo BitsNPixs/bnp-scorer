@@ -1,11 +1,16 @@
-// Draws the BNP Scorer app icon and splash and writes them into the Android
-// project. Not part of the test suite (it lives outside test/). Regenerate
-// after changing the art with:
+// Draws the BNP Scorer logo as the app icon, the splash mark and the
+// website's icons, and writes them into the Android project and site/img.
+// Not part of the test suite (it lives outside test/). Regenerate after
+// changing the art with:
 //
 //   cd app && flutter test tool/generate_app_icon_test.dart
 //
 // The art is on a 108-unit canvas, Android's adaptive-icon grid, and keeps
 // everything that matters inside the central 72-unit safe zone.
+//
+// The logo: "bnp" in lowercase, as the Bits N Pixs logo writes its name, with
+// the company's green n between a light grey b and a chalk p (the logo's two
+// greys, lifted for a night background), over a red cricket-ball seam.
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -45,58 +50,69 @@ void _paint(Canvas canvas, double unit, _Layer layer, {Rect? crop}) {
   if (layer != _Layer.background) {
     final mono = layer == _Layer.monochrome;
     final seamColor = mono ? Colors.white : AppColors.wicket;
-    final seam = Path()
-      ..moveTo(28, 70)
-      ..quadraticBezierTo(54, 82, 80, 66);
-    canvas.drawPath(
-      seam,
+    // The ball's seam: an arc of a big ball below the letters, tilted up to
+    // the right like a swinging delivery, with stitches on both sides.
+    canvas.save();
+    canvas.translate(54, 83);
+    canvas.rotate(-7 * math.pi / 180);
+    final ball = Rect.fromCircle(center: const Offset(0, -96), radius: 96);
+    const sweep = 0.42; // radians each side of straight down
+    canvas.drawArc(
+      ball,
+      math.pi / 2 - sweep,
+      2 * sweep,
+      false,
       Paint()
         ..color = seamColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
         ..strokeCap = StrokeCap.round,
     );
-    // The stitches: short dashes along a second curve.
-    final stitches = Path()
-      ..moveTo(30, 74)
-      ..quadraticBezierTo(54, 85, 80, 70);
     final stitch = Paint()
-      ..color = seamColor.withValues(alpha: 0.8)
+      ..color = seamColor.withValues(alpha: 0.85)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4
       ..strokeCap = StrokeCap.round;
-    for (final metric in stitches.computeMetrics()) {
-      for (var d = 0.0; d < metric.length; d += 4.5) {
-        canvas.drawPath(metric.extractPath(d, math.min(d + 1.5, metric.length)), stitch);
+    for (final side in [-4.0, 4.0]) {
+      final row = Path()..addArc(ball.inflate(side), math.pi / 2 - sweep * 0.94, 2 * sweep * 0.94);
+      for (final metric in row.computeMetrics()) {
+        for (var d = 0.0; d < metric.length; d += 4.5) {
+          canvas.drawPath(metric.extractPath(d, math.min(d + 1.6, metric.length)), stitch);
+        }
       }
     }
+    canvas.restore();
 
+    // "bnp", lowercase like the Bits N Pixs logo, with its green n. The b is
+    // the logo's lighter grey and the p its charcoal, both lifted for night.
+    TextSpan letter(String text, Color color) => TextSpan(
+      text: text,
+      style: TextStyle(
+        fontFamily: _family,
+        fontSize: 38,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.6,
+        height: 1,
+        color: mono ? Colors.white : color,
+      ),
+    );
     final letters = TextPainter(
       textDirection: TextDirection.ltr,
-      text: TextSpan(
-        text: 'BNP',
-        style: TextStyle(
-          fontFamily: _family,
-          fontSize: 34,
-          fontWeight: FontWeight.w900,
-          fontStyle: FontStyle.italic,
-          letterSpacing: 0.5,
-          height: 1,
-          foreground: Paint()
-            ..shader = mono
-                ? null
-                : AppColors.neonGradient.createShader(const Rect.fromLTWH(28, 30, 52, 34))
-            ..color = Colors.white,
-        ),
-      ),
+      text: TextSpan(children: [
+        letter('b', const Color(0xFFC9D1CC)),
+        letter('n', AppColors.brandGreen),
+        letter('p', const Color(0xFFF2F7F4)),
+      ]),
     )..layout();
-    // Centred on x 54, baseline at y 63, as in the approved preview.
+    // Centred on x 54, baseline at y 61.
     final baseline = letters.computeDistanceToActualBaseline(TextBaseline.alphabetic);
-    letters.paint(canvas, Offset(54 - letters.width / 2, 63 - baseline));
+    letters.paint(canvas, Offset(54 - letters.width / 2, 61 - baseline));
   }
   canvas.restore();
 }
 
+/// Writes a PNG under the Android res folder, or wherever [path] points if it
+/// starts with `../`.
 Future<void> _write(String path, int size, void Function(Canvas canvas) draw, {double cornerRadius = 0}) async {
   final recorder = ui.PictureRecorder();
   final canvas = Canvas(recorder);
@@ -109,7 +125,7 @@ Future<void> _write(String path, int size, void Function(Canvas canvas) draw, {d
   draw(canvas);
   final image = await recorder.endRecording().toImage(size, size);
   final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  final file = File('$_res/$path')..createSync(recursive: true);
+  final file = File(path.startsWith('../') ? path : '$_res/$path')..createSync(recursive: true);
   file.writeAsBytesSync(bytes!.buffer.asUint8List());
   // ignore: avoid_print
   print('wrote $path (${size}px)');
@@ -118,7 +134,7 @@ Future<void> _write(String path, int size, void Function(Canvas canvas) draw, {d
 void main() {
   testWidgets('generate the app icon and splash', (tester) async {
     await tester.runAsync(() async {
-      final font = File('${AppFonts.assetFolder}/BarlowCondensed-BlackItalic.ttf').readAsBytesSync();
+      final font = File('${AppFonts.assetFolder}/Inter-ExtraBold.ttf').readAsBytesSync();
       await (FontLoader(_family)..addFont(Future.value(ByteData.sublistView(font)))).load();
 
       for (final MapEntry(key: bucket, value: px) in _densities.entries) {
@@ -138,6 +154,17 @@ void main() {
           legacy,
           (c) => _paint(c, legacy / 72, _Layer.full, crop: const Rect.fromLTWH(18, 18, 72, 72)),
           cornerRadius: legacy * 0.22,
+        );
+      }
+
+      // The website: a favicon and a touch icon, the same mark with rounded
+      // corners, which the link preview (tool/build_site_assets.py) reuses.
+      for (final size in [64, 512]) {
+        await _write(
+          '../site/img/icon-$size.png',
+          size,
+          (c) => _paint(c, size / 72, _Layer.full, crop: const Rect.fromLTWH(18, 18, 72, 72)),
+          cornerRadius: size * 0.22,
         );
       }
 

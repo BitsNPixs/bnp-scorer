@@ -19,6 +19,11 @@ abstract final class AppColors {
   /// Green for text and icons on light surfaces, where neon is too faint.
   static const turf = Color(0xFF007A4D);
 
+  /// Bits N Pixs' green, the "n" of the company logo. Only the BNP Scorer
+  /// logo uses it (`tool/generate_app_icon_test.dart`); the app itself stays
+  /// neon.
+  static const brandGreen = Color(0xFF6FAE29);
+
   static const four = Color(0xFFFFB21E);
   static const six = Color(0xFF7C4DFF);
   static const wicket = Color(0xFFFF4D5E);

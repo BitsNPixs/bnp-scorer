@@ -35,8 +35,9 @@ app/                            Flutter app (package name bnp_scorer)
   lib/ui/                       format.dart, feedback.dart, inputs.dart, motion.dart,
                                 error_handling.dart
   test/                         fakes, unit tests, widget tests per feature
-  tool/                         generate_app_icon_test.dart: draws the app icon and
-                                splash PNGs into android/ (run by hand)
+  tool/                         generate_app_icon_test.dart: draws the logo as the
+                                app icon and splash PNGs into android/ and the
+                                website's icons into site/img/ (run by hand)
 docs/                           This file and ROADMAP.md
 ```
 

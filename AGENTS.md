@@ -19,7 +19,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- Latest run (2026-11-17): analyze clean, 182 engine and 307 app tests passing,
+- Latest run (2026-11-18): analyze clean, 182 engine and 308 app tests passing,
   beta 0.9.0-beta.3 (build 4) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.3.apk`), with cups, prizes, upcoming matches and
   their cloud. Pushed, with the policy live; the owner pasted the new
@@ -71,7 +71,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   Home chips no longer clip. On 2026-11-17: the beta (upload-signed) installed
   after an uninstall and launched cleanly, and a backup made on the old build
   restored everything on it.
-- **Not yet checked on a real phone:** the splash screen's mark, the scorecard
+- **Not yet checked on a real phone:** the new logo as icon and splash, the scorecard
   tabs and Result tab (seen only in test renders with the real fonts), the
   bursts and confetti, the Settings sheet and its Report a problem, the new
   wicket and no-ball sheet choices, the run-out end and the eased-rule note in
@@ -88,10 +88,16 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - `test-team.xlsx` in the repo root holds real names. The owner wants it left out
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked;
   the owner is fine with them being public (2026-11-17).
-- App icon and splash: the BNP letters over a red seam on night. The PNGs are
-  drawn by `app/tool/generate_app_icon_test.dart` with the bundled font; edit
-  the art there and run it (`flutter test tool/generate_app_icon_test.dart`),
-  never by hand. `test/app_icon_test.dart` checks sizes and wiring.
+- Logo, app icon and splash (2026-11-18): "bnp" in lowercase, the Bits N Pixs
+  logo's green n (`AppColors.brandGreen`) between a grey b and a chalk p, over
+  a red seam on night. The company logo is `bitsnpixs-offical-logo.webp` in
+  the repo root (untracked). `app/tool/generate_app_icon_test.dart` draws the
+  Android icon layers, the splash mark and the website's `site/img/icon-*.png`
+  with the bundled Inter; edit the art there and run it
+  (`flutter test tool/generate_app_icon_test.dart`), never by hand, then
+  `python tool/build_site_assets.py` for the link preview.
+  `test/app_icon_test.dart` checks sizes and wiring, site included. The new
+  icon has not been seen on a phone yet.
 - Website screens: `app/tool/generate_screenshots_test.dart` renders the app with
   the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
   `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible

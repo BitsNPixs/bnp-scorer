@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Changed
+- A logo of its own, drawn from the Bits N Pixs logo: "bnp" in lowercase with
+  the company's green n between a light grey b and a chalk p, over a red
+  cricket-ball seam on night. It is the app icon (adaptive, legacy and
+  monochrome layers), the splash mark, the website's favicon and touch icon
+  (`site/img/icon-64.png`, `icon-512.png`), the mark in the website's header and
+  privacy page, and the logo on the link preview. All of it comes from
+  `app/tool/generate_app_icon_test.dart`; `AppColors.brandGreen` holds the
+  company green, used nowhere else. Not yet seen on a phone.
+
 ## 0.9.0-beta.3 — 2026-11-17
 
 Cups, prizes and upcoming matches, public for everyone to follow.

@@ -68,12 +68,9 @@ a { color: var(--neon); }
 }
 
 .brand .mark {
-  background: var(--neon);
-  color: var(--night);
-  border-radius: 10px;
-  padding: 6px 8px 5px;
-  font: 800 15px/1 var(--text);
-  letter-spacing: 0.04em;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
 }
 
 .topbar nav {

@@ -274,7 +274,10 @@ python tool/build_site_assets.py                    # WebP screens, web fonts, l
 
 The first renders the screens with the demo data and the bundled fonts; the
 second (needs `pip install pillow fonttools brotli`) writes `site/img/` and
-`site/fonts/`. The same PNGs can go on the Play Store listing.
+`site/fonts/`. The same PNGs can go on the Play Store listing. The site's
+favicon, touch icon and header mark (`site/img/icon-64.png`, `icon-512.png`)
+are the app logo, drawn by `flutter test tool/generate_app_icon_test.dart`
+together with the Android icon; the link preview pastes the 512 px one.
 
 Update the policy, and its effective date, **before** releasing anything that
 changes what the app stores or sends: an internet permission, accounts, live

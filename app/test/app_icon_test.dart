@@ -9,7 +9,7 @@ const _densities = {'mdpi': 1.0, 'hdpi': 1.5, 'xhdpi': 2.0, 'xxhdpi': 3.0, 'xxxh
 
 /// Width and height from a PNG's header.
 (int, int) _pngSize(String path) {
-  final bytes = File('$_res/$path').readAsBytesSync();
+  final bytes = File(path.startsWith('../') ? path : '$_res/$path').readAsBytesSync();
   expect(bytes.take(8), [137, 80, 78, 71, 13, 10, 26, 10], reason: '$path is not a PNG');
   final header = ByteData.sublistView(bytes, 16, 24);
   return (header.getUint32(0), header.getUint32(4));
@@ -27,6 +27,18 @@ void main() {
         for (final name in ['ic_launcher_background', 'ic_launcher_foreground', 'ic_launcher_monochrome']) {
           expect(_pngSize('mipmap-$bucket/$name.png'), (layer, layer), reason: '$bucket $name');
         }
+      }
+    });
+
+    test('the website gets the same mark as its favicon and touch icon', () {
+      for (final size in [64, 512]) {
+        expect(_pngSize('../site/img/icon-$size.png'), (size, size), reason: 'icon-$size');
+      }
+      for (final page in ['index', 'privacy']) {
+        final html = _read('../site/$page.html');
+        expect(html, contains('<link rel="icon" href="img/icon-64.png"'), reason: page);
+        expect(html, contains('<link rel="apple-touch-icon" href="img/icon-512.png"'), reason: page);
+        expect(html, contains('<img class="mark" src="img/icon-64.png"'), reason: page);
       }
     });
 

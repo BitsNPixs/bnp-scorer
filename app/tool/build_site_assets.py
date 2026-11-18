@@ -1,13 +1,15 @@
 """Builds the website's images and fonts from the app's own assets.
 
-Run from app/ after `flutter test tool/generate_screenshots_test.dart`:
+Run from app/ after `flutter test tool/generate_screenshots_test.dart` (and
+`flutter test tool/generate_app_icon_test.dart`, which draws img/icon-*.png):
 
     python tool/build_site_assets.py
 
 Writes into ../site:
   img/<screen>.webp   the app screenshots, compressed (the table is cropped to
                       its rows)
-  img/share.png       the 1200x630 picture WhatsApp and others show for a link
+  img/share.png       the 1200x630 picture WhatsApp and others show for a link,
+                      with the logo from img/icon-512.png
   fonts/*.woff2       Inter and Barlow Condensed cut down to Latin, with their
                       OFL licences, so the site loads no font from another server
 
@@ -82,14 +84,13 @@ def share_card():
     heading = ImageFont.truetype(str(FONTS / 'BarlowCondensed-Bold.ttf'), 48)
     body = ImageFont.truetype(str(FONTS / 'Inter-SemiBold.ttf'), 30)
 
-    draw.rounded_rectangle((72, 84, 196, 132), radius=24, fill=NEON)
-    draw.text((134, 108), 'BNP', font=ImageFont.truetype(str(FONTS / 'Inter-ExtraBold.ttf'), 28),
-              fill=NIGHT, anchor='mm')
-    draw.text((66, 150), 'BNP Scorer', font=display, fill=CHALK)
-    draw.text((72, 318), 'Ball-by-ball cricket scoring', font=heading, fill=NEON)
-    draw.text((72, 376), 'for local and gully matches', font=heading, fill=NEON)
-    draw.text((72, 466), 'Free. Works offline.', font=body, fill=MUTED)
-    draw.text((72, 510), 'Your matches stay on your phone.', font=body, fill=MUTED)
+    logo = Image.open(SITE / 'img' / 'icon-512.png').convert('RGBA').resize((104, 104), Image.LANCZOS)
+    card.paste(logo, (72, 76), logo)
+    draw.text((66, 170), 'BNP Scorer', font=display, fill=CHALK)
+    draw.text((72, 338), 'Ball-by-ball cricket scoring', font=heading, fill=NEON)
+    draw.text((72, 396), 'for local and gully matches', font=heading, fill=NEON)
+    draw.text((72, 478), 'Free. Works offline.', font=body, fill=MUTED)
+    draw.text((72, 522), 'Your matches stay on your phone.', font=body, fill=MUTED)
 
     phone = Image.open(SHOTS / 'scoring.png').convert('RGB')
     phone = phone.resize((300, round(phone.height * 300 / phone.width)), Image.LANCZOS)

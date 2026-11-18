@@ -79,7 +79,7 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
               showLicensePage(
                 context: context,
                 applicationName: 'BNP Scorer',
-                applicationLegalese: 'By Bits N Pixs',
+                applicationLegalese: '© 2026 BitsNPixs Technologies Private Limited',
               );
             },
           ),
@@ -210,7 +210,7 @@ class _AboutPanel extends ConsumerWidget {
         children: [
           Text('BNP Scorer', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
           const SizedBox(height: 2),
-          Text('Version $appVersionLabel · By Bits N Pixs', style: text.bodySmall?.copyWith(color: muted)),
+          Text('Version $appVersionLabel · By BitsNPixs', style: text.bodySmall?.copyWith(color: muted)),
           const SizedBox(height: 12),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,

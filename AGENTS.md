@@ -5,7 +5,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## What this is
 - **BNP Scorer**: a ball-by-ball cricket scoring app for local / gully matches,
-  Android + iOS, built with Flutter. Owned by **Bits N Pixs (BNP)**.
+  Android + iOS, built with Flutter. Owned by **BitsNPixs Technologies Private Limited (BNP)**.
 - Long-term goal: a CricHeroes-style platform (live scores, teams, tournaments,
   stats). Scope is **cricket only**. v0.1 is the offline scorer.
 - The UI must be **simple for local scorers and eye-catching** (big keys, clear
@@ -93,11 +93,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   of git. The same names are in `app/lib/data/demo_data.dart`, which is tracked;
   the owner is fine with them being public (2026-11-17).
 - **Brand green (2026-11-18):** the app and website accent moved from mint
-  neon to the Bits N Pixs green, with the night surfaces warmed to match, after
+  neon to the BitsNPixs green, with the night surfaces warmed to match, after
   the owner approved a preview of every screen in both themes. Chart colours
   passed the dataviz check on the new card surfaces. Website screens and the
   link preview were re-rendered.
-- Logo, app icon and splash (2026-11-18): a cricket ball in the Bits N Pixs
+- Logo, app icon and splash (2026-11-18): a cricket ball in the BitsNPixs
   green (`AppColors.brandGreen`) with the company logo's thin b and p across
   it, after the owner's sketch `bnp-logo-idea.png` (repo root, untracked,
   like the company logo `bitsnpixs-offical-logo.webp`). On night the b is a

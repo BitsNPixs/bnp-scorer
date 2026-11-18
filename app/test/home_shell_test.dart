@@ -252,7 +252,7 @@ void main() {
       await pumpApp(tester);
       await openSettings(tester);
 
-      final version = find.text('Version $appVersionLabel · By Bits N Pixs');
+      final version = find.text('Version $appVersionLabel · By BitsNPixs');
       await tester.ensureVisible(version);
       expect(version, findsOneWidget);
       final privacy = find.textContaining('Your matches stay on this phone');

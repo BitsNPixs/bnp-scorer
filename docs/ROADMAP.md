@@ -1,7 +1,7 @@
 # Roadmap, decisions and open issues
 
 ## Product context
-- **Owner:** Bits N Pixs (BNP). **Product:** BNP Scorer.
+- **Owner:** BitsNPixs Technologies Private Limited (BNP). **Product:** BNP Scorer.
 - **Brief:** replicate the core of [CricHeroes](https://cricheroes.com/) for
   Android and iOS with Flutter. The owner considered multi-sport and narrowed
   it to **cricket only**.
@@ -58,7 +58,7 @@ Still to do:
 3. Fix the open issues below that bite during those tests.
 4. ~~App icon and splash~~ Done on 2026-11-10 (the BNP letters over a red
    seam), replaced on 2026-11-18 by the owner's ball logo: a cricket ball in
-   the Bits N Pixs green with "bp" across it, as an adaptive icon with a
+   the BitsNPixs green with "bp" across it, as an adaptive icon with a
    themed-icon layer, a night splash, the Matches header and the website's
    icons. The whole app moved to the brand green the same day (beta.4). The
    header was seen on the owner's phone; the home-screen icon and the splash

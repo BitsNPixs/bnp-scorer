@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Brand palette: a floodlit night pitch with the Bits N Pixs green as the
+/// Brand palette: a floodlit night pitch with the BitsNPixs green as the
 /// accent (the field is still called neon). Scoring
 /// colours are fixed across light and dark themes so a "4" always looks like
 /// a 4.
@@ -21,7 +21,7 @@ abstract final class AppColors {
   /// Green for text and icons on light surfaces, where neon is too faint.
   static const turf = Color(0xFF3F7A14);
 
-  /// Bits N Pixs' green, the "n" of the company logo. Only the BNP Scorer
+  /// BitsNPixs' green, the "n" of the company logo. Only the BNP Scorer
   /// logo uses it (`tool/generate_app_icon_test.dart`); the app itself stays
   /// neon.
   static const brandGreen = Color(0xFF6FAE29);

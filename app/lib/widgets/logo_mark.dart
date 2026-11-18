@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 /// The BNP Scorer logo, after the owner's sketch: a cricket ball in the
-/// Bits N Pixs green, with the company logo's thin geometric b and p drawn
+/// BitsNPixs green, with the company logo's thin geometric b and p drawn
 /// across it, the p's stem running out of the ball. On night surfaces the b
 /// is night, a cut-out of the ball, and the p chalk.
 ///

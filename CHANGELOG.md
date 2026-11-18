@@ -8,6 +8,9 @@
   to https://bitsnpixs.com/, on the home page and the privacy policy. The
   site spells the name BitsNPixs everywhere, and the privacy policy names the
   company in full in its first line.
+- The app spells the company BitsNPixs too: Settings shows "By BitsNPixs"
+  under the version, and the open-source licences screen shows "© 2026
+  BitsNPixs Technologies Private Limited". The README and docs follow.
 
 ## 0.9.0-beta.5 — 2026-11-18
 

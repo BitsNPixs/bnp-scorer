@@ -442,7 +442,7 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - night `#081008`, with the hero gradient `#1F3F17` to `#0D1A0B`. Hero cards
     (score, champions, leaders, share card) stay dark in both themes, like a
     floodlit scoreboard;
-  - the Bits N Pixs green as the accent and the fill of primary buttons, always
+  - the BitsNPixs green as the accent and the fill of primary buttons, always
     with night text: `#7DC43A` (`AppColors.neon`, the name kept from the
     earlier mint), a shade brighter than the logo's `#6FAE29`
     (`AppColors.brandGreen`) so it carries on night;

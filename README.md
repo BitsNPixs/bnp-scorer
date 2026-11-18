@@ -1,6 +1,6 @@
 # BNP Scorer
 
-By Bits N Pixs (BNP).
+By BitsNPixs Technologies Private Limited (BNP, https://bitsnpixs.com/).
 
 Ball-by-ball cricket scoring for local matches, for Android and iOS (Flutter).
 Offline-first: scoring works with no network and every match is stored on the device.
@@ -23,7 +23,7 @@ Offline-first: scoring works with no network and every match is stored on the de
 - **Match setup** in one screen: team names, players (type names or "Fill to 11"),
   overs (presets or stepper), toss, venue, and house rules (wide/no-ball run,
   free hit, last man stands, max overs per bowler, shot direction).
-- **Look:** a night pitch in the Bits N Pixs green, with light and dark themes. Pick
+- **Look:** a night pitch in the BitsNPixs green, with light and dark themes. Pick
   System, Light or Dark in Settings (top of Home). A bottom bar holds Matches,
   Tournaments, Stats and Teams, with a big "+" to start a match from anywhere.
 - **Teams:** edit a squad from the Teams tab: rename players, set roles, and

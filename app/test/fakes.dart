@@ -306,11 +306,14 @@ class FakeCloudCups implements CloudCups {
   }
 }
 
-/// Records the last text shared through the share sheet, and hands out
-/// [fileToPick] as the file the scorer picks (null: they cancel).
+/// Records the last text and text file shared through the share sheet, and
+/// hands out [fileToPick] as the file the scorer picks (null: they cancel).
+/// With [fail], sharing throws as a phone with nothing to share to would.
 class TextShares implements DeviceFiles {
   String? text;
   String? subject;
+  String? fileName;
+  String? fileContents;
   bool fail = false;
   String? fileToPick;
 
@@ -325,7 +328,11 @@ class TextShares implements DeviceFiles {
   Future<void> shareImage(Uint8List png, {required String caption}) async {}
 
   @override
-  Future<void> shareTextFile(String name, String contents) async {}
+  Future<void> shareTextFile(String name, String contents) async {
+    if (fail) throw StateError('No apps to share with');
+    fileName = name;
+    fileContents = contents;
+  }
 
   @override
   Future<String?> pickTextFile() async => fileToPick;

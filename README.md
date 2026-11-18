@@ -41,7 +41,9 @@ Offline-first: scoring works with no network and every match is stored on the de
   columns headed Team and Player, with an optional Role column (Captain, WK,
   Bowler). A team with a saved team's name adds its new players to that squad.
   A preview shows each team before anything is saved. Real .xlsx files are not
-  read: the app says how to save one as CSV.
+  read: the app says how to save one as CSV. The import button first shows the
+  format and offers "Share the template", which sends a ready CSV to WhatsApp,
+  email or Drive to fill in.
 - **Saved teams:** a team is remembered when its first match starts, then
   "Saved teams" fills in its name and players next time. With more than 11 in
   the squad the rest sit out, and one tap swaps a player in.
@@ -279,8 +281,9 @@ to GitHub Pages (free for this public repo) whenever `site/` changes on `main`:
 
 The home page lists every feature in the app: add each new one there (and to
 its FAQ when it answers a common question) in the same change. It also offers
-`site/teams-template.csv`, the CSV template for importing teams; a test imports
-it, so keep it in step with the reader.
+`site/teams-template.csv`, the CSV template for importing teams. The app shares
+the same text (`teamsTemplateCsv`); tests check the two are identical and that
+the template imports, so change both together.
 
 The home page shows real screens of the app. To refresh them after a visible
 change (from `app/`):

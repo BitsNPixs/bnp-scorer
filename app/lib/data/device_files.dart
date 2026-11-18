@@ -9,6 +9,8 @@ import 'package:share_plus/share_plus.dart';
 abstract interface class DeviceFiles {
   Future<void> shareImage(Uint8List png, {required String caption});
 
+  /// A text file through the share sheet. A name ending in `.csv` is sent as
+  /// CSV, so Sheets and Excel offer to open it; anything else as JSON.
   Future<void> shareTextFile(String name, String contents);
 
   /// Plain text, for a message in WhatsApp or an email.
@@ -33,7 +35,7 @@ class PlatformDeviceFiles implements DeviceFiles {
   @override
   Future<void> shareTextFile(String name, String contents) async {
     await SharePlus.instance.share(ShareParams(
-      files: [XFile.fromData(utf8.encode(contents), mimeType: 'application/json')],
+      files: [XFile.fromData(utf8.encode(contents), mimeType: textFileType(name))],
       fileNameOverrides: [name],
     ));
   }
@@ -62,3 +64,6 @@ String decodeTextFile(List<int> bytes) {
     return latin1.decode(bytes);
   }
 }
+
+/// The media type a shared text file goes out as, from its name.
+String textFileType(String name) => name.toLowerCase().endsWith('.csv') ? 'text/csv' : 'application/json';

@@ -205,6 +205,13 @@ void main() {
     });
   });
 
+  test("the app's template is the website's, byte for byte", () {
+    expect(teamsTemplateCsv, File('../site/teams-template.csv').readAsStringSync());
+    expect(teamsTemplateFileName, endsWith('.csv'));
+    expect(textFileType(teamsTemplateFileName), 'text/csv');
+    expect(textFileType('bnp-scorer-backup.json'), 'application/json');
+  });
+
   test('the template on the website imports as two full teams', () {
     final teams = parseTeamsCsv(File('../site/teams-template.csv').readAsStringSync());
     expect([for (final t in teams) t.name], ['Kings XI', 'Royal Strikers']);

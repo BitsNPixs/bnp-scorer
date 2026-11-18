@@ -1,3 +1,4 @@
+import 'package:bnp_scorer/data/squad_import.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
 import 'package:bnp_scorer/screens/new_match_screen.dart';
 import 'package:bnp_scorer/screens/team_edit_screen.dart';
@@ -422,17 +423,60 @@ void main() {
   });
 
   group('import from a CSV file', () {
-    Future<void> importFile(WidgetTester tester, String? contents) async {
-      files.fileToPick = contents;
+    Future<void> openImport(WidgetTester tester) async {
       await tester.tap(find.byTooltip('Import teams from a CSV file'));
       await settle(tester);
     }
+
+    Future<void> importFile(WidgetTester tester, String? contents) async {
+      files.fileToPick = contents;
+      await openImport(tester);
+      await tester.tap(find.text('Pick a CSV file'));
+      await settle(tester);
+    }
+
+    testWidgets('the first sheet shows the format from the template, and fits', (tester) async {
+      await pump(tester, const TeamsScreen());
+      await openImport(tester);
+
+      expect(find.text('Import teams'), findsOneWidget);
+      for (final heading in ['TEAM', 'PLAYER', 'ROLE']) {
+        expect(find.text(heading), findsOneWidget, reason: heading);
+      }
+      expect(find.text('Arun Kumar'), findsOneWidget);
+      expect(find.text('Royal Strikers'), findsOneWidget);
+      expect(find.text('Pick a CSV file'), findsOneWidget);
+      expect(find.text('Share the template'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the template is shared as a CSV file', (tester) async {
+      await pump(tester, const TeamsScreen());
+      await openImport(tester);
+      await tester.tap(find.text('Share the template'));
+      await settle(tester);
+
+      expect(files.fileName, 'bnp-teams-template.csv');
+      expect(files.fileContents, teamsTemplateCsv);
+      expect(find.text('Import teams'), findsNothing, reason: 'the sheet closes');
+    });
+
+    testWidgets('a failed share says so', (tester) async {
+      files.fail = true;
+      await pump(tester, const TeamsScreen());
+      await openImport(tester);
+      await tester.tap(find.text('Share the template'));
+      await tester.pump();
+      await tester.pump(_settle);
+
+      expect(find.textContaining('Could not share the template'), findsOneWidget);
+    });
 
     testWidgets('new teams are previewed, then saved', (tester) async {
       await pump(tester, const TeamsScreen());
       await importFile(tester, 'Kings,Queens\nAsha (c),Bilal\nChitra,Devi (wk)\nEsha,Farid\n');
 
-      expect(find.text('Import teams'), findsOneWidget);
+      expect(find.text('Check before importing'), findsOneWidget);
       expect(find.text('New team · 3 players'), findsNWidgets(2));
       expect(find.text('Asha (C), Chitra, Esha'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -445,6 +489,16 @@ void main() {
       expect(saved['Queens']!.playerById(saved['Queens']!.keeperId!)!.name, 'Devi');
       expect(find.text('Imported 2 teams with 6 new players.'), findsOneWidget);
       expect(find.text('3 players · Captain: Asha'), findsOneWidget);
+    });
+
+    testWidgets('the shared template imports as two teams', (tester) async {
+      await pump(tester, const TeamsScreen());
+      await importFile(tester, teamsTemplateCsv);
+
+      expect(find.text('New team · 6 players'), findsNWidgets(2));
+      await tester.tap(find.text('Import 2 teams'));
+      await settle(tester);
+      expect(teams.teams.values.map((t) => t.name), unorderedEquals(['Kings XI', 'Royal Strikers']));
     });
 
     testWidgets('a saved team of the same name gains the new players', (tester) async {
@@ -472,15 +526,31 @@ void main() {
       await tester.tap(find.text('OK'));
       await settle(tester);
       expect(teams.teams, isEmpty);
+      expect(files.fileName, isNull, reason: 'OK shares nothing');
     });
 
-    testWidgets('cancelling the picker or the preview saves nothing', (tester) async {
+    testWidgets('a wrong file offers the template', (tester) async {
       await pump(tester, const TeamsScreen());
-      await importFile(tester, null);
+      await importFile(tester, 'Player\nAsha\nBilal\n');
+
+      expect(find.textContaining('not both'), findsOneWidget);
+      await tester.tap(find.text('Share the template'));
+      await settle(tester);
+      expect(files.fileName, 'bnp-teams-template.csv');
+    });
+
+    testWidgets('cancelling any step saves nothing', (tester) async {
+      await pump(tester, const TeamsScreen());
+      await openImport(tester);
+      await tester.tapAt(const Offset(180, 20)); // above the first sheet
+      await settle(tester);
       expect(find.text('Import teams'), findsNothing);
 
+      await importFile(tester, null);
+      expect(find.text('Check before importing'), findsNothing);
+
       await importFile(tester, 'Kings\nAsha\nBilal\n');
-      expect(find.text('Import teams'), findsOneWidget);
+      expect(find.text('Check before importing'), findsOneWidget);
       await tester.tapAt(const Offset(180, 20));
       await settle(tester);
       expect(teams.teams, isEmpty);

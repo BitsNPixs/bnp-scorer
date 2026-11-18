@@ -22,6 +22,12 @@
   Player and Role columns). It stays a CSV when edited and saved in Excel, so
   it avoids the .xlsx problem. The app's "could not import" message gives its
   address, and a test imports it.
+- The template in the app too: the Teams tab's import button first shows the
+  format (a few rows of the template) with "Pick a CSV file" and "Share the
+  template", which sends the CSV to WhatsApp, email or Drive to fill in. A
+  file that cannot be read offers the template as well. Shared files ending in
+  .csv go out as CSV, so Sheets and Excel offer to open them; backups stay
+  JSON. The app's copy is tested to match the website's byte for byte.
 - The website lists every feature in the app, now including pasting and
   importing squads, following a match live, the over-by-over list, player and
   team profiles, and backup, with a question on bringing teams in from Excel.

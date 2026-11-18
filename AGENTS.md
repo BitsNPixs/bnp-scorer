@@ -121,8 +121,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Squad import (2026-11-18):** "Paste a list" on New match and the team page
   reads a WhatsApp-style list (marks like (c) and (wk) apply on the team page);
   the Teams tab imports a CSV saved from Excel or Google Sheets, in either of
-  two shapes, with a preview before saving. No new dependency: .xlsx is
-  refused with save-as-CSV steps. Tests and real-font renders only so far.
+  two shapes, with a preview before saving, after a first sheet that shows the
+  format and shares the CSV template. No new dependency: .xlsx is refused with
+  save-as-CSV steps. Paste and import were installed on the owner's phone on
+  2026-11-18, not yet tried there; the template sheet is tests and renders only.
 - Stats (`computeStats`) cover finished matches only, grouped by team and player
   id, leaving out Super Overs. `StatsScreen` covers every match, and
   `TournamentScreen` covers one tournament.
@@ -270,7 +272,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
-| Read a pasted list or a CSV of teams, add players to a squad | `parsePlayerList`, `parsePlayerLine`, `parseTeamsCsv`, `parseCsv`, `addToSquad`, `planImport` (`data/squad_import.dart`), `showPastePlayersSheet` (`widgets/paste_players_sheet.dart`), `decodeTextFile` (`data/device_files.dart`) |
+| Read a pasted list or a CSV of teams, add players to a squad | `parsePlayerList`, `parsePlayerLine`, `parseTeamsCsv`, `parseCsv`, `addToSquad`, `planImport` (`data/squad_import.dart`), `showPastePlayersSheet` (`widgets/paste_players_sheet.dart`), `decodeTextFile` (`data/device_files.dart`); the CSV template is `teamsTemplateCsv` (same text as `site/teams-template.csv`, tested) |
 
 ## Gotchas
 - **Overflow:** any `Text` in a `Row` must be `Expanded`/`Flexible` with

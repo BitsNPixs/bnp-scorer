@@ -52,6 +52,25 @@ class ImportedTeam {
 /// A ready CSV to fill in, on the website (`site/teams-template.csv`).
 const teamsTemplateAddress = 'bitsnpixs.github.io/bnp-scorer/teams-template.csv';
 
+/// The file name the template is shared under from the app.
+const teamsTemplateFileName = 'bnp-teams-template.csv';
+
+/// The same template, shared from the Teams tab. It must stay identical to
+/// `site/teams-template.csv`; a test compares them.
+const teamsTemplateCsv = 'Team,Player,Role\r\n'
+    'Kings XI,Arun Kumar,Captain\r\n'
+    'Kings XI,Balu,Wicket-keeper\r\n'
+    'Kings XI,Charles,Bowler\r\n'
+    'Kings XI,Dinesh,All-rounder\r\n'
+    'Kings XI,Ezhil,Batter\r\n'
+    'Kings XI,Farook,\r\n'
+    'Royal Strikers,Ganesh,Captain\r\n'
+    'Royal Strikers,Hameed,WK\r\n'
+    'Royal Strikers,Imran,Vice-captain\r\n'
+    'Royal Strikers,Jegan,Bowler\r\n'
+    'Royal Strikers,Karthik,\r\n'
+    'Royal Strikers,Lenin,\r\n';
+
 /// What a CSV import needs to look like, for error messages and the help text.
 const csvFormatHelp =
     'Put each team in its own column with the team name on top, or use two columns '

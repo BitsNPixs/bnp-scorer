@@ -20,6 +20,36 @@ class TeamsScreen extends ConsumerWidget {
   void _open(BuildContext context, [Team? team]) =>
       Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => TeamEditScreen(team: team)));
 
+  /// Shows the format first, then picks a file or shares the template.
+  Future<void> _startImport(BuildContext context, WidgetRef ref) async {
+    final choice = await showModalBottomSheet<_ImportChoice>(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) => const _ImportStart(),
+    );
+    if (!context.mounted) return;
+    switch (choice) {
+      case _ImportChoice.pickFile:
+        await _import(context, ref);
+      case _ImportChoice.shareTemplate:
+        await _shareTemplate(context, ref);
+      case null:
+        break;
+    }
+  }
+
+  /// Sends the template through the share sheet: to WhatsApp, email or Drive,
+  /// to open in Sheets or Excel here or on a computer.
+  Future<void> _shareTemplate(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(deviceFilesProvider).shareTextFile(teamsTemplateFileName, teamsTemplateCsv);
+    } on Object catch (e) {
+      if (context.mounted) showMessage(context, 'Could not share the template: $e', isError: true);
+    }
+  }
+
   /// Reads teams from a sheet saved as CSV, shows what each would become, and
   /// saves them once the scorer agrees.
   Future<void> _import(BuildContext context, WidgetRef ref) async {
@@ -35,7 +65,9 @@ class TeamsScreen extends ConsumerWidget {
     try {
       teams = parseTeamsCsv(raw);
     } on FormatException catch (e) {
-      await _explain(context, e.message);
+      if (!context.mounted) return;
+      final wantsTemplate = await _explain(context, e.message);
+      if (wantsTemplate == true && context.mounted) await _shareTemplate(context, ref);
       return;
     }
     final saved = await ref.read(savedTeamsProvider.future);
@@ -66,7 +98,8 @@ class TeamsScreen extends ConsumerWidget {
     showMessage(context, 'Imported ${plural(ready.length, 'team')} with ${plural(added, 'new player')}.');
   }
 
-  Future<void> _explain(BuildContext context, String message) => showDialog<void>(
+  /// Says what is wrong with a file. True when the scorer asks for the template.
+  Future<bool?> _explain(BuildContext context, String message) => showDialog<bool>(
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Could not import that file'),
@@ -80,9 +113,13 @@ class TeamsScreen extends ConsumerWidget {
             ],
           ),
           actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Share the template'),
+            ),
             FilledButton(
               style: FilledButton.styleFrom(minimumSize: const Size(0, 44)),
-              onPressed: () => Navigator.of(dialogContext).pop(),
+              onPressed: () => Navigator.of(dialogContext).pop(false),
               child: const Text('OK'),
             ),
           ],
@@ -98,7 +135,7 @@ class TeamsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: 'Import teams from a CSV file',
-            onPressed: () => _import(context, ref),
+            onPressed: () => _startImport(context, ref),
             icon: const Icon(Icons.upload_file_rounded),
           ),
         ],
@@ -173,7 +210,7 @@ class _ImportPreview extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final ready = plan.where((p) => p.team != null).length;
     return SheetBody(
-      title: 'Import teams',
+      title: 'Check before importing',
       subtitle: 'A team with the same name as a saved one adds its new players to it.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -225,6 +262,87 @@ class _ImportPreview extends StatelessWidget {
             onPressed: ready == 0 ? null : () => Navigator.of(context).pop(true),
             icon: const Icon(Icons.download_done_rounded),
             label: Text(ready == 0 ? 'Nothing to import' : 'Import ${plural(ready, 'team')}'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+enum _ImportChoice { pickFile, shareTemplate }
+
+/// The first step of an import: what the file should look like, taken from the
+/// template itself, then pick a file or share the template to fill in.
+class _ImportStart extends StatelessWidget {
+  const _ImportStart();
+
+  /// The header and a few rows of the template, from both teams, with roles
+  /// short enough to fit a phone (Captain, Bowler, WK).
+  static final _sample = () {
+    final rows = parseCsv(teamsTemplateCsv);
+    return [rows[0], rows[1], rows[3], rows[8]];
+  }();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final muted = text.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
+    Widget cell(String value, {bool head = false}) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+          child: Text(
+            value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: head
+                ? text.labelSmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.w800, letterSpacing: 0.8)
+                : text.bodySmall,
+          ),
+        );
+    return SheetBody(
+      title: 'Import teams',
+      subtitle: 'Bring in many teams at once from Excel or Google Sheets, saved as CSV.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SurfacePanel(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: Table(
+              columnWidths: const {0: FlexColumnWidth(5), 1: FlexColumnWidth(5), 2: FlexColumnWidth(4)},
+              children: [
+                for (final (i, row) in _sample.indexed)
+                  TableRow(
+                    decoration: i == 0
+                        ? BoxDecoration(border: Border(bottom: BorderSide(color: scheme.outlineVariant)))
+                        : null,
+                    children: [for (final value in row) cell(i == 0 ? value.toUpperCase() : value, head: i == 0)],
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'One row per player. Role is optional: Captain, Vice-captain, WK, Batter, Bowler or '
+            'All-rounder. One column per team, with its name on top, works too.',
+            style: muted,
+          ),
+          const SizedBox(height: 20),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context).pop(_ImportChoice.pickFile),
+            icon: const Icon(Icons.upload_file_rounded),
+            label: const Text('Pick a CSV file'),
+          ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: () => Navigator.of(context).pop(_ImportChoice.shareTemplate),
+            icon: const Icon(Icons.share_rounded),
+            label: const Text('Share the template'),
+          ),
+          const SizedBox(height: 14),
+          Text(
+            'One or two teams? "Paste a list" on the team\'s page is quicker.',
+            textAlign: TextAlign.center,
+            style: muted,
           ),
         ],
       ),

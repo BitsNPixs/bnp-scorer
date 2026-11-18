@@ -8,6 +8,8 @@ on:
     paths:
       - 'site/**'
       - '.github/workflows/pages.yml'
+      # Line-end rules change the files the site serves (the CSV template).
+      - '.gitattributes'
   workflow_dispatch:
 
 permissions:

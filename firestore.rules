@@ -75,6 +75,67 @@ service cloud.firestore {
       allow delete: if deletesOwn();
     }
 
+    // Players by mobile number (docs/PLAYER_PROFILES.md). A number is never
+    // stored: `phones` is keyed by the lowercase hex SHA-256 of its E.164 text,
+    // readable one document at a time by signed-in users and never listed.
+    function phoneDocOf(number) {
+      return /databases/$(database)/documents/phones/$(hashing.sha256(number).toHexString().lower());
+    }
+
+    // The signed-in user confirmed this number by SMS.
+    function holdsNumber(phoneId) {
+      return request.auth != null
+        && request.auth.token.phone_number != null
+        && phoneId == hashing.sha256(request.auth.token.phone_number).toHexString().lower();
+    }
+
+    // Anyone may read a profile; only its owner may list their own. A captain
+    // creates an invited player (no owner); a player creates their own.
+    match /players/{playerId} {
+      allow get: if true;
+      allow list: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+
+      allow create: if request.auth != null
+        && request.resource.data.id == playerId
+        && request.resource.data.name is string
+        && request.resource.data.createdBy == request.auth.uid
+        && (request.resource.data.ownerUid == null
+            || request.resource.data.ownerUid == request.auth.uid);
+
+      // The owner edits; or the holder of the number whose phone document
+      // names this player claims it, in the same batch.
+      allow update: if request.auth != null
+        && request.resource.data.id == playerId
+        && ((resource.data.ownerUid == request.auth.uid
+              && request.resource.data.ownerUid == request.auth.uid)
+            || (request.resource.data.ownerUid == request.auth.uid
+              && request.auth.token.phone_number != null
+              && getAfter(phoneDocOf(request.auth.token.phone_number)).data.playerId == playerId
+              && getAfter(phoneDocOf(request.auth.token.phone_number)).data.claimedBy == request.auth.uid));
+
+      allow delete: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+    }
+
+    // A number points at one player for good: the first to add it wins, and
+    // a second captain's write is refused. Only the number's holder claims it.
+    match /phones/{phoneId} {
+      allow get: if request.auth != null;
+      allow list: if false;
+
+      allow create: if request.auth != null
+        && request.resource.data.playerId is string
+        && request.resource.data.createdBy == request.auth.uid
+        && getAfter(/databases/$(database)/documents/players/$(request.resource.data.playerId)).data.createdBy == request.auth.uid
+        && (!('claimedBy' in request.resource.data)
+            || (request.resource.data.claimedBy == request.auth.uid && holdsNumber(phoneId)));
+
+      allow update: if holdsNumber(phoneId)
+        && request.resource.data.playerId == resource.data.playerId
+        && request.resource.data.claimedBy == request.auth.uid;
+
+      allow delete: if holdsNumber(phoneId);
+    }
+
     // Everything else is closed until a later step opens it on purpose.
     match /{document=**} {
       allow read, write: if false;

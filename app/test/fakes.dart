@@ -7,6 +7,7 @@ import 'package:bnp_scorer/data/cloud_cups.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
+import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
 import 'package:bnp_scorer/data/scheduled_match.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
@@ -374,4 +375,69 @@ class TextShares implements DeviceFiles {
 
   @override
   Future<String?> pickTextFile() async => fileToPick;
+}
+
+/// The player directory as two maps: players by id, and numbers (E.164, not
+/// hashed, for readable tests) to player ids. Follows the same rules as
+/// Firestore: a number taken first wins, and only its holder claims it.
+class FakePlayerDirectory implements PlayerDirectory {
+  final players = <String, PlayerProfile>{};
+  final phones = <String, String>{};
+
+  /// When true, every call fails as if there were no signal.
+  bool offline = false;
+  int _ids = 0;
+  final _changes = StreamController<void>.broadcast();
+
+  /// Adds [name] under [e164], as if another captain had invited them, or
+  /// as their own profile when [ownerUid] is given.
+  PlayerProfile seed(String name, String e164, {String? ownerUid}) {
+    final player = PlayerProfile(id: 'p${++_ids}', name: name, ownerUid: ownerUid);
+    players[player.id] = player;
+    phones[e164] = player.id;
+    return player;
+  }
+
+  void _checkSignal() {
+    if (offline) throw const PlayerDirectoryException(offlineMessage);
+  }
+
+  @override
+  Future<PlayerProfile?> lookupByPhone(String e164) async {
+    _checkSignal();
+    final id = phones[e164];
+    return id == null ? null : players[id];
+  }
+
+  @override
+  Future<PlayerProfile> invite(String name, String e164, Scorer by) async {
+    _checkSignal();
+    final first = await lookupByPhone(e164);
+    if (first != null) return first;
+    final player = seed(name, e164);
+    _changes.add(null);
+    return player;
+  }
+
+  @override
+  Future<PlayerProfile> claim(Scorer me) async {
+    _checkSignal();
+    final phone = me.phone;
+    if (phone == null) throw const PlayerDirectoryException('Confirm your mobile number first.');
+    final id = phones[phone];
+    final claimed = id == null
+        ? seed(me.name, phone, ownerUid: me.uid)
+        : PlayerProfile(id: id, name: players[id]!.name, ownerUid: me.uid);
+    players[claimed.id] = claimed;
+    _changes.add(null);
+    return claimed;
+  }
+
+  @override
+  Stream<PlayerProfile?> watch(String playerId) async* {
+    yield players[playerId];
+    await for (final _ in _changes.stream) {
+      yield players[playerId];
+    }
+  }
 }

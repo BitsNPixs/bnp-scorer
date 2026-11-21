@@ -11,6 +11,7 @@ import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
+import '../data/player_directory.dart';
 import '../data/scheduled_match.dart';
 import '../data/team_repository.dart';
 import '../data/tournament_repository.dart';
@@ -97,6 +98,17 @@ final publishedMatchProvider = StreamProvider.autoDispose.family<PublishedMatch?
     if (cloud == null) return Stream.value(null);
     return cloud.watch(matchId);
   },
+  retry: _noRetry,
+);
+
+/// Players by mobile number. Null without the cloud, like
+/// [cloudMatchesProvider].
+final playerDirectoryProvider = Provider<PlayerDirectory?>((ref) => null);
+
+/// One player in the directory, live. Null when there is no such player or no
+/// cloud.
+final playerProfileProvider = StreamProvider.autoDispose.family<PlayerProfile?, String>(
+  (ref, playerId) => ref.watch(playerDirectoryProvider)?.watch(playerId) ?? Stream.value(null),
   retry: _noRetry,
 );
 

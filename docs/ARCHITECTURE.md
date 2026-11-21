@@ -291,6 +291,19 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     `publicTournamentProgressProvider`, which builds a watched tournament's
     progress from the published matches of its fixtures (one listener each; a
     match scored signed out counts as not played).
+  - `PlayerDirectory` (`data/player_directory.dart`): players by mobile number.
+    `players/{id}` holds `id`, `name`, `createdBy`, `ownerUid` (null while only
+    invited), `schema`, `savedAt`; the id is the `Player.id` squads and matches
+    use, so stats follow the player across scorers. `phones/{hash}` maps the
+    lowercase hex SHA-256 of an E.164 number (`phoneHash`) to `playerId`,
+    `createdBy` and, once claimed, `claimedBy`. The number itself is never
+    stored. `invite` writes both in one batch; the rules refuse a number already
+    taken, and the app then uses the first player. `claim` takes over the
+    invited player under the scorer's confirmed number, or creates one in
+    their name. Lookups read from the server with a 10 s timeout and report
+    offline instead of failing silently. `playerDirectoryProvider` (null
+    without the cloud), `playerProfileProvider(id)`; `FakePlayerDirectory` in
+    tests.
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,
     which `app/build.gradle.kts` applies only when the file exists.

@@ -17,6 +17,12 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
 - Accounts: a signed-in scorer can confirm a mobile number by SMS code
   (Firebase phone auth, linked to the Google account; Android may confirm it
   without a code). Failures read as plain advice. No screen offers it yet.
+- Cloud: a player directory by mobile number. `players/{id}` is the public
+  profile; `phones/{sha256}` maps a hashed number to its player, readable one
+  at a time when signed in and never listed. A captain can invite a player
+  under a number; the first to add a number wins; the number's owner claims
+  the profile after confirming it. New rules in `firestore.rules` (to paste
+  into the console).
 
 ## 0.9.0-beta.6 — 2026-11-18
 

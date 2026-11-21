@@ -168,6 +168,44 @@ class FakeAccounts implements Accounts {
     _current = null;
     _changes.add(null);
   }
+
+  /// The code the next SMS carries.
+  String smsCode = '123456';
+
+  /// When true, the phone confirms the number by itself: no code to type.
+  bool autoVerify = false;
+
+  /// When set, sending a code fails with this message.
+  String? phoneFailWith;
+
+  /// Every number a code was sent to, resends included.
+  final codesSentTo = <String>[];
+
+  @override
+  Future<PhoneCodeRequest?> requestPhoneCode(String e164, {PhoneCodeRequest? resend}) async {
+    if (_current == null) throw const AccountsException('Sign in with Google first.');
+    final failure = phoneFailWith;
+    if (failure != null) throw AccountsException(failure);
+    codesSentTo.add(e164);
+    if (autoVerify) {
+      _setPhone(e164);
+      return null;
+    }
+    return PhoneCodeRequest(phone: e164, verificationId: 'v${codesSentTo.length}', resendToken: 1);
+  }
+
+  @override
+  Future<void> linkPhone(PhoneCodeRequest request, String code) async {
+    if (_current == null) throw const AccountsException('Sign in with Google first.');
+    if (code.trim() != smsCode) throw AccountsException(phoneErrorMessage('invalid-verification-code'));
+    _setPhone(request.phone);
+  }
+
+  void _setPhone(String e164) {
+    final scorer = _current!;
+    _current = Scorer(uid: scorer.uid, name: scorer.name, phone: e164);
+    _changes.add(_current);
+  }
 }
 
 /// The cloud as two maps: what is published, and by whom. [recent] and

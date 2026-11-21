@@ -131,6 +131,55 @@ void main() {
       expect(accounts.current, isNull);
       expect(await accounts.changes.first, isNull);
       expect(accounts.signIn, throwsA(isA<AccountsException>()));
+      expect(() => accounts.requestPhoneCode('+919876543210'), throwsA(isA<AccountsException>()));
+      const request = PhoneCodeRequest(phone: '+919876543210', verificationId: 'v');
+      expect(() => accounts.linkPhone(request, '123456'), throwsA(isA<AccountsException>()));
+    });
+  });
+
+  group('Scorer', () {
+    test('is equal by account, name and number, so a token refresh is not a change', () {
+      const a = Scorer(uid: 'u1', name: 'Asha', phone: '+919876543210');
+      expect(a, const Scorer(uid: 'u1', name: 'Asha', phone: '+919876543210'));
+      expect(a.hashCode, const Scorer(uid: 'u1', name: 'Asha', phone: '+919876543210').hashCode);
+      expect(a, isNot(const Scorer(uid: 'u1', name: 'Asha')));
+      expect(a, isNot(const Scorer(uid: 'u2', name: 'Asha', phone: '+919876543210')));
+    });
+  });
+
+  group('phoneErrorMessage', () {
+    test('explains the failures a player can fix', () {
+      expect(phoneErrorMessage('invalid-verification-code'), contains('code is not right'));
+      expect(phoneErrorMessage('session-expired'), contains('expired'));
+      expect(phoneErrorMessage('credential-already-in-use'), contains('another BNP Scorer account'));
+      expect(phoneErrorMessage('too-many-requests'), contains('Too many tries'));
+      expect(phoneErrorMessage('network-request-failed'), contains('No internet'));
+    });
+
+    test('names an unknown code rather than hiding it', () {
+      expect(phoneErrorMessage('something-new'), 'Could not confirm the number (something-new).');
+    });
+  });
+
+  group('FakeAccounts phone', () {
+    test('a right code puts the number on the scorer, a wrong one does not', () async {
+      final accounts = FakeAccounts(signedIn: _asha);
+      final request = await accounts.requestPhoneCode('+919876543210');
+      expect(request, isNotNull);
+      await expectLater(accounts.linkPhone(request!, '000000'), throwsA(isA<AccountsException>()));
+      expect(accounts.current!.phone, isNull);
+      await accounts.linkPhone(request, ' 123456 ');
+      expect(accounts.current!.phone, '+919876543210');
+    });
+
+    test('a phone that reads the code itself needs no code', () async {
+      final accounts = FakeAccounts(signedIn: _asha)..autoVerify = true;
+      expect(await accounts.requestPhoneCode('+919876543210'), isNull);
+      expect(accounts.current!.phone, '+919876543210');
+    });
+
+    test('needs a signed-in scorer', () async {
+      expect(() => FakeAccounts().requestPhoneCode('+919876543210'), throwsA(isA<AccountsException>()));
     });
   });
 }

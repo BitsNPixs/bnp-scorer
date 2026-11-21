@@ -259,7 +259,13 @@ scheduled, `outdated` offers that game with the teams the results now call for.
 - **Cloud** (docs/ROADMAP.md "Cloud: shared matches"):
   - `Accounts` (`data/accounts.dart`): Google sign-in through Firebase Auth
     (`FirebaseAccounts`), or `LocalOnlyAccounts` in builds without the cloud and
-    in tests. `accountsProvider`, `scorerProvider`.
+    in tests. `accountsProvider`, `scorerProvider`. A signed-in scorer may add a
+    mobile number: `requestPhoneCode` texts a code (null when Android confirms
+    the number by itself), `linkPhone` links it to the same Firebase user, or
+    swaps it for the old one, and refreshes the token so rules see
+    `request.auth.token.phone_number`. `Scorer.phone` carries it; it is never
+    published. `changes` follows `userChanges` (linking fires no auth-state
+    change) with `distinct`, since `Scorer` compares by value.
   - `CloudMatches` (`data/cloud_matches.dart`): `matches/{id}` in Firestore, the
     `MatchRecord` JSON plus `ownerUid`, `ownerName`, `schema` and `savedAt`. The
     field names are a storage format, like the event JSON: never rename them.

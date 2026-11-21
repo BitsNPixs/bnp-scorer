@@ -14,6 +14,9 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   (spaces, dashes, 0 or 91 in front; India by default, other countries with
   their + code), masks it for its owner (+91 •••• 3210), and hashes it for the
   cloud lookup. `crypto` moves from a transitive to a direct dependency.
+- Accounts: a signed-in scorer can confirm a mobile number by SMS code
+  (Firebase phone auth, linked to the Google account; Android may confirm it
+  without a code). Failures read as plain advice. No screen offers it yet.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

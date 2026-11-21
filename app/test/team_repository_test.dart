@@ -92,6 +92,29 @@ void main() {
       expect(squad.id, '1');
     });
 
+    test('a member linked to a number takes the shared id, keeping name, role and jobs', () {
+      final saved = Team(
+        id: '1',
+        name: 'Team A',
+        players: const [Player(id: '1-A', name: 'A'), Player(id: '1-B', name: 'B', role: PlayerRole.bowler)],
+        captainId: '1-B',
+        keeperId: '1-B',
+      );
+      final played = Team(
+        id: '1',
+        name: 'Team A',
+        players: const [Player(id: '1-A', name: 'A'), Player(id: 'global', name: 'B')],
+      );
+      final squad = mergeIntoSquad([saved], played, sameAs: {'1-B': 'global'})!;
+      expect(squad.players.map((p) => p.id), ['1-A', 'global']);
+      expect(squad.players.last.name, 'B');
+      expect(squad.players.last.role, PlayerRole.bowler);
+      expect(squad.captainId, 'global');
+      expect(squad.keeperId, 'global');
+      // Without the link, the same names keep their old ids as before.
+      expect(mergeIntoSquad([saved], played)!.players.map((p) => p.id), ['1-A', '1-B']);
+    });
+
     test('Fill to 11 placeholders are not kept', () {
       final filled = _team('1', 'Team', [placeholderPlayerName(1), placeholderPlayerName(2)]);
       expect(mergeIntoSquad([], filled), isNull);

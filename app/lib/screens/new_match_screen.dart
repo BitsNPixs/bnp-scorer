@@ -14,6 +14,7 @@ import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/inputs.dart';
 import '../ui/pickers.dart';
+import '../widgets/add_by_number_sheet.dart';
 import '../widgets/avatars.dart';
 import '../widgets/overs_picker.dart';
 import '../widgets/paste_players_sheet.dart';
@@ -298,10 +299,11 @@ class _NewMatchScreenState extends ConsumerState<NewMatchScreen> {
 
   /// The match is already saved, so a failure here must not stop it starting.
   Future<void> _rememberTeams(TeamRepository repository, List<Team> played) async {
+    final sameAs = {..._teamA.replacedIds, ..._teamB.replacedIds};
     try {
       final saved = await repository.loadAll();
       for (final team in played) {
-        final squad = mergeIntoSquad(saved, team);
+        final squad = mergeIntoSquad(saved, team, sameAs: sameAs);
         if (squad != null) await repository.save(squad);
       }
     } on Object catch (e) {
@@ -521,6 +523,28 @@ class _TeamDraft {
   Team? _saved;
   var _savedPlayers = <String, Player>{};
 
+  /// Players added by mobile number: their shared id, by the name shown here.
+  final _byNumber = <String, String>{};
+
+  /// Saved squad ids the captain linked to a player added by number, so the
+  /// squad takes the shared id ([mergeIntoSquad]'s `sameAs`).
+  final replacedIds = <String, String>{};
+
+  /// The ids of everyone picked so far, by number or from the saved squad.
+  Set<String> get pickedIds => {
+        for (final p in players) ?(_byNumber[p] ?? _savedPlayers[p]?.id),
+      };
+
+  /// Puts a player found by number in the team under [name]: their own name,
+  /// or the name of the squad member the captain said they are.
+  void addByNumber(String name, String id) {
+    final old = _savedPlayers[name];
+    if (old != null && old.id != id) replacedIds[old.id] = id;
+    _byNumber[name] = id;
+    sittingOut.remove(name);
+    if (!players.contains(name)) players.add(name);
+  }
+
   String? get savedTeamId => _saved?.id;
 
   String get displayName => name.text.trim().isEmpty ? _hint : name.text.trim();
@@ -556,13 +580,21 @@ class _TeamDraft {
   Team build() {
     // Taken out as used, so a repeated name still gets its own id.
     final known = {..._savedPlayers};
+    Player playerFor(String name) {
+      final saved = known.remove(name);
+      final shared = _byNumber[name];
+      if (shared == null) return saved ?? Player(id: newId(), name: name);
+      return Player(id: shared, name: name, role: saved?.role);
+    }
+
+    String? linked(String? id) => replacedIds[id] ?? id;
     return Team(
       id: savedTeamId ?? newId(),
       name: name.text.trim(),
-      players: [for (final p in players) known.remove(p) ?? Player(id: newId(), name: p)],
-      captainId: _saved?.captainId,
-      viceCaptainId: _saved?.viceCaptainId,
-      keeperId: _saved?.keeperId,
+      players: [for (final p in players) playerFor(p)],
+      captainId: linked(_saved?.captainId),
+      viceCaptainId: linked(_saved?.viceCaptainId),
+      keeperId: linked(_saved?.keeperId),
     );
   }
 
@@ -572,7 +604,7 @@ class _TeamDraft {
   }
 }
 
-class _TeamEditor extends StatefulWidget {
+class _TeamEditor extends ConsumerStatefulWidget {
   const _TeamEditor({
     required this.draft,
     required this.label,
@@ -592,10 +624,10 @@ class _TeamEditor extends StatefulWidget {
   final bool locked;
 
   @override
-  State<_TeamEditor> createState() => _TeamEditorState();
+  ConsumerState<_TeamEditor> createState() => _TeamEditorState();
 }
 
-class _TeamEditorState extends State<_TeamEditor> {
+class _TeamEditorState extends ConsumerState<_TeamEditor> {
   final _playerFocus = FocusNode();
 
   @override
@@ -628,6 +660,31 @@ class _TeamEditorState extends State<_TeamEditor> {
         _draft.players.add(p.name);
       }
     });
+    widget.onChanged();
+  }
+
+  /// Finds a player by number. One whose name is already in the team may be
+  /// the same person, and then takes that place.
+  Future<void> _addByNumber() async {
+    if (ref.read(accountsProvider).current == null) {
+      showMessage(context, signInToAddByNumber);
+      return;
+    }
+    final player = await showAddByNumberSheet(context, inTeam: _draft.pickedIds);
+    if (player == null || !mounted) return;
+    var name = player.name;
+    final lower = name.toLowerCase();
+    final clash = [..._draft.players, ..._draft.sittingOut].where((n) => n.toLowerCase() == lower).firstOrNull;
+    if (clash != null) {
+      final same = await confirmSamePlayer(context, clash);
+      if (same == null || !mounted) return;
+      if (!same) {
+        showMessage(context, 'There is already a $clash in the team. Rename one of them first.');
+        return;
+      }
+      name = clash;
+    }
+    setState(() => _draft.addByNumber(name, player.id));
     widget.onChanged();
   }
 
@@ -753,10 +810,21 @@ class _TeamEditorState extends State<_TeamEditor> {
             ),
           ),
           const SizedBox(height: 4),
-          TextButton.icon(
-            onPressed: _pasteList,
-            icon: const Icon(Icons.content_paste_rounded, size: 18),
-            label: const Text('Paste a list'),
+          Wrap(
+            spacing: 4,
+            children: [
+              TextButton.icon(
+                onPressed: _pasteList,
+                icon: const Icon(Icons.content_paste_rounded, size: 18),
+                label: const Text('Paste a list'),
+              ),
+              if (ref.watch(playerDirectoryProvider) != null)
+                TextButton.icon(
+                  onPressed: _addByNumber,
+                  icon: const Icon(Icons.phone_rounded, size: 18),
+                  label: const Text('Add by number'),
+                ),
+            ],
           ),
         ],
       ),

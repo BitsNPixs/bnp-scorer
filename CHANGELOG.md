@@ -43,6 +43,14 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   profile waits with "Tap to try again". The sign-in notice says the number
   is used only to find the profile and is never shown.
 
+- Add by number (cloud builds, signed in), on a team's page and on New match:
+  type a mobile number to find the player who joined with it (their profile
+  and career come with them) or, when nobody has, add them by name as
+  invited. A found player whose name is already in the team can be linked to
+  that member, who keeps their role, captaincy and gloves; on New match the
+  saved squad takes the link too. The team page marks players Verified or
+  Invited, and a player's actions include View profile.
+
 ### Changed
 - Tab bars: the selected tab's pill is inset to about 30 dp instead of filling
   the whole tab, on every tabbed screen (owner's feedback: too big for a

@@ -247,6 +247,22 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   `LocalTeamRepository` stores `bnp_scorer.teamIds` and `bnp_scorer.team.<id>`.
   `mergeIntoSquad` decides what to store when a match starts: the saved squad
   stays whole, newcomers are added, and "Fill to 11" placeholders are dropped.
+  Its `sameAs` (old id to shared id) comes only from the captain confirming
+  that a player added by number is a squad member of the same name; that
+  member takes the shared id and keeps name, role, captaincy and gloves.
+  Names alone never change an id.
+- **Add by number** (cloud builds): `showAddByNumberSheet`
+  (`widgets/add_by_number_sheet.dart`) looks the number up
+  (`PlayerDirectory.lookupByPhone`), then offers Add to team (disabled when
+  the id is already in the team) or, for a number nobody has, a name and Add
+  as invited (`invite`). It returns the `PlayerProfile`; `confirmSamePlayer`
+  asks when its name is already in the team. The team page swaps that
+  member's id (and captain, vice-captain, keeper) or adds a second player;
+  New match puts the name under the shared id (`_TeamDraft.addByNumber`,
+  recording `replacedIds` for the squad) or, for someone else of the same
+  name, asks to rename one first. Signed out, the button says to sign in.
+  The team page marks each player Verified or Invited from
+  `playerProfileProvider`, and the player actions sheet has View profile.
 - `TournamentRepository`: newest first. `LocalTournamentRepository` stores
   `bnp_scorer.tournamentIds` and `bnp_scorer.tournament.<id>`.
 - `ScheduleRepository`: scheduled friendlies (`ScheduledMatch`), soonest first.

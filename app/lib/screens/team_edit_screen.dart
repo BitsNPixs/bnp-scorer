@@ -5,9 +5,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/ids.dart';
 import '../data/squad_import.dart';
 import '../state/providers.dart';
+import 'player_profile_screen.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/inputs.dart';
+import '../widgets/add_by_number_sheet.dart';
 import '../widgets/avatars.dart';
 import '../widgets/paste_players_sheet.dart';
 import '../widgets/scoring_sheets.dart';
@@ -95,6 +97,36 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     showMessage(context, 'Added ${plural(update.added, 'player')}.');
   }
 
+  /// Finds a player by number. One with the name of a squad member may be
+  /// that member, who then takes the shared id and keeps their jobs.
+  Future<void> _addByNumber() async {
+    if (ref.read(accountsProvider).current == null) {
+      showMessage(context, signInToAddByNumber);
+      return;
+    }
+    final found = await showAddByNumberSheet(context, inTeam: {for (final p in _players) p.id});
+    if (found == null || !mounted) return;
+    final lower = found.name.toLowerCase();
+    final clash = _players.where((p) => p.name.toLowerCase() == lower).firstOrNull;
+    if (clash != null) {
+      final same = await confirmSamePlayer(context, clash.name);
+      if (same == null || !mounted) return;
+      if (same) {
+        String? linked(String? id) => id == clash.id ? found.id : id;
+        setState(() {
+          _players[_players.indexOf(clash)] = Player(id: found.id, name: clash.name, role: clash.role);
+          _captainId = linked(_captainId);
+          _viceCaptainId = linked(_viceCaptainId);
+          _keeperId = linked(_keeperId);
+        });
+        showMessage(context, '${clash.name} is linked to their number.');
+        return;
+      }
+    }
+    setState(() => _players.add(found.player));
+    showMessage(context, 'Added ${found.name}.');
+  }
+
   void _replace(Player player, {String? name, PlayerRole? role}) {
     final i = _players.indexWhere((p) => p.id == player.id);
     setState(() {
@@ -168,6 +200,7 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
               tile(Icons.star_half_rounded, 'Make vice-captain', () => _makeViceCaptain(player)),
               tile(Icons.sports_handball_rounded, 'Make wicket-keeper', () => _makeKeeper(player)),
               tile(Icons.edit_rounded, 'Rename', () => _rename(player)),
+              tile(Icons.person_search_rounded, 'View profile', () => openPlayer(context, player.id)),
               tile(Icons.person_remove_rounded, 'Remove from squad', () => _remove(player)),
             ],
           ),
@@ -236,7 +269,11 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     Navigator.of(context).pop();
   }
 
-  String _subtitle(Player player) => [
+  /// [joined] is true for a verified player, false for one invited by number,
+  /// and null for a name only on this phone.
+  String _subtitle(Player player, bool? joined) => [
+        if (joined == true) 'Verified',
+        if (joined == false) 'Invited',
         if (player.id == _captainId) 'Captain',
         if (player.id == _viceCaptainId) 'Vice-captain',
         if (player.id == _keeperId) 'Wicket-keeper',
@@ -248,6 +285,7 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     final saved = ref.watch(savedTeamsProvider).value ?? const <Team>[];
     final blocker = _blocker(saved);
     final text = Theme.of(context).textTheme;
+    final cloud = ref.watch(playerDirectoryProvider) != null;
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.team == null ? 'New team' : 'Edit team'),
@@ -276,15 +314,21 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
                 SectionLabel('Squad · ${_players.length}'),
                 const SizedBox(height: 4),
                 for (final player in _players)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: PlayerAvatar(name: player.name),
-                    title: Text(player.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                    subtitle: _subtitle(player).isEmpty
-                        ? null
-                        : Text(_subtitle(player), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    trailing: const Icon(Icons.more_horiz_rounded),
-                    onTap: () => _showPlayerActions(player),
+                  Consumer(
+                    builder: (context, ref, _) {
+                      final joined = cloud ? ref.watch(playerProfileProvider(player.id)).value?.claimed : null;
+                      final subtitle = _subtitle(player, joined);
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: PlayerAvatar(name: player.name),
+                        title: Text(player.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        subtitle: subtitle.isEmpty
+                            ? null
+                            : Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        trailing: const Icon(Icons.more_horiz_rounded),
+                        onTap: () => _showPlayerActions(player),
+                      );
+                    },
                   ),
                 const SizedBox(height: 10),
                 TextField(
@@ -304,10 +348,21 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                TextButton.icon(
-                  onPressed: _pasteList,
-                  icon: const Icon(Icons.content_paste_rounded, size: 18),
-                  label: const Text('Paste a list'),
+                Wrap(
+                  spacing: 4,
+                  children: [
+                    TextButton.icon(
+                      onPressed: _pasteList,
+                      icon: const Icon(Icons.content_paste_rounded, size: 18),
+                      label: const Text('Paste a list'),
+                    ),
+                    if (cloud)
+                      TextButton.icon(
+                        onPressed: _addByNumber,
+                        icon: const Icon(Icons.phone_rounded, size: 18),
+                        label: const Text('Add by number'),
+                      ),
+                  ],
                 ),
               ],
             ),

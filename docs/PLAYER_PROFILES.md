@@ -37,8 +37,8 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
 - [x] 5. `PlayerDirectory` (Firestore + fake) + tests; rules for `players` and `phones`. (2026-11-21, 57a9d3c)
 - [x] 6. `playerIds` on publish, `CloudMatches.byPlayer`, one-time backfill + tests; rules for `matches`. (2026-11-21, 1c82e19)
 - [x] 7. `PlayerProfileScreen` (INFO, BATTING, BOWLING, CAREER), `KeyValueTable`, `StatsTable`; replaces `PlayerStatsScreen` everywhere (watched cups show their own numbers). (2026-11-21, 98ca03e; tab pill inset app-wide after owner feedback)
-- [x] 8. Settings: link a number, Verified line, Change number, My profile + tests. (2026-11-21)
-- [ ] 9. Add by number on the team page and New match (found / invited / already in squad / offline / signed out) + tests.
+- [x] 8. Settings: link a number, Verified line, Change number, My profile + tests. (2026-11-21, 7c30c3a)
+- [x] 9. Add by number on the team page and New match (found / invited / already in squad / offline / signed out) + tests. (2026-11-21)
 - [ ] 10. Docs, privacy policy, Data safety answers, site feature list and FAQ, screenshots, version bump, beta build.
 
 Owner tasks in the Firebase console before step 8 is tried on a phone:

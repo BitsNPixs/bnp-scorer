@@ -404,7 +404,7 @@ class FakePlayerDirectory implements PlayerDirectory {
   /// Adds [name] under [e164], as if another captain had invited them, or
   /// as their own profile when [ownerUid] is given.
   PlayerProfile seed(String name, String e164, {String? ownerUid}) {
-    final player = PlayerProfile(id: 'p${++_ids}', name: name, ownerUid: ownerUid);
+    final player = PlayerProfile(id: 'dir${++_ids}', name: name, ownerUid: ownerUid);
     players[player.id] = player;
     phones[e164] = player.id;
     return player;

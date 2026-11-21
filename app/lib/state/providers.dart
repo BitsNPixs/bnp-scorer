@@ -7,6 +7,7 @@ import '../data/accounts.dart';
 import '../data/app_settings.dart';
 import '../data/cloud_cups.dart';
 import '../data/cloud_matches.dart';
+import '../data/device_contacts.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
@@ -192,6 +193,9 @@ final errorLogProvider = Provider<ErrorLog>(
 
 /// The share sheet and file picker. Tests override this.
 final deviceFilesProvider = Provider<DeviceFiles>((ref) => const PlatformDeviceFiles());
+
+/// The phone's contact picker. Tests override this.
+final deviceContactsProvider = Provider<DeviceContacts>((ref) => const PlatformDeviceContacts());
 
 /// Overridden in `main()` with the real implementation.
 final teamRepositoryProvider = Provider<TeamRepository>(

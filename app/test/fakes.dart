@@ -5,6 +5,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/cloud_cups.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
+import 'package:bnp_scorer/data/device_contacts.dart';
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
@@ -458,5 +459,26 @@ class FakePlayerDirectory implements PlayerDirectory {
     await for (final _ in _changes.stream) {
       yield players[playerId];
     }
+  }
+}
+
+/// The contact picker: [next] is what the next pick returns (null as if the
+/// user backed out); [failWith] makes it fail.
+class FakeContacts implements DeviceContacts {
+  FakeContacts({this.next});
+
+  PickedContact? next;
+  String? failWith;
+  int picks = 0;
+
+  @override
+  bool get available => true;
+
+  @override
+  Future<PickedContact?> pickContact() async {
+    picks++;
+    final failure = failWith;
+    if (failure != null) throw DeviceContactsException(failure);
+    return next;
   }
 }

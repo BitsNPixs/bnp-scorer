@@ -261,6 +261,12 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   New match puts the name under the shared id (`_TeamDraft.addByNumber`,
   recording `replacedIds` for the squad) or, for someone else of the same
   name, asks to rename one first. Signed out, the button says to sign in.
+  "Pick from contacts" (`DeviceContacts`, `data/device_contacts.dart`) uses
+  Android's contact picker (`ACTION_PICK` on `Phone.CONTENT_URI`) through the
+  `com.bitsnpixs.bnp_scorer/contacts` channel in `MainActivity.kt`: the picker
+  grants access to the one tapped entry, so there is no `READ_CONTACTS`. The
+  number is normalised and looked up at once; the contact's name fills the
+  invite. `available` is false off Android, hiding the button.
   The team page marks each player Verified or Invited from
   `playerProfileProvider`, and the player actions sheet has View profile.
 - `TournamentRepository`: newest first. `LocalTournamentRepository` stores

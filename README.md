@@ -224,8 +224,10 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   request. Collected: Personal info > Name, Email address, User IDs and Phone
   number (account management and app functionality; the name is shown publicly
   as "Scored by" and on the player profile, the number never is; numbers
-  captains type for other players are sent only as a SHA-256 hash to find or
-  create their profile); App activity > Other
+  captains type or pick from contacts for other players are sent only as a
+  SHA-256 hash to find or create their profile; the contact picker hands over
+  one tapped contact, with no contacts permission, so Contacts stay "not
+  collected"); App activity > Other
   user-generated content (published matches, tournaments and scheduled
   matches, including player names; app functionality). Entry fee payments are
   not collected: they stay on the phone. Not collected: location, contacts, photos, files, crash logs

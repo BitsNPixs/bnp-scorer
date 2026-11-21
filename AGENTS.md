@@ -293,6 +293,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `knockoutFixtures`, `knockoutBracket`, `Tournament.bracket`, `sideName`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
+| Contact picker (one tapped contact, no permission) | `DeviceContacts`, `PickedContact` (`data/device_contacts.dart`), `deviceContactsProvider`, channel in `MainActivity.kt`; `FakeContacts` in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
 | Read a pasted list or a CSV of teams, add players to a squad | `parsePlayerList`, `parsePlayerLine`, `parseTeamsCsv`, `parseCsv`, `addToSquad`, `planImport` (`data/squad_import.dart`), `showPastePlayersSheet` (`widgets/paste_players_sheet.dart`), `decodeTextFile` (`data/device_files.dart`); the CSV template is `teamsTemplateCsv` (same text as `site/teams-template.csv`, tested) |

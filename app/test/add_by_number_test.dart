@@ -1,4 +1,5 @@
 import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/device_contacts.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/screens/new_match_screen.dart';
 import 'package:bnp_scorer/screens/team_edit_screen.dart';
@@ -36,8 +37,10 @@ void main() {
   late InMemoryMatchRepository matches;
   late FakePlayerDirectory directory;
   late FakeAccounts accounts;
+  late FakeContacts contacts;
 
   setUp(() {
+    contacts = FakeContacts();
     teams = InMemoryTeamRepository();
     matches = InMemoryMatchRepository();
     directory = FakePlayerDirectory();
@@ -61,6 +64,7 @@ void main() {
         teamRepositoryProvider.overrideWithValue(teams),
         matchRepositoryProvider.overrideWithValue(matches),
         accountsProvider.overrideWithValue(accounts),
+        deviceContactsProvider.overrideWithValue(contacts),
         if (withDirectory) playerDirectoryProvider.overrideWithValue(directory),
       ],
       child: MaterialApp(theme: AppTheme.light(), home: home),
@@ -169,6 +173,53 @@ void main() {
       await settle(tester);
       await save(tester);
       expect(teams.teams['t']!.players.where((p) => p.name == 'Ravi'), hasLength(2));
+    });
+
+    testWidgets('a contact picked from the phone fills the number and finds the player', (tester) async {
+      final ravi = directory.seed('Ravi Kumar', _ravi, ownerUid: 'u9');
+      contacts.next = const PickedContact(name: 'Ravi K', number: '098765 43210');
+      await pump(tester, TeamEditScreen(team: _alpha()));
+      await openSheet(tester);
+      await tester.tap(find.text('Pick from contacts'));
+      await settle(tester);
+
+      expect(contacts.picks, 1);
+      expect(find.text('Verified player'), findsOneWidget);
+      await tester.tap(find.text('Add to team'));
+      await settle(tester);
+      await save(tester);
+      expect(teams.teams['t']!.players.last.id, ravi.id);
+    });
+
+    testWidgets("a picked contact nobody has joined with is invited under the contact's name", (tester) async {
+      contacts.next = const PickedContact(name: 'Kiran', number: '+91 98765 43211');
+      await pump(tester, TeamEditScreen(team: _alpha()));
+      await openSheet(tester);
+      await tester.tap(find.text('Pick from contacts'));
+      await settle(tester);
+      expect(tester.widget<TextField>(find.byKey(const ValueKey('invite-name'))).controller!.text, 'Kiran');
+      await tester.tap(find.text('Add as invited'));
+      await settle(tester);
+      expect(directory.players[directory.phones[_new]]!.name, 'Kiran');
+    });
+
+    testWidgets('backing out of the picker, a landline or a failed picker are handled', (tester) async {
+      await pump(tester, TeamEditScreen(team: _alpha()));
+      await openSheet(tester);
+      await tester.tap(find.text('Pick from contacts'));
+      await settle(tester);
+      expect(find.text('Find'), findsOneWidget);
+      expect(tester.widget<TextField>(find.byKey(const ValueKey('find-number'))).controller!.text, isEmpty);
+
+      contacts.next = const PickedContact(name: 'Office', number: '0471 2345');
+      await tester.tap(find.text('Pick from contacts'));
+      await settle(tester);
+      expect(find.text('Office has no mobile number the app can use.'), findsOneWidget);
+
+      contacts.failWith = 'Could not open your contacts (no_picker).';
+      await tester.tap(find.text('Pick from contacts'));
+      await settle(tester);
+      expect(find.text('Could not open your contacts (no_picker).'), findsOneWidget);
     });
 
     testWidgets('offline, the sheet says so', (tester) async {

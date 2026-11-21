@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Add by number: "Pick from contacts" opens Android's own contact picker.
+  The tapped contact's number is looked up straight away, and their name is
+  ready if nobody has joined with it. The app sees only that one contact and
+  asks for no contacts permission (the APK's permissions are unchanged).
+  Android only; iOS waits for its platform folder.
 - A player fills in their own profile (pencil on their profile, owner only):
   name, role, batting (right or left hand), bowling arm and type (fast,
   medium or spin) and home town, shown on the Info tab. The player's role

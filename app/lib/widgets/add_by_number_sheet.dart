@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/device_contacts.dart';
 import '../data/phone_numbers.dart';
 import '../data/player_directory.dart';
 import '../state/providers.dart';
@@ -98,6 +99,31 @@ class _AddByNumberSheetState extends ConsumerState<_AddByNumberSheet> {
     }
   }
 
+  /// Fills the number from the phone's contact picker and looks it up, with
+  /// the contact's name ready in case nobody has joined with it.
+  Future<void> _pickContact() async {
+    final PickedContact? contact;
+    try {
+      contact = await ref.read(deviceContactsProvider).pickContact();
+    } on DeviceContactsException catch (e) {
+      if (mounted) _fail(e.message);
+      return;
+    }
+    if (contact == null || !mounted) return;
+    final e164 = normalizePhone(contact.number);
+    if (e164 == null) {
+      final who = contact.name.isEmpty ? 'That contact' : contact.name;
+      return _fail('$who has no mobile number the app can use.');
+    }
+    _number.text = e164;
+    _name.text = contact.name;
+    setState(() {
+      _searched = null;
+      _found = null;
+    });
+    await _find();
+  }
+
   Future<void> _invite() async {
     final name = _name.text.trim();
     final number = _searched!;
@@ -153,8 +179,15 @@ class _AddByNumberSheetState extends ConsumerState<_AddByNumberSheet> {
             decoration: fieldDecoration(context, '98765 43210', icon: Icons.phone_rounded),
           ),
           const SizedBox(height: 12),
-          if (searched == null)
-            FilledButton(onPressed: _busy ? null : _find, child: _busy ? spinner : const Text('Find'))
+          if (searched == null) ...[
+            FilledButton(onPressed: _busy ? null : _find, child: _busy ? spinner : const Text('Find')),
+            if (ref.watch(deviceContactsProvider).available)
+              TextButton.icon(
+                onPressed: _busy ? null : _pickContact,
+                icon: const Icon(Icons.contacts_rounded, size: 18),
+                label: const Text('Pick from contacts'),
+              ),
+          ]
           else if (found != null) ...[
             SurfacePanel(
               child: Row(

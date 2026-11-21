@@ -54,8 +54,8 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [x] Privacy text: styles and home town are public. (2026-11-21)
 
 ## Release 3: pick from phone contacts
-- [ ] `MainActivity.kt` picker channel; `DeviceContacts` + fake; button in the add-by-number sheet + tests.
-- [ ] README Data safety and privacy Permissions paragraph; site FAQ.
+- [x] `MainActivity.kt` picker channel; `DeviceContacts` + fake; button in the add-by-number sheet + tests. (2026-11-21)
+- [x] README Data safety and privacy Permissions paragraph; site feature list. (2026-11-21)
 
 ## Release 4: teams in the cloud, join code, invite, join requests
 - [ ] `CloudTeams`, `SyncingTeamRepository`, `teams` rules.

@@ -209,9 +209,12 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   which needs the **Blaze** plan (about $0.07 an SMS in India after 10 free a
   day). In the console: upgrade with a budget alert; Authentication > Sign-in
   method > Phone, on; Settings > SMS region policy, allow India only (stops
-  SMS fraud); add a test number and code for development; and enable the Play
-  Integrity API on the Google Cloud project, or users see a reCAPTCHA page in
-  the browser first. The same SHA-1 and SHA-256 fingerprints as sign-in apply.
+  SMS fraud); add test numbers under Phone numbers for testing (fictional, such
+  as +1 650-555-3434, each with a six-digit code like 123456; no SMS is sent and
+  nothing is billed); and enable the Play Integrity API on the Google Cloud
+  project, or users see a reCAPTCHA page in the browser first (it proves the
+  request comes from the real app, so nobody can use the project to send SMS;
+  sideloaded betas may get the page anyway). The same SHA-1 and SHA-256 fingerprints as sign-in apply.
   In the Rules Playground, check that `hashing.sha256(...).toHexString().lower()`
   gives the same lowercase hex as `phoneHash` in the app (the test number's
   hash is in `test/phone_numbers_test.dart`).

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/foundation.dart';
 
 import 'accounts.dart';
@@ -30,7 +31,18 @@ abstract interface class CloudMatches {
   /// One match as it is scored. Null once it is no longer published; an error
   /// when it cannot be read.
   Stream<PublishedMatch?> watch(String matchId);
+
+  /// Published matches [playerId] was picked in, up to [limit], in no order.
+  /// Matches published before `playerIds` existed are not found.
+  Future<List<PublishedMatch>> byPlayer(String playerId, {int limit = 100});
 }
+
+/// Everyone picked in the match, both sides: the `playerIds` field of a
+/// published match, which finds a player's matches for their profile.
+List<String> matchPlayerIds(MatchSetup setup) => [
+      for (final team in [setup.teamA, setup.teamB])
+        for (final player in team.players) player.id,
+    ];
 
 class FirestoreCloudMatches implements CloudMatches {
   FirestoreCloudMatches(this._db);
@@ -45,6 +57,7 @@ class FirestoreCloudMatches implements CloudMatches {
   @override
   Future<void> publish(MatchRecord record, Scorer owner) => _matches.doc(record.id).set({
         ...record.toJson(),
+        'playerIds': matchPlayerIds(record.setup),
         'ownerUid': owner.uid,
         'ownerName': owner.name,
         'schema': schema,
@@ -68,6 +81,13 @@ class FirestoreCloudMatches implements CloudMatches {
         final data = doc.data();
         return data == null ? null : parsePublishedMatch(data);
       });
+
+  @override
+  Future<List<PublishedMatch>> byPlayer(String playerId, {int limit = 100}) async {
+    // No orderBy, so the query needs no composite index; callers sort.
+    final query = await _matches.where('playerIds', arrayContains: playerId).limit(limit).get();
+    return [for (final doc in query.docs) ?_tryParse(doc.id, doc.data())];
+  }
 
   static PublishedMatch? _tryParse(String id, Map<String, Object?> data) {
     try {

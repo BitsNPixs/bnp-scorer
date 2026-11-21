@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/backfill.dart';
+import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/syncing_match_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'fakes.dart';
 
@@ -180,6 +183,76 @@ void main() {
 
     test('needs a signed-in scorer', () async {
       expect(() => FakeAccounts().requestPhoneCode('+919876543210'), throwsA(isA<AccountsException>()));
+    });
+  });
+
+  group('playerIds', () {
+    test('lists everyone picked, both sides', () {
+      expect(matchPlayerIds(sampleRecord().setup), ['a1', 'a2', 'a3', 'a4', 'b1', 'b2', 'b3', 'b4']);
+    });
+
+    test('byPlayer finds the published matches a player was in', () async {
+      final cloud = FakeCloudMatches();
+      await cloud.publish(_published('m1', 'u1'), _asha);
+      await cloud.publish(_published('m2', 'u1'), _asha);
+      expect((await cloud.byPlayer('b3')).map((m) => m.record.id), unorderedEquals(['m1', 'm2']));
+      expect(await cloud.byPlayer('zz'), isEmpty);
+      expect(await cloud.byPlayer('b3', limit: 1), hasLength(1));
+    });
+  });
+
+  group('sending published matches again for playerIds', () {
+    late InMemoryMatchRepository local;
+    late FakeCloudMatches cloud;
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      local = InMemoryMatchRepository();
+      cloud = FakeCloudMatches();
+      await local.save(_published('mine', 'u1'));
+      await local.save(_published('theirs', 'u2'));
+      await local.save(sampleRecord(id: 'private'));
+    });
+
+    Future<void> run(Scorer scorer) =>
+        republishForPlayerIds(prefs: prefs, local: local, cloud: cloud, scorer: scorer);
+
+    test("sends only the scorer's own published matches", () async {
+      await run(_asha);
+      expect(cloud.published.keys, ['mine']);
+      expect(cloud.owners['mine'], _asha);
+    });
+
+    test('runs once per account on this phone', () async {
+      await run(_asha);
+      cloud.published.clear();
+      await run(_asha);
+      expect(cloud.published, isEmpty);
+      await run(_bilal);
+      expect(cloud.published.keys, ['theirs']);
+      expect(prefs.getStringList(playerIdsBackfillKey), ['u1', 'u2']);
+    });
+
+    test('a failed send is tried again next time', () async {
+      cloud.failWrites = true;
+      await run(_asha);
+      expect(prefs.getStringList(playerIdsBackfillKey), isNull);
+      cloud.failWrites = false;
+      await run(_asha);
+      expect(cloud.published.keys, ['mine']);
+    });
+
+    test('starts when a scorer signs in', () async {
+      final accounts = FakeAccounts();
+      final sub = backfillPlayerIdsOnSignIn(accounts: accounts, prefs: prefs, local: local, cloud: cloud);
+      addTearDown(sub.cancel);
+      await pumpEventQueue();
+      expect(cloud.published, isEmpty);
+      await accounts.signIn();
+      await pumpEventQueue();
+      expect(cloud.published.keys, ['mine']);
     });
   });
 }

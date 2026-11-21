@@ -257,6 +257,12 @@ class FakeCloudMatches implements CloudMatches {
   }
 
   @override
+  Future<List<PublishedMatch>> byPlayer(String playerId, {int limit = 100}) async => [
+        for (final record in published.values)
+          if (matchPlayerIds(record.setup).contains(playerId)) _published(record.id),
+      ].take(limit).toList();
+
+  @override
   Stream<PublishedMatch?> watch(String matchId) async* {
     PublishedMatch? current() {
       if (unreadable.contains(matchId)) throw const FormatException('Cannot read this match');

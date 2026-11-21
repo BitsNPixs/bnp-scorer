@@ -269,6 +269,13 @@ scheduled, `outdated` offers that game with the teams the results now call for.
   - `CloudMatches` (`data/cloud_matches.dart`): `matches/{id}` in Firestore, the
     `MatchRecord` JSON plus `ownerUid`, `ownerName`, `schema` and `savedAt`. The
     field names are a storage format, like the event JSON: never rename them.
+    Since beta.7 it also carries `playerIds` (`matchPlayerIds`: everyone picked,
+    both sides), so `byPlayer` (an `array-contains` query, no `orderBy`, no
+    composite index) finds a player's matches for their profile. Matches
+    published earlier lack it: `republishForPlayerIds` (`data/backfill.dart`)
+    sends a signed-in scorer's own published matches once more, once per
+    account per phone (`bnp_scorer.playerIdsBackfill`), started from `main()`
+    on every sign-in. Other scorers' old matches show once they update.
   - Reading: `CloudMatches.recent` (newest 30 by `savedAt`, live) and `watch`
     (one match, live); `parsePublishedMatch` refuses a newer `schema`.
     `publicMatchesProvider` replays each match and leaves out ones that do not

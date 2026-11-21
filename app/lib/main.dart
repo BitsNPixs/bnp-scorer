@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'data/accounts.dart';
 import 'data/app_settings.dart';
+import 'data/backfill.dart';
 import 'data/cloud_cups.dart';
 import 'data/cloud_matches.dart';
 import 'data/demo_data.dart';
@@ -45,6 +46,9 @@ Future<void> main() async {
       cups == null ? localTournaments : SyncingTournamentRepository(localTournaments, cups, accounts);
   final ScheduleRepository schedules =
       cups == null ? localSchedules : SyncingScheduleRepository(localSchedules, cups, accounts);
+  if (cloud != null) {
+    backfillPlayerIdsOnSignIn(accounts: accounts, prefs: prefs, local: local, cloud: cloud);
+  }
   if (demoMode) {
     // Straight to the phone: demo matches are never published.
     await seedDemoMatches(local);

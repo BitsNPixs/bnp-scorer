@@ -299,8 +299,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - Storage keys are `bnp_scorer.matchIds`, `bnp_scorer.match.<id>`,
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
   `bnp_scorer.tournament.<id>`, `bnp_scorer.scheduleIds`,
-  `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode` and
-  `bnp_scorer.errorLog`. Changing them loses users' data.
+  `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode`,
+  `bnp_scorer.errorLog` and `bnp_scorer.playerIdsBackfill`. Changing them
+  loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and

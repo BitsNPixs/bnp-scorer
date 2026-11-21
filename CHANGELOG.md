@@ -23,6 +23,10 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   under a number; the first to add a number wins; the number's owner claims
   the profile after confirming it. New rules in `firestore.rules` (to paste
   into the console).
+- Published matches carry `playerIds`, everyone picked on both sides, so a
+  player's matches can be found for their profile. A signed-in scorer's
+  matches published before this are sent again once, on the next sign-in or
+  launch. The rules accept the field and keep it optional for older apps.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

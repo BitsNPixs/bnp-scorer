@@ -29,16 +29,25 @@ service cloud.firestore {
         && resource.data.ownerUid == request.auth.uid;
     }
 
+    // Who played, for finding a player's matches. Optional, so apps from
+    // before it existed still publish.
+    function playerIdsOk() {
+      return !('playerIds' in request.resource.data)
+        || request.resource.data.playerIds is list;
+    }
+
     match /matches/{matchId} {
       allow read: if true;
 
       allow create: if createsOwn()
         && request.resource.data.setup.id == matchId
-        && request.resource.data.events is list;
+        && request.resource.data.events is list
+        && playerIdsOk();
 
       allow update: if changesOwn()
         && request.resource.data.setup.id == matchId
-        && request.resource.data.events is list;
+        && request.resource.data.events is list
+        && playerIdsOk();
 
       allow delete: if deletesOwn();
     }

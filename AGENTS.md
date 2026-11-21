@@ -20,38 +20,32 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Photos (2026-11-21):** profile photos and team logos go to the R2 bucket
-  `bnp-photos` through the Worker `cloud/photos-worker`, deployed with the
-  owner's Cloudflare login at https://bnp-photos.quikfly-api.workers.dev and
-  smoke-tested (missing photo 404, no real sign-in 401). Not yet tried end to
-  end from a phone; the owner must paste the updated `firestore.rules`.
-  Update: the owner uploaded a profile photo from the phone the same day and
-  it worked (the stored copy is a 31 KB JPEG; uploads are now 1024 px).
-  Mobile-number sign-in (beside Google) is in too. Both are after beta.7's
-  first install on the phone.
-- **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** all five
-  releases in docs/PLAYER_PROFILES.md are built. Analyze clean, 190 engine
-  and 452 app tests passing, built with Firebase and upload-signed
-  (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released or pushed; installed
-  over beta.6 on the owner's phone with `adb install -r` on 2026-11-21.
-  Confirming a number worked there the same day with a test number, once the
-  console had the Phone provider on and the SMS region policy allowing the
-  number's country (it applies to test numbers too).
-  A signed-in scorer confirms a mobile number by SMS (Settings › Account),
-  gets a player profile and fills in role, styles and home town; captains
-  add players by number, typed or picked from contacts (Android's picker, no
-  permission), on a team's page and New match (invited until they join);
-  captains share a team's invite (join code, QR, WhatsApp text,
-  `site/join.html`), players ask to join, captains add them. The new
-  `PlayerProfileScreen` (Info, Batting, Bowling, Career, after the owner's
-  reference) replaces the old player stats page, includes everyone's
-  published matches with the player's id (`playerIds`), opens from scorecard
-  rows, and shares as text. The tab pill is inset app-wide (owner's
-  feedback). New dependency: `qr_flutter`. **Before testers:** the owner's
-  Firebase tasks (Blaze, Phone provider, SMS region, Play Integrity, paste
-  `firestore.rules`) and a two-phone try. Seen only in tests and real-font
-  renders so far; verified App Links are not possible on the project site,
-  so the join page's button opens the app.
+- **Registered players, all built (2026-11-21), beta 0.9.0-beta.7 (build 8):**
+  analyze clean, 192 engine, 477 app and 8 Worker tests passing, built with
+  Firebase and upload-signed (`dist/bnp-scorer-0.9.0-beta.7.apk`), installed
+  on the owner's phone (`adb install -r`), **not released**; the owner pushes.
+  In it: sign in with Google or a mobile number (SMS code; a number account
+  is asked for a name once and can link Google); confirm a number to claim a
+  player profile; the `PlayerProfileScreen` (big photo header that collapses,
+  Info, Batting, Bowling, Career, after the owner's CricHeroes and Cricbuzz
+  references) built from everyone's published matches with the player's id
+  (`playerIds`); owner-edited role, styles, home town and photo; add players
+  by number, typed or from contacts (Android's picker, no permission), on a
+  team's page and New match; shared teams with join code, QR, WhatsApp text
+  and `site/join.html`, join requests the captain accepts; team logos;
+  scorecard rows open profiles; tab pills inset app-wide (owner's feedback).
+  Photos and logos go to the R2 bucket `bnp-photos` through the Worker
+  `cloud/photos-worker`, live at https://bnp-photos.quikfly-api.workers.dev
+  (the app's default `BNP_PHOTOS_URL`). New dependencies: `qr_flutter`,
+  `image_picker`.
+  **Tried on the owner's phone (2026-11-21):** confirming a test number
+  (after turning on the Phone provider and the SMS region policy, which
+  blocks test numbers too) and uploading a profile photo. **Not yet tried
+  on a phone:** number sign-in from signed out, add by number, the contact
+  picker, invites and joins, team logos, the new header with a 1024 px
+  photo, opening the app from the join page, and anything with two phones.
+  Owner's open steps and what is next: docs/ROADMAP.md "Next, in order" and
+  docs/PLAYER_PROFILES.md.
 - Previous run (2026-11-18): analyze clean, 182 engine and 357 app tests passing,
   beta 0.9.0-beta.6 (build 7) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.6.apk`): beta.5 (cups, prizes, upcoming

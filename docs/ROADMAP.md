@@ -26,27 +26,37 @@
 | Photos | — | Cloudflare R2 behind a Worker (`cloud/photos-worker`), image_picker | Owner's choice; free downloads, and the app holds no keys |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
 
-## Next, in order (as of 2026-11-21)
-0. **Registered players** (phone-number identity, add by number, career
-   profile): in progress, step by step in `docs/PLAYER_PROFILES.md`.
-1. **Two-phone try of beta.6 on the real Firestore:** on the owner's phone,
+## Next, in order (as of 2026-11-21, end of day)
+0. **Finish and release beta.7 (registered players):** everything is built
+   and on the owner's phone (`docs/PLAYER_PROFILES.md`). Owner first: paste
+   the current `firestore.rules` (photo and logo checks), and remove the real
+   number from Firebase's test numbers before testers. Then a two-phone try:
+   sign in with a number on phone B, add that player by number on phone A,
+   share a team invite and join it from phone B, set a team logo, score a
+   match and see it on the player's profile on both phones. Then push, cut
+   the GitHub Release and update the site.
+1. **Before photos go wide:** a way to report a photo, and a BNP domain in
+   front of the photos Worker (its workers.dev name comes from another
+   project on the same Cloudflare account).
+2. **Two-phone try of beta.6 on the real Firestore:** on the owner's phone,
    signed in, create a knockout cup with a date, add prizes, a fee and a
    payment, and "Schedule for later" a friendly. On a second phone, check
    Everyone > Upcoming and Cups, open the cup (bracket and prize shown, no
    payments, no edit), and watch a fixture played. If something is missing,
    read the documents with the Firestore REST API (public read) and compare.
-2. **Check on a phone what is only tested in renders:** AGENTS.md "Current
+3. **Check on a phone what is only tested in renders:** AGENTS.md "Current
    status" lists it (cups, bracket, prizes tab, upcoming sheet, WhatsApp invite,
    scorecard sharing, charts, Super Overs, the new launcher icon and splash,
    and squad import: paste a real WhatsApp team list, import a sheet filled
    from the shared template, and check Sheets or Excel opens the shared file).
-3. **Before the Play Store:** in-app "Delete my account" (removes the scorer's
-   published matches, tournaments and schedules, then the Firebase user) and a
+4. **Before the Play Store:** in-app "Delete my account" (removes the scorer's
+   published matches, tournaments, schedules, shared teams, photos, phone
+   link and number lookup, then the Firebase user) and a
    web page for the same request; a private privacy contact (a role address
    such as privacy@, the owner's call); the Data safety form (answers in README
    "Cloud"); the $25 account and a closed test with about 12 testers for 14
    days.
-4. **Cloud step 5:** teams in the cloud are done as shared teams with invites
+5. **Cloud step 5:** teams in the cloud are done as shared teams with invites
    (docs/PLAYER_PROFILES.md, release 4); handing a match to another scorer is
    still to do.
 

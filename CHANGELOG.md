@@ -2,14 +2,13 @@
 
 ## Unreleased
 
-### Changed
-- The player profile opens on a big header, after the owner pointed to
-  CricHeroes: the photo across the top (or large initials on the night
-  pitch), fading into the name, home town and matches, role and batting
-  style, bowling style, team and Verified, with round back, share and edit
-  buttons over it. It collapses into the bar as the tabs scroll, and the
-  tabs' content never slides under it. Photos now upload at 1024 px so the
-  header stays sharp.
+## 0.9.0-beta.7 — 2026-11-21
+
+Registered players, the CricHeroes way: sign in with Google or a mobile
+number, a career profile with a big photo header and details you fill in,
+squads by number (typed or from contacts), team invites by code or QR, and
+team logos (`docs/PLAYER_PROFILES.md`). Photos and logos live in Cloudflare
+R2 behind `cloud/photos-worker`.
 
 ### Added
 - Team logos (cloud builds, signed in, once the photos Worker is deployed):
@@ -35,18 +34,6 @@
   and asks for a name once ("Add your name" stays in Settings if skipped). The
   player profile is claimed once there is a name. A number account can link a
   Google account, so both open the same account on any phone.
-
-### Changed
-- Confirming a number fails with Firebase's code in the message for setup
-  problems, and the full error is logged.
-
-## 0.9.0-beta.7 — 2026-11-21
-
-Registered players, the CricHeroes way: confirm your mobile number, get a
-career profile you can fill in, be added to squads by number (typed or from
-contacts), and join teams by invite code or QR (`docs/PLAYER_PROFILES.md`).
-
-### Added
 - Invite sheet: sharing a team's invite now shows its join code and a QR
   code (dark on white in both themes) that opens the join page, with Send
   invite for WhatsApp. New dependency: `qr_flutter`.
@@ -124,6 +111,15 @@ contacts), and join teams by invite code or QR (`docs/PLAYER_PROFILES.md`).
   Invited, and a player's actions include View profile.
 
 ### Changed
+- The player profile opens on a big header, after the owner pointed to
+  CricHeroes: the photo across the top (or large initials on the night
+  pitch), fading into the name, home town and matches, role and batting
+  style, bowling style, team and Verified, with round back, share and edit
+  buttons over it. It collapses into the bar as the tabs scroll, and the
+  tabs' content never slides under it. Photos now upload at 1024 px so the
+  header stays sharp.
+- Confirming a number fails with Firebase's code in the message for setup
+  problems, and the full error is logged.
 - Tab bars: the selected tab's pill is inset to about 30 dp instead of filling
   the whole tab, on every tabbed screen (owner's feedback: too big for a
   phone). Website screens re-rendered.
@@ -132,16 +128,13 @@ contacts), and join teams by invite code or QR (`docs/PLAYER_PROFILES.md`).
   database, never listed or shown) and the public player profile.
 
 ### Not yet checked
-- Nothing about numbers works against the real Firebase until the owner
-  upgrades to Blaze, turns on the Phone provider (SMS region India), enables
-  Play Integrity and pastes the new rules (README "Cloud"). Linking, lookup,
-  invites and claims are tested only against fakes; the rules are untried in
-  the Rules Playground.
-- The profile and its edit sheet, Settings, add by number, the invite sheet
-  and QR, and Join a team are seen in tests and real-font renders only, not
-  on a phone. The contact picker and opening the app from the join page need
-  a real Android phone; only their Dart side is tested (the Kotlin compiles
-  in the build).
+- Tried on the owner's phone: confirming a test number (once the Phone
+  provider and the SMS region policy were on; the policy blocks test numbers
+  too) and uploading a profile photo through the Worker.
+- Not yet on a phone: number sign-in from signed out, add by number, the
+  contact picker, team invites and joins, team logos, the photo header with
+  a 1024 px photo, and opening the app from the join page. Nothing has been
+  tried with two phones. The rules are untried in the Rules Playground.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

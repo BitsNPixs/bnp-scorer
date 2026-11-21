@@ -1,5 +1,10 @@
 # Registered players: progress tracker
 
+Status 2026-11-21 (end of day): releases 1 to 5 and the owner's follow-ups
+(number sign-in, photos, team logos, the photo header) are built, committed
+and on the owner's phone. What is left is listed with open boxes below and in
+docs/ROADMAP.md "Next, in order".
+
 A person registers once, has a public profile with career stats from every
 published match, and a captain adds them to a squad by their mobile number
 (the CricHeroes model). Agreed with the owner on 2026-11-21. This file tracks
@@ -42,13 +47,13 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
 - [x] 10. Docs, privacy policy, Data safety answers, site feature list and FAQ, screenshots, version bump, beta build. (2026-11-21, beta.7 build 8 in dist/, not released)
 
 Owner tasks in the Firebase console before step 8 is tried on a phone:
-- [ ] Upgrade to Blaze with a budget alert. Owner asked (2026-11-21) to test with dummy codes first: use test phone numbers (next item), which send no SMS and cost nothing. Whether the console allows phone sign-in on Spark at all is unconfirmed; if it refuses, Blaze with a budget alert and only test numbers still costs nothing.
+- [ ] Upgrade to Blaze with a budget alert (whether the project moved to Blaze was not recorded; phone sign-in with test numbers works). Owner asked (2026-11-21) to test with dummy codes first: use test phone numbers (next item), which send no SMS and cost nothing. Whether the console allows phone sign-in on Spark at all is unconfirmed; if it refuses, Blaze with a budget alert and only test numbers still costs nothing.
 - [x] Authentication > Sign-in method: enable Phone; Settings > SMS region policy: allow India (and United States for the +1 test numbers; the policy blocks test numbers too). (2026-11-21; a test number then linked on the owner's phone.)
 - [ ] Before testers: remove any real number from the test list (a test number accepts its fixed code from anyone).
 - [ ] Enable the Play Integrity API on the Google Cloud project (else a reCAPTCHA page opens in the browser). Optional: it only spares players that page; sideloaded betas may see it anyway.
-- [ ] Add test phone numbers under Phone > Phone numbers for testing: fictional ones such as +1 650-555-3434 and +1 650-555-3435, each with a six-digit code like 123456 (Firebase codes are six digits, so 1234 will not do). Up to 10.
+- [x] Add test phone numbers under Phone > Phone numbers for testing: fictional ones such as +1 650-555-3434 and +1 650-555-3435, each with a six-digit code like 123456 (Firebase codes are six digits, so 1234 will not do). Up to 10. (Owner added +1 650-555-3434 and a real number, 2026-11-21.)
 - [x] Paste the new `firestore.rules`. (Owner, 2026-11-21.)
-- [ ] Check the hash matches: easiest end to end, by confirming a test number in Settings and seeing "Verified" under My profile (a mismatch shows "The cloud refused this"). The phone document for +16505553434 is `phones/661c9cd16b8d7726a54b1b683842f5cdde36cf65722ae7e74b00c06e64695e46`.
+- [x] Check the hash matches: easiest end to end, by confirming a test number in Settings and seeing "Verified" under My profile (a mismatch shows "The cloud refused this"). The phone document for +16505553434 is `phones/661c9cd16b8d7726a54b1b683842f5cdde36cf65722ae7e74b00c06e64695e46`. (Confirming a number and the profile worked on the owner's phone, 2026-11-21.)
 
 ## Release 2: profile fields
 - [x] Playing role, batting style, bowling arm and type, home town on `players/{id}`. (2026-11-21)

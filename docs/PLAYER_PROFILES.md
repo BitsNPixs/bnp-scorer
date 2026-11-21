@@ -31,8 +31,8 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
 
 ## Release 1: identity, add by number, profile with career stats (beta.7)
 - [x] 1. This tracker, with pointers from ROADMAP and AGENTS. (2026-11-21, adbc32a)
-- [x] 2. Engine: `formatOf`, `BattingStats.ducks`, `playerMatchLines` + tests. (2026-11-21)
-- [ ] 3. `phone_numbers.dart` (normalise, mask, hash) + tests; `crypto` dependency.
+- [x] 2. Engine: `formatOf`, `BattingStats.ducks`, `playerMatchLines` + tests. (2026-11-21, 18c41ba)
+- [x] 3. `phone_numbers.dart` (normalise, mask, hash) + tests; `crypto` dependency. (2026-11-21)
 - [ ] 4. `Accounts` phone methods, `Scorer.phone`, `userChanges()`, `FakeAccounts`.
 - [ ] 5. `PlayerDirectory` (Firestore + fake) + tests; rules for `players` and `phones`.
 - [ ] 6. `playerIds` on publish, `CloudMatches.byPlayer`, one-time backfill + tests; rules for `matches`.

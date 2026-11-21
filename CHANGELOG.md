@@ -10,6 +10,10 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   `playerMatchLines`, one line per finished match a player was picked in
   (sides, ground, result, their batting and bowling) for recent form, debut
   and last match. All derived; nothing stored changes.
+- `data/phone_numbers.dart`: reads a mobile number however it is typed
+  (spaces, dashes, 0 or 91 in front; India by default, other countries with
+  their + code), masks it for its owner (+91 •••• 3210), and hashes it for the
+  cloud lookup. `crypto` moves from a transitive to a direct dependency.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

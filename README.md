@@ -189,9 +189,9 @@ their data, so back up first.
 
 ## Cloud
 
-Signed-in scorers publish their matches to Firebase (project `bnp-scorer`, free
-Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
-"Cloud: shared matches".
+Signed-in scorers publish their matches to Firebase (project `bnp-scorer`) so
+everyone can follow them. Design and decisions: docs/ROADMAP.md "Cloud: shared
+matches"; registered players: docs/PLAYER_PROFILES.md.
 
 - **Config:** `app/android/app/google-services.json`, downloaded from the Firebase
   console (Project settings > Your apps > BNP Scorer). It is gitignored. Without
@@ -205,14 +205,27 @@ Spark plan) so everyone can follow them. Design and decisions: docs/ROADMAP.md
   it into Firestore Database > Rules and Publish. Anyone may read matches,
   tournaments and schedules; only each one's owner may write it, and a
   tournament carrying `paid` is refused.
+- **Phone numbers (beta.7 on):** confirming a number uses Firebase phone auth,
+  which needs the **Blaze** plan (about $0.07 an SMS in India after 10 free a
+  day). In the console: upgrade with a budget alert; Authentication > Sign-in
+  method > Phone, on; Settings > SMS region policy, allow India only (stops
+  SMS fraud); add a test number and code for development; and enable the Play
+  Integrity API on the Google Cloud project, or users see a reCAPTCHA page in
+  the browser first. The same SHA-1 and SHA-256 fingerprints as sign-in apply.
+  In the Rules Playground, check that `hashing.sha256(...).toHexString().lower()`
+  gives the same lowercase hex as `phoneHash` in the app (the test number's
+  hash is in `test/phone_numbers_test.dart`).
 - **Privacy:** a cloud build uses the internet and publishes match content,
   including player names and the scorer's Google name (never the email,
   `publicScorerName`). `site/privacy.html` says so; update it before a build
   that publishes anything new reaches testers.
 - **Play Data safety answers** (for the cloud build): data is collected, all of
   it optional (only when signed in), encrypted in transit, and deletable on
-  request. Collected: Personal info > Name, Email address and User IDs (account
-  management; the name is shown publicly as "Scored by"); App activity > Other
+  request. Collected: Personal info > Name, Email address, User IDs and Phone
+  number (account management and app functionality; the name is shown publicly
+  as "Scored by" and on the player profile, the number never is; numbers
+  captains type for other players are sent only as a SHA-256 hash to find or
+  create their profile); App activity > Other
   user-generated content (published matches, tournaments and scheduled
   matches, including player names; app functionality). Entry fee payments are
   not collected: they stay on the phone. Not collected: location, contacts, photos, files, crash logs

@@ -2,7 +2,10 @@
 
 ## Unreleased
 
-Registered players, in progress (`docs/PLAYER_PROFILES.md`).
+## 0.9.0-beta.7 — 2026-11-21
+
+Registered players, the CricHeroes way: confirm your mobile number, get a
+career profile, and be added to squads by number (`docs/PLAYER_PROFILES.md`).
 
 ### Added
 - Engine: career numbers split by format (`formatOf`: T10 up to ten overs,
@@ -55,6 +58,18 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
 - Tab bars: the selected tab's pill is inset to about 30 dp instead of filling
   the whole tab, on every tabbed screen (owner's feedback: too big for a
   phone). Website screens re-rendered.
+- Privacy policy, website FAQ and README Data safety answers cover mobile
+  numbers (kept by Firebase Authentication; only a SHA-256 hash in our
+  database, never listed or shown) and the public player profile.
+
+### Not yet checked
+- Nothing about numbers works against the real Firebase until the owner
+  upgrades to Blaze, turns on the Phone provider (SMS region India), enables
+  Play Integrity and pastes the new rules (README "Cloud"). Linking, lookup,
+  invites and claims are tested only against fakes; the rules are untried in
+  the Rules Playground.
+- The profile, Settings sheet and add-by-number sheet are seen in tests and
+  real-font renders only, not on a phone.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

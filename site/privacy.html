@@ -20,7 +20,8 @@
     <img class="mark" src="img/icon-64.png" width="64" height="64" alt="">
     <h1>Privacy policy</h1>
     <p>BNP Scorer, by BitsNPixs Technologies Private Limited. Effective 17 November 2026. Updated the same day for sign-in, live matches,
-    tournaments and scheduled matches, and on 18 November 2026 for pasting and importing teams.</p>
+    tournaments and scheduled matches, on 18 November 2026 for pasting and importing teams, and on
+    21 November 2026 for mobile numbers and player profiles.</p>
   </header>
 
   <section>
@@ -28,8 +29,10 @@
     <p>BNP Scorer keeps your matches on your phone. You can use all of it without
     an account. If you choose to sign in with Google, the new matches,
     tournaments and scheduled matches you create are published so anyone with
-    the app can follow them live. Entry fee payments never leave your phone. No
-    ads, no analytics, no tracking, and we never sell anything.</p>
+    the app can follow them live. Signed in, you can also confirm your mobile
+    number to claim your player profile; the number is never shown to anyone.
+    Entry fee payments never leave your phone. No ads, no analytics, no
+    tracking, and we never sell anything.</p>
   </section>
 
   <section>
@@ -82,6 +85,29 @@
   </section>
 
   <section>
+    <h2>Your mobile number and player profile (optional)</h2>
+    <p><strong>Your own number.</strong> Signed in, you can add your mobile
+    number in <em>Settings › Account</em>. Google's Firebase Authentication texts
+    you a code to check it is yours and keeps the number with your account.
+    Android may pass the code to the app by itself; the app never reads your
+    messages.</p>
+    <p><strong>How it finds you.</strong> Our database does not store the number.
+    It keeps only a code computed from it (a SHA-256 hash), linked to your player
+    profile, so that a captain who types your number can add you to a team. The
+    database will not list these codes: one can be looked up only by a signed-in
+    user who already knows the number.</p>
+    <p><strong>Your player profile is public:</strong> your name, a "Verified"
+    mark once you confirm your number, and the numbers worked out from the
+    published matches you played in. It never shows your number or email.</p>
+    <p><strong>Adding other players by number.</strong> When a captain adds a
+    player by their number, the app sends only the code computed from it, to find
+    that player or to create an "invited" profile under the name the captain
+    typed. When that person confirms the same number, the profile and its
+    matches become theirs. Ask the captain to check with players before adding
+    their numbers.</p>
+  </section>
+
+  <section>
     <h2>Removing what you published</h2>
     <ul>
       <li><strong>One match or tournament:</strong> delete it in the app (hold it
@@ -93,7 +119,8 @@
         Account</em>. What you already published stays public until you delete
         it.</li>
       <li><strong>Your account and everything you published:</strong> ask us (see
-        "Contact"), and we delete them within 30 days. Please do not post your
+        "Contact"), and we delete them within 30 days, including your number and
+        the code computed from it; your profile then stops being yours. Please do not post your
         email address in a public issue.</li>
     </ul>
     <p>We keep what you published until it is deleted. We do not keep copies of
@@ -102,8 +129,8 @@
 
   <section>
     <h2>Who else handles your data</h2>
-    <p>Google runs our sign-in and database (Firebase), and handles that data
-    for us under the
+    <p>Google runs our sign-in, the SMS codes and our database (Firebase), and
+    handles that data for us under the
     <a href="https://firebase.google.com/support/privacy">Firebase privacy and security terms</a>.
     Like any web service, it sees the network address of the phone connecting to
     it. Data travels encrypted. We share it with no one else.</p>
@@ -145,7 +172,7 @@
         sign-in library includes them. BNP Scorer never asks for or uses your
         fingerprint or face.</li>
     </ul>
-    <p>No location, contacts, camera, microphone or phone storage. When you
+    <p>No location, contacts, camera, microphone, SMS or phone storage. When you
     restore a backup or import teams, the app reads only the file you pick.
     When you open <em>Paste players</em>, it reads the text you last copied, to
     fill in the list for you to check; that text stays on your phone, and only

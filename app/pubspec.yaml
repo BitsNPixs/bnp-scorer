@@ -1,7 +1,7 @@
 name: bnp_scorer
 description: BNP Scorer — ball-by-ball cricket scoring for local matches, by BitsNPixs.
 publish_to: none
-version: 0.9.0-beta.6+7
+version: 0.9.0-beta.7+8
 
 environment:
   sdk: ^3.8.0

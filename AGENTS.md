@@ -23,7 +23,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** all five
   releases in docs/PLAYER_PROFILES.md are built. Analyze clean, 190 engine
   and 452 app tests passing, built with Firebase and upload-signed
-  (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released, pushed or installed.
+  (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released or pushed; installed
+  over beta.6 on the owner's phone with `adb install -r` on 2026-11-21.
   A signed-in scorer confirms a mobile number by SMS (Settings › Account),
   gets a player profile and fills in role, styles and home town; captains
   add players by number, typed or picked from contacts (Android's picker, no

@@ -4,9 +4,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-/// A scorer signed in with Google. Only signed-in scorers publish matches.
+/// A signed-in scorer, through Google, a confirmed mobile number, or both.
+/// Only signed-in scorers publish matches.
 class Scorer {
-  const Scorer({required this.uid, required this.name, this.phone});
+  const Scorer({required this.uid, required this.name, this.phone, this.hasGoogle = true});
 
   /// The account id: stored on published matches as their owner.
   final String uid;
@@ -18,13 +19,23 @@ class Scorer {
   /// the player profile under that number and is never published.
   final String? phone;
 
-  @override
-  bool operator ==(Object other) =>
-      other is Scorer && other.uid == uid && other.name == name && other.phone == phone;
+  /// False for an account made with a mobile number and no Google account
+  /// linked yet.
+  final bool hasGoogle;
+
+  /// No name to show yet, as after a first sign-in with a number.
+  bool get needsName => name == unnamedScorer;
 
   @override
-  int get hashCode => Object.hash(uid, name, phone);
+  bool operator ==(Object other) =>
+      other is Scorer && other.uid == uid && other.name == name && other.phone == phone && other.hasGoogle == hasGoogle;
+
+  @override
+  int get hashCode => Object.hash(uid, name, phone, hasGoogle);
 }
+
+/// The name shown for a scorer with no usable name of their own.
+const unnamedScorer = 'Scorer';
 
 /// An SMS code on its way to [phone], waiting to be typed in.
 class PhoneCodeRequest {
@@ -65,15 +76,25 @@ abstract interface class Accounts {
 
   Future<void> signOut();
 
-  /// Texts a code to [e164] to confirm the signed-in scorer owns it. Null
-  /// when the phone confirmed the number by itself and it is already on the
-  /// account; otherwise pass the request to [linkPhone] with the code. Pass
-  /// [resend] to send the same code again. Throws [AccountsException].
+  /// Texts a code to [e164]. Signed in, it confirms the scorer owns the
+  /// number; signed out, it signs in with it. Null when the phone confirmed
+  /// the number by itself and that is already done; otherwise pass the
+  /// request to [confirmPhone] with the code. Pass [resend] to send the same
+  /// code again. Throws [AccountsException].
   Future<PhoneCodeRequest?> requestPhoneCode(String e164, {PhoneCodeRequest? resend});
 
-  /// Puts the number on the account once [code] matches, replacing any
-  /// number already there. Throws [AccountsException].
-  Future<void> linkPhone(PhoneCodeRequest request, String code);
+  /// Once [code] matches: signed in, puts the number on the account,
+  /// replacing any number already there; signed out, signs in with it (the
+  /// account that has that number, or a new one). Throws [AccountsException].
+  Future<void> confirmPhone(PhoneCodeRequest request, String code);
+
+  /// Sets the name shown for the signed-in scorer, as after a first sign-in
+  /// with a number. Throws [AccountsException].
+  Future<void> setName(String name);
+
+  /// Adds Google sign-in to an account made with a number, so either works on
+  /// any phone. Null when the scorer cancels. Throws [AccountsException].
+  Future<Scorer?> linkGoogle();
 }
 
 /// For builds without `google-services.json`, and the default in tests.
@@ -101,11 +122,17 @@ class LocalOnlyAccounts implements Accounts {
       throw const AccountsException('Signing in is not set up in this build.');
 
   @override
-  Future<void> linkPhone(PhoneCodeRequest request, String code) async =>
+  Future<void> confirmPhone(PhoneCodeRequest request, String code) async =>
       throw const AccountsException('Signing in is not set up in this build.');
+
+  @override
+  Future<void> setName(String name) async => throw const AccountsException('Signing in is not set up in this build.');
+
+  @override
+  Future<Scorer?> linkGoogle() async => throw const AccountsException('Signing in is not set up in this build.');
 }
 
-/// Google sign-in through Firebase Auth.
+/// Google and mobile-number sign-in through Firebase Auth.
 class FirebaseAccounts implements Accounts {
   FirebaseAccounts(this._auth);
 
@@ -128,17 +155,70 @@ class FirebaseAccounts implements Accounts {
     try {
       // On Android the web client id comes from google-services.json, through
       // the Google Services Gradle plugin, so none is passed here.
-      await (_googleReady ??= GoogleSignIn.instance.initialize());
-      final account = await GoogleSignIn.instance.authenticate();
-      final idToken = account.authentication.idToken;
-      if (idToken == null) throw const AccountsException('Google did not confirm the account. Try again.');
-      final result = await _auth.signInWithCredential(GoogleAuthProvider.credential(idToken: idToken));
+      final credential = await _googleCredential();
+      if (credential == null) return null;
+      final result = await _auth.signInWithCredential(credential);
       return _scorerOf(result.user);
     } on GoogleSignInException catch (e) {
-      if (e.code == GoogleSignInExceptionCode.canceled) return null;
       throw AccountsException('Could not sign in with Google (${e.description ?? e.code.name}).');
     } on FirebaseAuthException catch (e) {
       throw AccountsException('Could not sign in (${e.message ?? e.code}).');
+    }
+  }
+
+  /// Google's account picker, as a Firebase credential. Null when cancelled.
+  Future<AuthCredential?> _googleCredential() async {
+    // On Android the web client id comes from google-services.json, through
+    // the Google Services Gradle plugin, so none is passed here.
+    await (_googleReady ??= GoogleSignIn.instance.initialize());
+    try {
+      final account = await GoogleSignIn.instance.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw const AccountsException('Google did not confirm the account. Try again.');
+      return GoogleAuthProvider.credential(idToken: idToken);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> setName(String name) async {
+    final user = _auth.currentUser;
+    if (user == null) throw const AccountsException('Sign in first.');
+    try {
+      await user.updateDisplayName(name.trim());
+      await _auth.currentUser?.reload();
+    } on FirebaseAuthException catch (e) {
+      throw AccountsException('Could not save your name (${e.message ?? e.code}).');
+    }
+  }
+
+  @override
+  Future<Scorer?> linkGoogle() async {
+    final user = _auth.currentUser;
+    if (user == null) throw const AccountsException('Sign in first.');
+    try {
+      final credential = await _googleCredential();
+      if (credential == null) return null;
+      final result = await user.linkWithCredential(credential);
+      // Keep a name the player typed; take Google's only when there is none.
+      if (current?.needsName ?? false) {
+        final googleName =
+            result.user?.providerData.where((p) => p.providerId == 'google.com').map((p) => p.displayName).firstOrNull;
+        if (googleName != null) await result.user?.updateDisplayName(googleName);
+      }
+      await _auth.currentUser?.reload();
+      return current;
+    } on GoogleSignInException catch (e) {
+      throw AccountsException('Could not open Google sign-in (${e.description ?? e.code.name}).');
+    } on FirebaseAuthException catch (e) {
+      throw AccountsException(switch (e.code) {
+        'credential-already-in-use' || 'account-exists-with-different-credential' =>
+          'That Google account already has its own BNP Scorer account. Sign out, then sign in with Google to use it.',
+        'provider-already-linked' => 'A Google account is already linked.',
+        _ => 'Could not link Google (${e.message ?? e.code}).',
+      });
     }
   }
 
@@ -155,7 +235,6 @@ class FirebaseAccounts implements Accounts {
 
   @override
   Future<PhoneCodeRequest?> requestPhoneCode(String e164, {PhoneCodeRequest? resend}) async {
-    if (_auth.currentUser == null) throw const AccountsException('Sign in with Google first.');
     final sent = Completer<PhoneCodeRequest?>();
     void fail(FirebaseAuthException e) {
       // Firebase's own words go to the log; the player sees plain advice.
@@ -168,8 +247,8 @@ class FirebaseAccounts implements Accounts {
         phoneNumber: e164,
         forceResendingToken: resend?.resendToken,
         // Android read the SMS itself, or confirmed the number without one.
-        // After the code screen is up this links in the background, and the
-        // screen sees the number arrive on the scorer.
+        // After the code screen is up this finishes in the background, and
+        // the screen sees the number arrive on the scorer.
         verificationCompleted: (credential) async {
           try {
             await _attach(credential);
@@ -196,11 +275,9 @@ class FirebaseAccounts implements Accounts {
   }
 
   @override
-  Future<void> linkPhone(PhoneCodeRequest request, String code) async {
-    final user = _auth.currentUser;
-    if (user == null) throw const AccountsException('Sign in with Google first.');
-    // The phone may have read the SMS and linked it already.
-    if (user.phoneNumber == request.phone) return;
+  Future<void> confirmPhone(PhoneCodeRequest request, String code) async {
+    // The phone may have read the SMS and finished already.
+    if (_auth.currentUser?.phoneNumber == request.phone) return;
     try {
       await _attach(PhoneAuthProvider.credential(verificationId: request.verificationId, smsCode: code.trim()));
     } on FirebaseAuthException catch (e) {
@@ -209,11 +286,15 @@ class FirebaseAccounts implements Accounts {
     }
   }
 
-  /// Links the number, or swaps it for the one already on the account, then
-  /// refreshes the token so the cloud rules see the new number at once.
+  /// Signed out, signs in with the number. Signed in, links it, or swaps it
+  /// for the one already on the account, then refreshes the token so the
+  /// cloud rules see the new number at once.
   Future<void> _attach(PhoneAuthCredential credential) async {
     final user = _auth.currentUser;
-    if (user == null) throw FirebaseAuthException(code: 'user-not-found');
+    if (user == null) {
+      await _auth.signInWithCredential(credential);
+      return;
+    }
     if (user.phoneNumber == null) {
       await user.linkWithCredential(credential);
     } else {
@@ -230,6 +311,7 @@ class FirebaseAccounts implements Accounts {
       uid: user.uid,
       name: publicScorerName(user.displayName),
       phone: phone == null || phone.isEmpty ? null : phone,
+      hasGoogle: user.providerData.any((p) => p.providerId == 'google.com'),
     );
   }
 }
@@ -251,10 +333,11 @@ String phoneErrorMessage(String code) => switch (code) {
       _ => 'Could not confirm the number ($code).',
     };
 
-/// The name published with a scorer's matches: their Google display name, or
-/// "Scorer". Never the email address, which stays private, even when an
-/// account uses it as its display name.
+/// The name published with a scorer's matches: their display name (from
+/// Google, or typed after signing in with a number), or [unnamedScorer].
+/// Never the email address, which stays private, even when an account uses
+/// it as its display name.
 String publicScorerName(String? displayName) {
   final name = displayName?.trim() ?? '';
-  return name.isEmpty || name.contains('@') ? 'Scorer' : name;
+  return name.isEmpty || name.contains('@') ? unnamedScorer : name;
 }

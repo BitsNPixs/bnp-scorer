@@ -295,7 +295,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Tab bar pill | `PillTabIndicator` (`theme/app_theme.dart`), set in both themes |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
-| Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
+| Sign-in, the scorer | `Accounts` (Google, or a mobile number with `requestPhoneCode`/`confirmPhone`, `setName`, `linkGoogle`), `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |
 | Published matches | `CloudMatches`, `PublishedMatch`, `parsePublishedMatch` (`data/cloud_matches.dart`), `SyncingMatchRepository`, `publisherOf`, `sendInBackground`, `cloudMatchesProvider`, `publicMatchesProvider`, `publishedMatchProvider`; `FakeCloudMatches` in tests |
 | Published tournaments and friendlies | `CloudCups`, `PublishedTournament`, `PublishedSchedule` (`data/cloud_cups.dart`), `SyncingTournamentRepository`, `SyncingScheduleRepository` (`data/syncing_cups.dart`), `cloudCupsProvider`, `publicTournamentsProvider`, `publicUpcomingProvider`, `publicTournamentProgressProvider`; `FakeCloudCups` in tests |
 | A tournament's tabs, own or watched | `TournamentView` (`screens/tournament_screen.dart`) |

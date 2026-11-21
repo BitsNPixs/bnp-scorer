@@ -225,7 +225,8 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   that publishes anything new reaches testers.
 - **Play Data safety answers** (for the cloud build): data is collected, all of
   it optional (only when signed in), encrypted in transit, and deletable on
-  request. Collected: Personal info > Name, Email address, User IDs and Phone
+  request (an account made with a mobile number has no email: its name is
+  the one typed). Collected: Personal info > Name, Email address, User IDs and Phone
   number (account management and app functionality; the name is shown publicly
   as "Scored by" and on the player profile, the number never is; numbers
   captains type or pick from contacts for other players are sent only as a

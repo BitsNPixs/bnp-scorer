@@ -9,20 +9,24 @@ import '../theme/app_theme.dart';
 import '../ui/inputs.dart';
 import 'scoring_sheets.dart';
 
-/// Asks the signed-in scorer for their mobile number, texts a code, and puts
-/// the number on their account. True once it is there.
-Future<bool> showPhoneLinkSheet(BuildContext context) async =>
+/// Asks for a mobile number and texts a code. Signed in, the number goes on
+/// the account; signed out, it signs in with it, and a new account is asked
+/// for a name. With [nameOnly], it only asks for the name, for an account
+/// that skipped that step. True once done.
+Future<bool> showPhoneLinkSheet(BuildContext context, {bool nameOnly = false}) async =>
     await showModalBottomSheet<bool>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (_) => const _PhoneLinkSheet(),
+      builder: (_) => _PhoneLinkSheet(nameOnly: nameOnly),
     ) ??
     false;
 
 class _PhoneLinkSheet extends ConsumerStatefulWidget {
-  const _PhoneLinkSheet();
+  const _PhoneLinkSheet({required this.nameOnly});
+
+  final bool nameOnly;
 
   @override
   ConsumerState<_PhoneLinkSheet> createState() => _PhoneLinkSheetState();
@@ -34,22 +38,63 @@ class _PhoneLinkSheetState extends ConsumerState<_PhoneLinkSheet> {
 
   final _number = TextEditingController();
   final _code = TextEditingController();
+  final _name = TextEditingController();
   PhoneCodeRequest? _request;
   String? _error;
   bool _busy = false;
   bool _done = false;
 
+  /// Signed in with a number but no name yet: the last step asks for one.
+  late bool _askingName = widget.nameOnly;
+
+  /// Who was signed in when the sheet opened; null means this signs in.
+  late final bool _signingIn = ref.read(accountsProvider).current == null;
+
   @override
   void dispose() {
     _number.dispose();
     _code.dispose();
+    _name.dispose();
     super.dispose();
   }
 
   void _finish() {
     if (_done) return;
+    if (ref.read(accountsProvider).current?.needsName ?? false) {
+      setState(() {
+        _askingName = true;
+        _busy = false;
+        _error = null;
+      });
+      return;
+    }
     _done = true;
     Navigator.of(context).pop(true);
+  }
+
+  Future<void> _saveName() async {
+    final name = _name.text.trim();
+    if (name.isEmpty || name.contains('@')) {
+      setState(() => _error = 'Type the name players know you by.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(accountsProvider).setName(name);
+      if (!mounted) return;
+      _done = true;
+      Navigator.of(context).pop(true);
+    } on AccountsException catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = e.message;
+          _busy = false;
+        });
+      }
+    }
   }
 
   Future<void> _send({bool again = false}) async {
@@ -93,7 +138,7 @@ class _PhoneLinkSheetState extends ConsumerState<_PhoneLinkSheet> {
       _error = null;
     });
     try {
-      await ref.read(accountsProvider).linkPhone(request, code);
+      await ref.read(accountsProvider).confirmPhone(request, code);
       if (mounted) _finish();
     } on AccountsException catch (e) {
       if (mounted) {
@@ -110,7 +155,7 @@ class _PhoneLinkSheetState extends ConsumerState<_PhoneLinkSheet> {
     // Android may read the SMS by itself once the code is on its way.
     ref.listen(scorerProvider, (_, next) {
       final request = _request;
-      if (request != null && next.value?.phone == request.phone) _finish();
+      if (request != null && !_askingName && next.value?.phone == request.phone) _finish();
     });
     final request = _request;
     final error = _error;
@@ -118,8 +163,39 @@ class _PhoneLinkSheetState extends ConsumerState<_PhoneLinkSheet> {
       dimension: 22,
       child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.night.withValues(alpha: 0.7)),
     );
+    if (_askingName) {
+      return SheetBody(
+        title: 'Your name',
+        subtitle: 'Shown as who scores your matches and on your player profile.',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              key: const ValueKey('scorer-name'),
+              controller: _name,
+              autofocus: true,
+              textCapitalization: TextCapitalization.words,
+              inputFormatters: [LengthLimitingTextInputFormatter(60)],
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _saveName(),
+              decoration: fieldDecoration(context, 'Your name', icon: Icons.person_rounded),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 10),
+              Text(error, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+            ],
+            const SizedBox(height: 16),
+            FilledButton(onPressed: _busy ? null : _saveName, child: _busy ? spinner : const Text('Save')),
+          ],
+        ),
+      );
+    }
     return SheetBody(
-      title: request == null ? 'Your mobile number' : 'Type the code',
+      title: request != null
+          ? 'Type the code'
+          : _signingIn
+              ? 'Sign in with your number'
+              : 'Your mobile number',
       subtitle: request == null ? why : 'Sent by SMS to ${request.phone}.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

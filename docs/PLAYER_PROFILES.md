@@ -68,6 +68,9 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [x] Opening the app from an invite: the join page's "Open in BNP Scorer" button (`bnpscorer://join`), handled in `HomeScreen`. (2026-11-21; verified App Links need `/.well-known/assetlinks.json` at the root of bitsnpixs.github.io, which this project's Pages site does not serve, so they wait for a domain the project controls)
 - [x] QR for the invite; scorecard rows open profiles; share a profile as text. (2026-11-21)
 
+## After the releases (owner's asks)
+- [x] Sign in with a mobile number beside Google; name asked once; link Google later. (2026-11-21, owner chose "offer both")
+
 ## Later, tied to account deletion (ROADMAP "Before the Play Store")
 - [ ] Deleting the account also forgets the number, releases the profile and unlinks phone auth.
 

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Added
+- Sign in with your mobile number (cloud builds), beside Google, after the
+  owner asked: Settings › Account › Sign in with mobile number texts a code;
+  a number already on an account signs in to it, a new one makes an account
+  and asks for a name once ("Add your name" stays in Settings if skipped). The
+  player profile is claimed once there is a name. A number account can link a
+  Google account, so both open the same account on any phone.
+
+### Changed
+- Confirming a number fails with Firebase's code in the message for setup
+  problems, and the full error is logged.
+
 ## 0.9.0-beta.7 — 2026-11-21
 
 Registered players, the CricHeroes way: confirm your mobile number, get a

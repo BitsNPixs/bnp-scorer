@@ -287,7 +287,14 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     swaps it for the old one, and refreshes the token so rules see
     `request.auth.token.phone_number`. `Scorer.phone` carries it; it is never
     published. `changes` follows `userChanges` (linking fires no auth-state
-    change) with `distinct`, since `Scorer` compares by value.
+    change) with `distinct`, since `Scorer` compares by value. Signed out,
+    the same `requestPhoneCode` and `confirmPhone` sign in with the number
+    (the account that has it, or a new one). A new number account has no
+    name (`Scorer.needsName`, shown as `unnamedScorer`): the sheet asks for
+    one (`setName`), Settings offers "Add your name" until it is set, and
+    `myProfileProvider` waits for it before claiming. `Scorer.hasGoogle` is
+    false for a number-only account, which Settings offers to link to Google
+    (`linkGoogle`, which keeps a typed name).
   - `CloudMatches` (`data/cloud_matches.dart`): `matches/{id}` in Firestore, the
     `MatchRecord` JSON plus `ownerUid`, `ownerName`, `schema` and `savedAt`. The
     field names are a storage format, like the event JSON: never rename them.

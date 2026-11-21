@@ -185,9 +185,16 @@ class FakeAccounts implements Accounts {
   /// Every number a code was sent to, resends included.
   final codesSentTo = <String>[];
 
+  /// The account a number signs in to when nobody is signed in: an existing
+  /// one by number, else a new account with no name.
+  final accountsByPhone = <String, Scorer>{};
+
+  /// What linking Google does: the name it brings, or a failure message.
+  String googleName = 'Asha Google';
+  String? linkGoogleFailsWith;
+
   @override
   Future<PhoneCodeRequest?> requestPhoneCode(String e164, {PhoneCodeRequest? resend}) async {
-    if (_current == null) throw const AccountsException('Sign in with Google first.');
     final failure = phoneFailWith;
     if (failure != null) throw AccountsException(failure);
     codesSentTo.add(e164);
@@ -199,16 +206,40 @@ class FakeAccounts implements Accounts {
   }
 
   @override
-  Future<void> linkPhone(PhoneCodeRequest request, String code) async {
-    if (_current == null) throw const AccountsException('Sign in with Google first.');
+  Future<void> confirmPhone(PhoneCodeRequest request, String code) async {
     if (code.trim() != smsCode) throw AccountsException(phoneErrorMessage('invalid-verification-code'));
     _setPhone(request.phone);
   }
 
+  /// Signed in, puts the number on the account; signed out, signs in with it.
   void _setPhone(String e164) {
-    final scorer = _current!;
-    _current = Scorer(uid: scorer.uid, name: scorer.name, phone: e164);
+    final scorer = _current;
+    _current = scorer == null
+        ? accountsByPhone[e164] ?? Scorer(uid: 'phone-$e164', name: unnamedScorer, phone: e164, hasGoogle: false)
+        : Scorer(uid: scorer.uid, name: scorer.name, phone: e164, hasGoogle: scorer.hasGoogle);
     _changes.add(_current);
+  }
+
+  void _replace(Scorer scorer) {
+    _current = scorer;
+    _changes.add(scorer);
+  }
+
+  @override
+  Future<void> setName(String name) async {
+    final s = _current;
+    if (s == null) throw const AccountsException('Sign in first.');
+    _replace(Scorer(uid: s.uid, name: publicScorerName(name), phone: s.phone, hasGoogle: s.hasGoogle));
+  }
+
+  @override
+  Future<Scorer?> linkGoogle() async {
+    final s = _current;
+    if (s == null) throw const AccountsException('Sign in first.');
+    final failure = linkGoogleFailsWith;
+    if (failure != null) throw AccountsException(failure);
+    _replace(Scorer(uid: s.uid, name: s.needsName ? googleName : s.name, phone: s.phone));
+    return _current;
   }
 }
 

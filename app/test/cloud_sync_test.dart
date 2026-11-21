@@ -136,7 +136,9 @@ void main() {
       expect(accounts.signIn, throwsA(isA<AccountsException>()));
       expect(() => accounts.requestPhoneCode('+919876543210'), throwsA(isA<AccountsException>()));
       const request = PhoneCodeRequest(phone: '+919876543210', verificationId: 'v');
-      expect(() => accounts.linkPhone(request, '123456'), throwsA(isA<AccountsException>()));
+      expect(() => accounts.confirmPhone(request, '123456'), throwsA(isA<AccountsException>()));
+      expect(() => accounts.setName('Ravi'), throwsA(isA<AccountsException>()));
+      expect(accounts.linkGoogle, throwsA(isA<AccountsException>()));
     });
   });
 
@@ -147,6 +149,8 @@ void main() {
       expect(a.hashCode, const Scorer(uid: 'u1', name: 'Asha', phone: '+919876543210').hashCode);
       expect(a, isNot(const Scorer(uid: 'u1', name: 'Asha')));
       expect(a, isNot(const Scorer(uid: 'u2', name: 'Asha', phone: '+919876543210')));
+      expect(a, isNot(const Scorer(uid: 'u1', name: 'Asha', phone: '+919876543210', hasGoogle: false)));
+      expect(const Scorer(uid: 'u1', name: unnamedScorer).needsName, isTrue);
     });
   });
 
@@ -175,9 +179,9 @@ void main() {
       final accounts = FakeAccounts(signedIn: _asha);
       final request = await accounts.requestPhoneCode('+919876543210');
       expect(request, isNotNull);
-      await expectLater(accounts.linkPhone(request!, '000000'), throwsA(isA<AccountsException>()));
+      await expectLater(accounts.confirmPhone(request!, '000000'), throwsA(isA<AccountsException>()));
       expect(accounts.current!.phone, isNull);
-      await accounts.linkPhone(request, ' 123456 ');
+      await accounts.confirmPhone(request, ' 123456 ');
       expect(accounts.current!.phone, '+919876543210');
     });
 
@@ -187,8 +191,25 @@ void main() {
       expect(accounts.current!.phone, '+919876543210');
     });
 
-    test('needs a signed-in scorer', () async {
-      expect(() => FakeAccounts().requestPhoneCode('+919876543210'), throwsA(isA<AccountsException>()));
+    test('signed out, a confirmed number signs in to a new account with no name yet', () async {
+      final accounts = FakeAccounts();
+      final request = await accounts.requestPhoneCode('+919876543210');
+      await accounts.confirmPhone(request!, '123456');
+      final me = accounts.current!;
+      expect(me.phone, '+919876543210');
+      expect(me.hasGoogle, isFalse);
+      expect(me.needsName, isTrue);
+      await accounts.setName('  Ravi Kumar ');
+      expect(accounts.current!.name, 'Ravi Kumar');
+      expect(accounts.current!.needsName, isFalse);
+    });
+
+    test('linking Google keeps a typed name, and fills one in when there is none', () async {
+      final named = FakeAccounts(signedIn: const Scorer(uid: 'p', name: 'Ravi', phone: '+919876543210', hasGoogle: false));
+      expect((await named.linkGoogle())!.name, 'Ravi');
+      expect(named.current!.hasGoogle, isTrue);
+      final unnamed = FakeAccounts(signedIn: const Scorer(uid: 'p', name: unnamedScorer, hasGoogle: false));
+      expect((await unnamed.linkGoogle())!.name, 'Asha Google');
     });
   });
 

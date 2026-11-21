@@ -30,7 +30,7 @@ void main() {
     }
   }
 
-  /// The whole app at 360 dp, signed in, with the player directory.
+  /// The whole app at 360 dp, with the player directory.
   Future<void> pumpApp(WidgetTester tester, {bool withDirectory = true}) async {
     tester.view
       ..physicalSize = const Size(1080, 2400)
@@ -172,9 +172,86 @@ void main() {
     expect(find.text('Verified · +91 •••• 3210'), findsOneWidget);
   });
 
+  group('signed out', () {
+    Future<void> agreeAndSend(WidgetTester tester) async {
+      await tapTile(tester, 'Sign in with mobile number');
+      expect(find.text('Publish your matches?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Sign in'));
+      await settle(tester);
+      expect(find.text('Sign in with your number'), findsOneWidget);
+      await sendCode(tester, '98765 43210');
+      await tester.enterText(find.byKey(const ValueKey('sms-code')), '123456');
+      await tester.tap(find.widgetWithText(FilledButton, 'Confirm'));
+      await settle(tester);
+    }
+
+    testWidgets('a new number signs in, asks for a name once, and claims the profile', (tester) async {
+      accounts = FakeAccounts();
+      await pumpApp(tester);
+      await agreeAndSend(tester);
+
+      expect(find.text('Your name'), findsWidgets);
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await settle(tester);
+      expect(find.text('Type the name players know you by.'), findsOneWidget);
+      await tester.enterText(find.byKey(const ValueKey('scorer-name')), 'Ravi Kumar');
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await settle(tester);
+
+      expect(accounts.current!.name, 'Ravi Kumar');
+      expect(accounts.current!.phone, _number);
+      expect(find.text('Ravi Kumar'), findsOneWidget);
+      expect(find.text('Verified · +91 •••• 3210'), findsOneWidget);
+      expect(find.text('Link a Google account'), findsOneWidget);
+      expect(directory.players.values.single.name, 'Ravi Kumar');
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('closing the name step leaves an Add your name row that finishes it', (tester) async {
+      accounts = FakeAccounts(signedIn: const Scorer(uid: 'p', name: unnamedScorer, phone: _number, hasGoogle: false));
+      await pumpApp(tester);
+      expect(find.text('My profile'), findsNothing);
+      expect(directory.players, isEmpty, reason: 'no profile is made without a name');
+      await tapTile(tester, 'Add your name');
+      await tester.enterText(find.byKey(const ValueKey('scorer-name')), 'Ravi');
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await settle(tester);
+      expect(find.text('Verified · +91 •••• 3210'), findsOneWidget);
+      expect(directory.players.values.single.name, 'Ravi');
+    });
+
+    testWidgets('a number already on an account signs in to it, with no name step', (tester) async {
+      accounts = FakeAccounts()
+        ..accountsByPhone[_number] = const Scorer(uid: 'u1', name: 'Asha Scorer', phone: _number);
+      await pumpApp(tester);
+      await agreeAndSend(tester);
+      expect(find.byKey(const ValueKey('scorer-name')), findsNothing);
+      expect(accounts.current!.uid, 'u1');
+      expect(find.text('Signed in with your number.'), findsOneWidget);
+      expect(find.text('Link a Google account'), findsNothing, reason: 'that account has Google already');
+    });
+
+    testWidgets('linking Google is offered to a number account, and failures are explained', (tester) async {
+      accounts = FakeAccounts(signedIn: const Scorer(uid: 'p', name: 'Ravi', phone: _number, hasGoogle: false))
+        ..linkGoogleFailsWith = 'That Google account already has its own BNP Scorer account.';
+      await pumpApp(tester);
+      await tapTile(tester, 'Link a Google account');
+      expect(find.text('That Google account already has its own BNP Scorer account.'), findsOneWidget);
+
+      accounts.linkGoogleFailsWith = null;
+      await tapTile(tester, 'Link a Google account');
+      expect(find.text('Google account linked.'), findsOneWidget);
+      expect(find.text('Link a Google account'), findsNothing);
+    });
+  });
+
   testWidgets('without the player directory nothing about numbers shows', (tester) async {
     await pumpApp(tester, withDirectory: false);
     expect(find.text('Asha Scorer'), findsOneWidget);
     expect(find.text('Add your mobile number'), findsNothing);
+    await accounts.signOut();
+    await settle(tester);
+    expect(find.text('Sign in with Google'), findsOneWidget);
+    expect(find.text('Sign in with mobile number'), findsNothing);
   });
 }

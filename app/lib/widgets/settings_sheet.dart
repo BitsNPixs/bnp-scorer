@@ -99,7 +99,7 @@ class _AccountSection extends ConsumerWidget {
 
   static const publicNotice = "While you're signed in, every new match, tournament and scheduled "
       'match you create is public: anyone with BNP Scorer can follow it, including the player names '
-      'and your Google name. Your email and who has paid entry fees are never shared. Deleting '
+      'and your name. Your email and who has paid entry fees are never shared. Deleting '
       'unpublishes it. What is already on this phone stays private. A team becomes public when you '
       'share its invite. A mobile number you add is '
       'used only to find your player profile and is never shown.';
@@ -118,12 +118,26 @@ class _AccountSection extends ConsumerWidget {
         SurfacePanel(
           padding: EdgeInsets.zero,
           child: scorer == null
-              ? ListTile(
-                  leading: const Icon(Icons.public_rounded),
-                  title: const Text('Sign in with Google'),
-                  subtitle: const Text('Publish the matches you score so everyone can follow them'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => _signIn(context, accounts),
+              ? Column(
+                  children: [
+                    ListTile(
+                      leading: const Icon(Icons.public_rounded),
+                      title: const Text('Sign in with Google'),
+                      subtitle: const Text('Publish the matches you score so everyone can follow them'),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => _signIn(context, accounts),
+                    ),
+                    if (ref.watch(playerDirectoryProvider) != null) ...[
+                      const Divider(height: 1),
+                      ListTile(
+                        leading: const Icon(Icons.phone_iphone_rounded),
+                        title: const Text('Sign in with mobile number'),
+                        subtitle: const Text('We text you a code. Your player profile comes with it'),
+                        trailing: const Icon(Icons.chevron_right_rounded),
+                        onTap: () => _signInWithPhone(context),
+                      ),
+                    ],
+                  ],
                 )
               : Column(
                   children: [
@@ -144,7 +158,24 @@ class _AccountSection extends ConsumerWidget {
     );
   }
 
+  Future<void> _signInWithPhone(BuildContext context) async {
+    if (!await _agree(context) || !context.mounted) return;
+    final signedIn = await showPhoneLinkSheet(context);
+    if (signedIn && context.mounted) showMessage(context, 'Signed in with your number.');
+  }
+
   Future<void> _signIn(BuildContext context, Accounts accounts) async {
+    if (!await _agree(context) || !context.mounted) return;
+    try {
+      final scorer = await accounts.signIn();
+      if (scorer != null && context.mounted) showMessage(context, 'Signed in as ${scorer.name}');
+    } on AccountsException catch (e) {
+      if (context.mounted) showMessage(context, e.message, isError: true);
+    }
+  }
+
+  /// Says what becomes public, before either way of signing in.
+  Future<bool> _agree(BuildContext context) async {
     final agreed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -160,13 +191,7 @@ class _AccountSection extends ConsumerWidget {
         ],
       ),
     );
-    if (agreed != true || !context.mounted) return;
-    try {
-      final scorer = await accounts.signIn();
-      if (scorer != null && context.mounted) showMessage(context, 'Signed in as ${scorer.name}');
-    } on AccountsException catch (e) {
-      if (context.mounted) showMessage(context, e.message, isError: true);
-    }
+    return agreed ?? false;
   }
 
   Future<void> _signOut(BuildContext context, Accounts accounts) async {
@@ -185,6 +210,15 @@ class _MyPlayer extends ConsumerWidget {
   const _MyPlayer({required this.scorer});
 
   final Scorer scorer;
+
+  Future<void> _linkGoogle(BuildContext context, WidgetRef ref) async {
+    try {
+      final linked = await ref.read(accountsProvider).linkGoogle();
+      if (linked != null && context.mounted) showMessage(context, 'Google account linked.');
+    } on AccountsException catch (e) {
+      if (context.mounted) showMessage(context, e.message, isError: true);
+    }
+  }
 
   Future<void> _link(BuildContext context) async {
     final linked = await showPhoneLinkSheet(context);
@@ -205,6 +239,22 @@ class _MyPlayer extends ConsumerWidget {
             subtitle: const Text('Claim your player profile and career stats'),
             trailing: const Icon(Icons.chevron_right_rounded),
             onTap: () => _link(context),
+          ),
+        ],
+      );
+    }
+    if (scorer.needsName) {
+      // Signed in with a number but closed the name step: the profile waits
+      // for a name.
+      return Column(
+        children: [
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Add your name'),
+            subtitle: const Text('Your player profile is made once you have one'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => showPhoneLinkSheet(context, nameOnly: true),
           ),
         ],
       );
@@ -235,6 +285,14 @@ class _MyPlayer extends ConsumerWidget {
           trailing: const Icon(Icons.chevron_right_rounded),
           onTap: () => _link(context),
         ),
+        if (!scorer.hasGoogle)
+          ListTile(
+            leading: const Icon(Icons.link_rounded),
+            title: const Text('Link a Google account'),
+            subtitle: const Text('Then Google sign-in opens this same account on any phone'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _linkGoogle(context, ref),
+          ),
       ],
     );
   }

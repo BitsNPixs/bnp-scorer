@@ -103,6 +103,7 @@ class BattingStats {
     this.sixes = 0,
     this.fifties = 0,
     this.hundreds = 0,
+    this.ducks = 0,
     this.high,
   });
 
@@ -116,6 +117,9 @@ class BattingStats {
   /// Scores of 50 to 99. A hundred counts only as a hundred.
   final int fifties;
   final int hundreds;
+
+  /// Out without scoring. Nought not out is not a duck.
+  final int ducks;
   final HighScore? high;
 
   int get dismissals => innings - notOuts;
@@ -198,6 +202,108 @@ class PlayerStats {
 }
 
 enum MatchOutcome { won, lost, tied, noResult }
+
+/// How long a match was, for career tables split by format. Decided by the
+/// overs a side gets, whatever the balls per over.
+enum MatchFormat {
+  t10('T10'),
+  t20('T20'),
+  long('20+');
+
+  const MatchFormat(this.label);
+
+  final String label;
+}
+
+/// Up to ten overs is T10, up to twenty is T20, anything longer is 20+.
+MatchFormat formatOf(MatchRules rules) => switch (rules.oversPerInnings) {
+      <= 10 => MatchFormat.t10,
+      <= 20 => MatchFormat.t20,
+      _ => MatchFormat.long,
+    };
+
+/// One player's part in one finished match: enough for recent form, a debut
+/// and a last match. [batting] and [bowling] are null when the player did not
+/// bat or bowl. Dates are not here: the match log carries none, so the app
+/// joins them by [matchId].
+class PlayerMatchLine {
+  const PlayerMatchLine({
+    required this.matchId,
+    required this.teamId,
+    required this.teamName,
+    required this.opponentId,
+    required this.opponentName,
+    required this.venue,
+    required this.format,
+    required this.outcome,
+    required this.batting,
+    required this.bowling,
+  });
+
+  final String matchId;
+  final String teamId;
+  final String teamName;
+  final String opponentId;
+  final String opponentName;
+  final String? venue;
+  final MatchFormat format;
+
+  /// The result from the player's side.
+  final MatchOutcome outcome;
+  final BatterScore? batting;
+  final BowlerFigures? bowling;
+}
+
+/// [playerId]'s line for every finished match they were picked in, in the
+/// order of [matches]. The same matches are left out as in [computeStats]:
+/// unfinished ones and Super Overs.
+List<PlayerMatchLine> playerMatchLines(String playerId, Iterable<MatchState> matches) {
+  final lines = <PlayerMatchLine>[];
+  for (final match in matches) {
+    final result = match.result;
+    if (!_countsForStats(match, result)) continue;
+    final setup = match.setup;
+    final Team own;
+    if (setup.teamA.hasPlayer(playerId)) {
+      own = setup.teamA;
+    } else if (setup.teamB.hasPlayer(playerId)) {
+      own = setup.teamB;
+    } else {
+      continue;
+    }
+    final other = own.id == setup.teamA.id ? setup.teamB : setup.teamA;
+    BatterScore? batting;
+    BowlerFigures? bowling;
+    for (final innings in match.innings) {
+      batting ??= innings.batters.where((b) => b.playerId == playerId).firstOrNull;
+      bowling ??= innings.bowlers.where((b) => b.playerId == playerId).firstOrNull;
+    }
+    lines.add(PlayerMatchLine(
+      matchId: setup.id,
+      teamId: own.id,
+      teamName: own.name,
+      opponentId: other.id,
+      opponentName: other.name,
+      venue: setup.venue,
+      format: formatOf(setup.rules),
+      outcome: _outcomeFor(own.id, result!),
+      batting: batting,
+      bowling: bowling,
+    ));
+  }
+  return lines;
+}
+
+/// Finished, with a result, and not a Super Over.
+bool _countsForStats(MatchState match, MatchResult? result) =>
+    match.isCompleted && result != null && !match.setup.rules.superOver;
+
+MatchOutcome _outcomeFor(String teamId, MatchResult result) => switch (result) {
+      MatchResult(kind: ResultKind.noResult) => MatchOutcome.noResult,
+      MatchResult(winnerTeamId: null) => MatchOutcome.tied,
+      MatchResult(:final winnerTeamId) when winnerTeamId == teamId => MatchOutcome.won,
+      _ => MatchOutcome.lost,
+    };
 
 class TeamStats {
   const TeamStats({
@@ -327,18 +433,14 @@ StatsBook computeStats(Iterable<MatchState> matches, {Iterable<Team> entrants = 
 
   for (final match in matches) {
     final result = match.result;
-    if (!match.isCompleted || result == null || match.setup.rules.superOver) continue;
+    if (!_countsForStats(match, result)) continue;
+    result!;
     counted++;
     final setup = match.setup;
 
     for (final team in [setup.teamA, setup.teamB]) {
       final record = teams.putIfAbsent(team.id, _TeamBuilder.new)..name = team.name;
-      record.form.add(switch (result) {
-        MatchResult(kind: ResultKind.noResult) => MatchOutcome.noResult,
-        MatchResult(winnerTeamId: null) => MatchOutcome.tied,
-        MatchResult(:final winnerTeamId) when winnerTeamId == team.id => MatchOutcome.won,
-        _ => MatchOutcome.lost,
-      });
+      record.form.add(_outcomeFor(team.id, result));
       for (final player in team.players) {
         players.putIfAbsent(player.id, _PlayerBuilder.new)
           ..matches += 1
@@ -405,6 +507,7 @@ class _PlayerBuilder {
   int sixes = 0;
   int fifties = 0;
   int hundreds = 0;
+  int ducks = 0;
   HighScore? high;
 
   int spells = 0;
@@ -436,6 +539,7 @@ class _PlayerBuilder {
     } else if (score.runs >= 50) {
       fifties++;
     }
+    if (score.runs == 0 && score.isOut) ducks++;
     final scored = HighScore(runs: score.runs, notOut: !score.isOut);
     final top = high;
     if (top == null || scored.beats(top)) high = scored;
@@ -483,6 +587,7 @@ class _PlayerBuilder {
           sixes: sixes,
           fifties: fifties,
           hundreds: hundreds,
+          ducks: ducks,
           high: high,
         ),
         bowling: BowlingStats(

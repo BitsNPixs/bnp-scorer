@@ -161,6 +161,14 @@ with target = first innings runs + 1), then `completed` (result set).
 - Points: 2 for a win, 1 for a tie.
 - Net run rate: runs per over scored minus conceded. A side bowled out is charged
   its full overs. A chase that ends early uses the overs actually faced.
+- A duck is out for nought; nought not out and retired hurt are not ducks.
+- Formats (`formatOf`) go by the overs a side gets: T10 up to 10, T20 up to 20,
+  20+ beyond. Career tables per format filter the matches and call
+  `computeStats` once per column.
+- `playerMatchLines(playerId, matches)` gives one `PlayerMatchLine` per finished
+  match the player was picked in (sides, ground, format, result, their batting
+  and bowling), in the order given. It carries no date: the app joins
+  `MatchRecord.createdAt` by match id.
 
 MVP points (`matchPoints`): a run is a point, +1 a four, +2 a six, +5 for 30,
 +10 for 50, +20 for 100, 20 a wicket, 10 a maiden, 8 for a catch, stumping or run

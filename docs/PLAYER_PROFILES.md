@@ -30,8 +30,8 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
   first; one-tap App Links and a QR come later with the same link.
 
 ## Release 1: identity, add by number, profile with career stats (beta.7)
-- [ ] 1. This tracker, with pointers from ROADMAP and AGENTS.
-- [ ] 2. Engine: `formatOf`, `BattingStats.ducks`, `playerMatchLines` + tests.
+- [x] 1. This tracker, with pointers from ROADMAP and AGENTS. (2026-11-21, adbc32a)
+- [x] 2. Engine: `formatOf`, `BattingStats.ducks`, `playerMatchLines` + tests. (2026-11-21)
 - [ ] 3. `phone_numbers.dart` (normalise, mask, hash) + tests; `crypto` dependency.
 - [ ] 4. `Accounts` phone methods, `Scorer.phone`, `userChanges()`, `FakeAccounts`.
 - [ ] 5. `PlayerDirectory` (Firestore + fake) + tests; rules for `players` and `phones`.

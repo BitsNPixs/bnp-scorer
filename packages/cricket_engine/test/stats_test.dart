@@ -9,14 +9,24 @@ Team _team(String id, int size) => Team(
       ],
     );
 
-MatchSetup _setup({int size = 3, int overs = 1, String a = 'a', String b = 'b', int ballsPerOver = 6}) =>
+MatchSetup _setup({
+  int size = 3,
+  int overs = 1,
+  String a = 'a',
+  String b = 'b',
+  int ballsPerOver = 6,
+  String id = 'm',
+  String? venue,
+  bool superOver = false,
+}) =>
     MatchSetup(
-      id: 'm',
+      id: id,
       teamA: _team(a, size),
       teamB: _team(b, size),
-      rules: MatchRules(oversPerInnings: overs, ballsPerOver: ballsPerOver),
+      rules: MatchRules(oversPerInnings: overs, ballsPerOver: ballsPerOver, superOver: superOver),
       tossWinnerId: a,
       tossDecision: TossDecision.bat,
+      venue: venue,
     );
 
 /// Records events the way the app does, and replays them for a state.
@@ -49,6 +59,10 @@ class _Match {
       ));
 
   void newBatter(String id) => _events.add(NewBatter(id: _id, at: _at, batterId: id));
+
+  void retireHurt(String id) => _events.add(BatterRetired(id: _id, at: _at, batterId: id, hurt: true));
+
+  void closeInnings() => _events.add(InningsClosed(id: _id, at: _at, reason: 'test'));
 
   MatchState get state => ScoringEngine.replay(setup, _events);
 }
@@ -539,6 +553,27 @@ void main() {
       expect(_player(book, 'a1').teamName, 'New name');
     });
 
+    test('counts ducks: out for nought, not nought not out or retired hurt', () {
+      final m = _Match(_setup())
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..wicket(DismissalType.bowled, 'a1')
+        ..newBatter('a3')
+        ..balls([0, 0, 0, 0, 0])
+        ..openers('b1', 'b2')
+        ..bowler('a1')
+        ..retireHurt('b1')
+        ..newBatter('b3')
+        ..balls([0, 0, 0, 0, 0, 0]);
+      final book = computeStats([m.state]);
+      expect(book.matches, 1);
+      expect(_player(book, 'a1').batting.ducks, 1);
+      expect(_player(book, 'a2').batting.ducks, 0);
+      expect(_player(book, 'a3').batting.ducks, 0);
+      expect(_player(book, 'b1').batting.ducks, 0);
+      expect(_player(book, 'b1').batting.innings, 1);
+    });
+
     test('overs are reported in six-ball overs for an eight-ball match', () {
       final m = _Match(_setup(ballsPerOver: 8))
         ..openers('a1', 'a2')
@@ -550,6 +585,97 @@ void main() {
       final book = computeStats([m.state]);
       expect(_player(book, 'b1').bowling.oversText, '1.2');
       expect(_teamStats(book, 'a').oversFaced, 1);
+    });
+  });
+
+  group('formats', () {
+    test('split by the overs a side gets', () {
+      MatchFormat of(int overs) => formatOf(MatchRules(oversPerInnings: overs));
+      expect(of(1), MatchFormat.t10);
+      expect(of(10), MatchFormat.t10);
+      expect(of(11), MatchFormat.t20);
+      expect(of(20), MatchFormat.t20);
+      expect(of(21), MatchFormat.long);
+      expect(of(50), MatchFormat.long);
+    });
+
+    test('have the labels career tables show', () {
+      expect(MatchFormat.values.map((f) => f.label), ['T10', 'T20', '20+']);
+    });
+  });
+
+  group('match lines', () {
+    final first = _playAWin(_Match(_setup(id: 'm1', venue: 'Ammapet ground')), 'a', 'b').state;
+    // A twenty-over match closed early: Team A 11/1, Team B 2/1.
+    final second = (_Match(_setup(id: 'm2', overs: 20, size: 4))
+          ..openers('a1', 'a2')
+          ..bowler('b1')
+          ..balls([4, 6])
+          ..wicket(DismissalType.caught, 'a1', fielder: 'b2')
+          ..newBatter('a3')
+          ..balls([1, 0, 0])
+          ..closeInnings()
+          ..openers('b1', 'b2')
+          ..bowler('a1')
+          ..balls([1, 1])
+          ..wicket(DismissalType.bowled, 'b1')
+          ..newBatter('b3')
+          ..balls([0, 0, 0])
+          ..closeInnings())
+        .state;
+
+    test('one line per finished match, in the order given', () {
+      final lines = playerMatchLines('a1', [first, second]);
+      expect(lines.map((l) => l.matchId), ['m1', 'm2']);
+      expect(lines.map((l) => l.format), [MatchFormat.t10, MatchFormat.t20]);
+      expect(playerMatchLines('a1', [second, first]).map((l) => l.matchId), ['m2', 'm1']);
+    });
+
+    test("names the sides, the ground and the result from the player's side", () {
+      final a1 = playerMatchLines('a1', [first]).single;
+      expect(a1.teamId, 'a');
+      expect(a1.teamName, 'Team A');
+      expect(a1.opponentId, 'b');
+      expect(a1.opponentName, 'Team B');
+      expect(a1.venue, 'Ammapet ground');
+      expect(a1.outcome, MatchOutcome.won);
+      final b1 = playerMatchLines('b1', [first]).single;
+      expect(b1.teamName, 'Team B');
+      expect(b1.opponentName, 'Team A');
+      expect(b1.outcome, MatchOutcome.lost);
+      expect(playerMatchLines('a1', [second]).single.venue, isNull);
+    });
+
+    test('carries the batting and bowling, null when the player did neither', () {
+      final a1 = playerMatchLines('a1', [first]).single;
+      expect(a1.batting!.runs, 10);
+      expect(a1.batting!.isOut, isTrue);
+      expect(a1.bowling!.wickets, 1);
+      final a2 = playerMatchLines('a2', [first]).single;
+      expect(a2.batting!.runs, 0);
+      expect(a2.bowling, isNull);
+      final a4 = playerMatchLines('a4', [second]).single;
+      expect(a4.batting, isNull);
+      expect(a4.bowling, isNull);
+    });
+
+    test('leaves out unfinished matches, Super Overs and matches not played in', () {
+      final live = _Match(_setup(id: 'live'))
+        ..openers('a1', 'a2')
+        ..bowler('b1')
+        ..balls([6]);
+      final superOver = _playAWin(_Match(_setup(id: 'so', superOver: true)), 'a', 'b').state;
+      expect(superOver.isCompleted, isTrue);
+      expect(playerMatchLines('a1', [first, live.state, superOver]).map((l) => l.matchId), ['m1']);
+      expect(playerMatchLines('zz', [first, second]), isEmpty);
+    });
+
+    test('a filtered subset of matches adds up on its own', () {
+      final t20 = [first, second].where((m) => formatOf(m.setup.rules) == MatchFormat.t20);
+      final book = computeStats(t20);
+      expect(book.matches, 1);
+      expect(_player(book, 'a1').batting.runs, 10);
+      expect(_player(book, 'a1').matches, 1);
     });
   });
 }

@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+Registered players, in progress (`docs/PLAYER_PROFILES.md`).
+
+### Added
+- Engine: career numbers split by format (`formatOf`: T10 up to ten overs,
+  T20 up to twenty, 20+ beyond), ducks in batting stats, and
+  `playerMatchLines`, one line per finished match a player was picked in
+  (sides, ground, result, their batting and bowling) for recent form, debut
+  and last match. All derived; nothing stored changes.
+
 ## 0.9.0-beta.6 — 2026-11-18
 
 The company's name, BitsNPixs, in the app and on the website.

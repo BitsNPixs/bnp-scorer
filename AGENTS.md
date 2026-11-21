@@ -14,6 +14,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 ## Read in this order
 1. `AGENTS.md` (this file): rules, status, gotchas.
 2. `docs/ROADMAP.md`: product context, decisions, **what to do next**, open issues.
+   `docs/PLAYER_PROFILES.md`: the registered-players work, step by step.
 3. `docs/ARCHITECTURE.md`: how the engine, events, state, storage and UI fit.
 4. `README.md`: setup and verify commands.
 5. `CHANGELOG.md`: what changed and what is unverified.

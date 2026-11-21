@@ -24,7 +24,9 @@
 | Sharing, files | — | share_plus, file_picker behind `DeviceFiles` | Needs platform code |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
 
-## Next, in order (as of 2026-11-18)
+## Next, in order (as of 2026-11-21)
+0. **Registered players** (phone-number identity, add by number, career
+   profile): in progress, step by step in `docs/PLAYER_PROFILES.md`.
 1. **Two-phone try of beta.6 on the real Firestore:** on the owner's phone,
    signed in, create a knockout cup with a date, add prizes, a fee and a
    payment, and "Schedule for later" a friendly. On a second phone, check

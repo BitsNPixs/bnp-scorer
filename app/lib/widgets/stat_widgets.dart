@@ -153,6 +153,115 @@ class _StatCell extends StatelessWidget {
   }
 }
 
+/// A titled panel of labels and values, one pair to a line.
+class KeyValueTable extends StatelessWidget {
+  const KeyValueTable({super.key, required this.title, required this.rows});
+
+  final String title;
+  final List<(String label, String value)> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return SurfacePanel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectionLabel(title),
+          for (final (i, (label, value)) in rows.indexed) ...[
+            if (i > 0) Divider(height: 1, color: scheme.outlineVariant),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 112,
+                    child: Text(label, style: TextStyle(color: scheme.onSurfaceVariant)),
+                  ),
+                  Expanded(
+                    child: Text(
+                      value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Numbers by row and column, such as a career split by format. Columns
+/// share the width; when they do not fit, the table scrolls sideways. Each
+/// value has the key `stat:<row>:<column>` for tests.
+class StatsTable extends StatelessWidget {
+  const StatsTable({super.key, required this.columns, required this.rows});
+
+  final List<String> columns;
+  final List<(String label, List<String> values)> rows;
+
+  static const _labelWidth = 104.0;
+  static const _minValueWidth = 76.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    return SurfacePanel(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final room = (constraints.maxWidth - 32 - _labelWidth) / columns.length;
+          final valueWidth = room < _minValueWidth ? _minValueWidth : room;
+          Widget cell(String value, TextStyle? style, {Key? key, TextAlign align = TextAlign.end}) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(value, key: key, maxLines: 1, overflow: TextOverflow.ellipsis, textAlign: align, style: style),
+              );
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Table(
+              defaultColumnWidth: FixedColumnWidth(valueWidth),
+              columnWidths: const {0: FixedColumnWidth(_labelWidth)},
+              border: TableBorder(horizontalInside: BorderSide(color: scheme.outlineVariant)),
+              children: [
+                TableRow(
+                  children: [
+                    cell('', null),
+                    for (final column in columns)
+                      cell(
+                        column,
+                        text.labelMedium?.copyWith(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700),
+                      ),
+                  ],
+                ),
+                for (final (label, values) in rows)
+                  TableRow(
+                    children: [
+                      cell(label, TextStyle(color: scheme.onSurfaceVariant), align: TextAlign.start),
+                      for (final (i, value) in values.indexed)
+                        cell(
+                          value,
+                          scoreStyle(17, color: scheme.onSurface),
+                          key: ValueKey('stat:$label:${columns[i]}'),
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
 /// Shown when there is nothing to list yet.
 class StatsEmpty extends StatelessWidget {
   const StatsEmpty({super.key, required this.message});

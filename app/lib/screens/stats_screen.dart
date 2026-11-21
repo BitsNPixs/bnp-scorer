@@ -6,7 +6,7 @@ import '../state/providers.dart';
 import '../ui/format.dart';
 import '../widgets/avatars.dart';
 import '../widgets/stat_widgets.dart';
-import 'player_stats_screen.dart';
+import 'player_profile_screen.dart';
 import 'team_stats_screen.dart';
 
 class StatsScreen extends ConsumerWidget {
@@ -65,10 +65,6 @@ class _RankedList extends StatelessWidget {
         itemBuilder: (_, i) => rows[i],
       );
 }
-
-void openPlayer(BuildContext context, String playerId) => Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => PlayerStatsScreen(playerId: playerId)),
-    );
 
 class TeamsTab extends StatelessWidget {
   const TeamsTab({super.key, required this.teams});

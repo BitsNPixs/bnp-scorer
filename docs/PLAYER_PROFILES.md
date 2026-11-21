@@ -35,8 +35,8 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
 - [x] 3. `phone_numbers.dart` (normalise, mask, hash) + tests; `crypto` dependency. (2026-11-21, aa2747b)
 - [x] 4. `Accounts` phone methods, `Scorer.phone`, `userChanges()`, `FakeAccounts`. (2026-11-21, 1d02228)
 - [x] 5. `PlayerDirectory` (Firestore + fake) + tests; rules for `players` and `phones`. (2026-11-21, 57a9d3c)
-- [x] 6. `playerIds` on publish, `CloudMatches.byPlayer`, one-time backfill + tests; rules for `matches`. (2026-11-21)
-- [ ] 7. `PlayerProfileScreen` (INFO, BATTING, BOWLING, CAREER), `KeyValueTable`, `StatsTable`; replaces `PlayerStatsScreen` everywhere (watched cups show their own numbers).
+- [x] 6. `playerIds` on publish, `CloudMatches.byPlayer`, one-time backfill + tests; rules for `matches`. (2026-11-21, 1c82e19)
+- [x] 7. `PlayerProfileScreen` (INFO, BATTING, BOWLING, CAREER), `KeyValueTable`, `StatsTable`; replaces `PlayerStatsScreen` everywhere (watched cups show their own numbers). (2026-11-21; tab pill inset app-wide after owner feedback)
 - [ ] 8. Settings: link a number, Verified line, Change number, My profile + tests.
 - [ ] 9. Add by number on the team page and New match (found / invited / already in squad / offline / signed out) + tests.
 - [ ] 10. Docs, privacy policy, Data safety answers, site feature list and FAQ, screenshots, version bump, beta build.
@@ -73,5 +73,5 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - Enumeration of `phones/` by a signed-in attacker at Firestore read prices: sign-in is required now; App Check or a rate-limited Function later.
 - A recycled number inherits the old profile (the number is the identity).
 - "This year" and ordering use `MatchRecord.createdAt`, the phone's clock.
-- Matches published by scorers who never update to beta.7 have no `playerIds` and stay off profiles.
+- Matches published by scorers who never update to beta.7 have no `playerIds` and stay off profiles, including when opened from a watched cup.
 - iOS: phone auth needs APNs; the contacts picker needs Swift. Both wait for the iOS folder.

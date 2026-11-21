@@ -262,6 +262,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Error hooks, error box | `installErrorHandlers`, `FriendlyErrorPanel` (`ui/error_handling.dart`) |
 | App version | `appVersion`, `appBuild`, `appVersionLabel` (`data/app_info.dart`) |
 | Stat lists and number grids | `LeaderRow`, `StatGrid`, `StatsEmpty` (`widgets/stat_widgets.dart`) |
+| Label and value rows, numbers by row and column | `KeyValueTable`, `StatsTable` (keys `stat:<row>:<column>` for tests) (`widgets/stat_widgets.dart`) |
+| A player's profile and career | `openPlayer`, `PlayerProfileScreen`, `careerColumns`, `matchesIn` (`screens/player_profile_screen.dart`), `playerCareerProvider`; engine `playerMatchLines`, `formatOf` |
+| Players by mobile number, numbers | `PlayerDirectory`, `PlayerProfile` (`data/player_directory.dart`), `playerDirectoryProvider`, `playerProfileProvider`; `normalizePhone`, `maskPhone`, `phoneHash` (`data/phone_numbers.dart`); `FakePlayerDirectory` in tests |
+| Tab bar pill | `PillTabIndicator` (`theme/app_theme.dart`), set in both themes |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |
 | JSON documents in prefs | `LocalDocuments` (`data/local_documents.dart`) |
 | Sign-in, the scorer | `Accounts`, `Scorer`, `accountsProvider`, `scorerProvider` (`data/accounts.dart`); `FakeAccounts` in tests |

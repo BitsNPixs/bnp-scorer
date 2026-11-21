@@ -27,6 +27,18 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   player's matches can be found for their profile. A signed-in scorer's
   matches published before this are sent again once, on the next sign-in or
   launch. The rules accept the field and keep it optional for older apps.
+- A new player profile, after the owner's reference: a hero card, then Info
+  (personal details, last five innings that open their match, teams, awards,
+  fielding), Batting and Bowling (Career, This year or Last 10; three headline
+  numbers; a table split by format when more than one was played) and Career
+  (debut and last match, overall and per format). In cloud builds it includes
+  everyone's published matches the player was picked in, so a player tapped
+  in a watched cup now shows their numbers instead of nothing.
+
+### Changed
+- Tab bars: the selected tab's pill is inset to about 30 dp instead of filling
+  the whole tab, on every tabbed screen (owner's feedback: too big for a
+  phone). Website screens re-rendered.
 
 ## 0.9.0-beta.6 — 2026-11-18
 

@@ -220,6 +220,43 @@ final upcomingProvider = FutureProvider.autoDispose<List<UpcomingMatch>>((ref) a
 /// A stored match with its replayed state, for lists.
 typedef MatchSummary = ({MatchRecord record, MatchState state});
 
+/// A match in a player's career. One [onPhone] opens for scoring; any other
+/// was published by someone else and opens read-only.
+typedef CareerMatch = ({MatchRecord record, MatchState state, bool onPhone});
+
+/// A player's matches, oldest first: those on this phone and, in cloud builds,
+/// everyone's published matches carrying their id. [cloudMissed] is true when
+/// the cloud could not be read, so only this phone's matches are shown.
+typedef PlayerCareer = ({List<CareerMatch> matches, bool cloudMissed});
+
+final playerCareerProvider = FutureProvider.autoDispose.family<PlayerCareer, String>(
+  (ref, playerId) async {
+    final byId = <String, CareerMatch>{};
+    for (final m in await ref.watch(matchListProvider.future)) {
+      if (matchPlayerIds(m.record.setup).contains(playerId)) {
+        byId[m.record.id] = (record: m.record, state: m.state, onPhone: true);
+      }
+    }
+    var cloudMissed = false;
+    final cloud = ref.watch(cloudMatchesProvider);
+    if (cloud != null) {
+      try {
+        for (final published in await cloud.byPlayer(playerId)) {
+          if (byId.containsKey(published.record.id)) continue;
+          final summary = _summaryOf(published);
+          if (summary != null) byId[published.record.id] = (record: published.record, state: summary.state, onPhone: false);
+        }
+      } on Object catch (e) {
+        debugPrint('Could not read the published matches of $playerId: $e');
+        cloudMissed = true;
+      }
+    }
+    final matches = byId.values.toList()..sort((a, b) => a.record.createdAt.compareTo(b.record.createdAt));
+    return (matches: matches, cloudMissed: cloudMissed);
+  },
+  retry: _noRetry,
+);
+
 /// Career numbers from every finished match. Derived, never stored.
 final statsProvider = FutureProvider.autoDispose<StatsBook>((ref) async {
   final matches = await ref.watch(matchListProvider.future);

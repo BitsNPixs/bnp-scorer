@@ -247,10 +247,12 @@ abstract final class AppTheme {
         labelStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
         unselectedLabelStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         indicatorSize: TabBarIndicatorSize.tab,
-        indicator: BoxDecoration(color: scheme.primary, borderRadius: BorderRadius.circular(99)),
+        // Inset so the pill hugs the label (about 30 dp tall) instead of
+        // filling the whole tab.
+        indicator: PillTabIndicator(color: scheme.primary),
         dividerColor: Colors.transparent,
         splashBorderRadius: BorderRadius.circular(99),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 18),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 14),
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: scheme.surfaceContainerLow,
@@ -282,6 +284,38 @@ abstract final class AppTheme {
 }
 
 /// New screens rise a little and fade in, quick enough for a scorer mid-over.
+/// The selected tab's pill, inset from the top and bottom of the tab so it
+/// sits close around the label rather than filling the tab bar's height.
+class PillTabIndicator extends Decoration {
+  const PillTabIndicator({required this.color, this.inset = 8});
+
+  final Color color;
+
+  /// Space above and below the pill.
+  final double inset;
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _PillPainter(this);
+}
+
+class _PillPainter extends BoxPainter {
+  _PillPainter(this.indicator);
+
+  final PillTabIndicator indicator;
+
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final size = configuration.size;
+    if (size == null) return;
+    final rect = offset & size;
+    final pill = Rect.fromLTRB(rect.left, rect.top + indicator.inset, rect.right, rect.bottom - indicator.inset);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(pill, Radius.circular(pill.height / 2)),
+      Paint()..color = indicator.color,
+    );
+  }
+}
+
 class _RiseTransitionsBuilder extends PageTransitionsBuilder {
   const _RiseTransitionsBuilder();
 

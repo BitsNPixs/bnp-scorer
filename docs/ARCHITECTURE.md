@@ -435,6 +435,21 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   room at 360 dp.
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
+- **Player profile** (`PlayerProfileScreen`, opened by `openPlayer` from every
+  stats list, a tournament's own or watched): a hero card (name, matches, latest
+  team, Verified or Invited from the directory) over four tabs. Info: personal
+  details (`KeyValueTable`), the last five innings (each opens its match), teams,
+  awards and fielding. Batting and Bowling: a period (Career, This year, Last
+  10) carried across both, three headline numbers, then a `StatsTable` with an
+  All column and one per format when more than one was played; a player who
+  never batted or bowled gets a note, not zeros. Career: debut and last match,
+  overall and per format, each opening its match. `playerCareerProvider` joins
+  this phone's matches with everyone's published matches carrying the player's
+  id (`byPlayer`); a match on the phone opens for scoring, any other read-only,
+  and a failed cloud read shows a notice and the phone's matches. Matches
+  published without `playerIds` (before beta.7) are not found.
+- **Tabs:** every `TabBar` uses the theme's `PillTabIndicator`, a pill inset 8 dp
+  top and bottom (about 30 dp tall), so it hugs the label on a phone.
 - **Tournaments:** the list, then one tournament with Matches, Bracket (when it
   has knockout games), Table (not for a cup), Prizes, Batting, Bowling, MVP and
   Boundaries tabs. Prizes (`PrizesTab`) shows the prizes (the first, the

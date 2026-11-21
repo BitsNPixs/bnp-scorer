@@ -78,8 +78,10 @@ void main() {
     await tester.tap(find.text('runs').first);
     await settle(tester);
 
-    expect(find.text('BATTING'), findsOneWidget);
-    expect(find.text('Strike rate'), findsWidgets);
+    expect(find.text('PERSONAL INFORMATION'), findsOneWidget);
+    await tester.tap(find.descendant(of: find.byType(TabBar), matching: find.text('Batting')));
+    await settle(tester);
+    expect(find.byKey(const ValueKey('stat:Strike rate:All')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -95,8 +97,14 @@ void main() {
     await tester.tap(find.text('wkts').first);
     await settle(tester);
 
-    expect(find.text('BOWLING'), findsOneWidget);
-    expect(tester.takeException(), isNull);
+    for (final tab in ['Batting', 'Bowling', 'Career', 'Info']) {
+      final finder = find.descendant(of: find.byType(TabBar), matching: find.text(tab));
+      await tester.ensureVisible(finder);
+      await tester.tap(finder);
+      await settle(tester);
+      expect(tester.takeException(), isNull, reason: tab);
+    }
+    expect(find.text('PERSONAL INFORMATION'), findsOneWidget);
   });
 
   testWidgets('the MVP tab ranks players and shows awards', (tester) async {
@@ -108,6 +116,7 @@ void main() {
     expect(find.textContaining('Player of the Match'), findsWidgets);
     await tester.tap(find.text('pts').first);
     await settle(tester);
+    await tester.scrollUntilVisible(find.text('AWARDS'), 300, scrollable: find.byType(Scrollable).last);
     expect(find.text('AWARDS'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

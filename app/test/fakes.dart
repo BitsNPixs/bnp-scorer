@@ -219,6 +219,9 @@ class FakeCloudMatches implements CloudMatches {
   /// When true, every write fails, as with no connection and no queue.
   bool failWrites = false;
 
+  /// When true, [byPlayer] fails, as when the cloud cannot be reached.
+  bool failReads = false;
+
   /// Documents this app cannot read, by match id: [watch] reports an error.
   final unreadable = <String>{};
 
@@ -257,10 +260,13 @@ class FakeCloudMatches implements CloudMatches {
   }
 
   @override
-  Future<List<PublishedMatch>> byPlayer(String playerId, {int limit = 100}) async => [
-        for (final record in published.values)
-          if (matchPlayerIds(record.setup).contains(playerId)) _published(record.id),
-      ].take(limit).toList();
+  Future<List<PublishedMatch>> byPlayer(String playerId, {int limit = 100}) async {
+    if (failReads) throw StateError('No connection');
+    return [
+      for (final record in published.values)
+        if (matchPlayerIds(record.setup).contains(playerId)) _published(record.id),
+    ].take(limit).toList();
+  }
 
   @override
   Stream<PublishedMatch?> watch(String matchId) async* {

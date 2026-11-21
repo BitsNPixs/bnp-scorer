@@ -158,6 +158,8 @@ class FirebaseAccounts implements Accounts {
     if (_auth.currentUser == null) throw const AccountsException('Sign in with Google first.');
     final sent = Completer<PhoneCodeRequest?>();
     void fail(FirebaseAuthException e) {
+      // Firebase's own words go to the log; the player sees plain advice.
+      debugPrint('Sending a phone code failed: ${e.code}: ${e.message}');
       if (!sent.isCompleted) sent.completeError(AccountsException(phoneErrorMessage(e.code)));
     }
 
@@ -202,6 +204,7 @@ class FirebaseAccounts implements Accounts {
     try {
       await _attach(PhoneAuthProvider.credential(verificationId: request.verificationId, smsCode: code.trim()));
     } on FirebaseAuthException catch (e) {
+      debugPrint('Linking a phone number failed: ${e.code}: ${e.message}');
       throw AccountsException(phoneErrorMessage(e.code));
     }
   }
@@ -242,8 +245,9 @@ String phoneErrorMessage(String code) => switch (code) {
       'invalid-phone-number' => 'That does not look like a mobile number.',
       'too-many-requests' || 'quota-exceeded' => 'Too many tries. Wait a while before trying again.',
       'network-request-failed' => 'No internet. Connect and try again.',
-      'app-not-authorized' || 'missing-client-identifier' || 'operation-not-allowed' =>
-        'Confirming numbers is not set up yet. Try again after the next update.',
+      // Setup problems: the code says which one, for whoever fixes it.
+      'app-not-authorized' || 'missing-client-identifier' || 'operation-not-allowed' || 'billing-not-enabled' =>
+        'Confirming numbers is not set up yet ($code). Try again after the next update.',
       _ => 'Could not confirm the number ($code).',
     };
 

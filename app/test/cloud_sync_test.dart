@@ -159,6 +159,12 @@ void main() {
       expect(phoneErrorMessage('network-request-failed'), contains('No internet'));
     });
 
+    test('names which setup step is missing, so it can be fixed', () {
+      for (final code in ['operation-not-allowed', 'app-not-authorized', 'missing-client-identifier', 'billing-not-enabled']) {
+        expect(phoneErrorMessage(code), 'Confirming numbers is not set up yet ($code). Try again after the next update.');
+      }
+    });
+
     test('names an unknown code rather than hiding it', () {
       expect(phoneErrorMessage('something-new'), 'Could not confirm the number (something-new).');
     });

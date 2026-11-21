@@ -7,6 +7,7 @@ import '../data/accounts.dart';
 import '../data/app_settings.dart';
 import '../data/cloud_cups.dart';
 import '../data/cloud_matches.dart';
+import '../data/cloud_teams.dart';
 import '../data/device_contacts.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
@@ -14,6 +15,7 @@ import '../data/match_record.dart';
 import '../data/match_repository.dart';
 import '../data/player_directory.dart';
 import '../data/scheduled_match.dart';
+import '../data/syncing_teams.dart';
 import '../data/team_repository.dart';
 import '../data/tournament_repository.dart';
 import 'upcoming.dart';
@@ -123,6 +125,36 @@ final myProfileProvider = FutureProvider.autoDispose<PlayerProfile?>(
     final scorer = ref.watch(scorerProvider).value ?? ref.watch(accountsProvider).current;
     if (directory == null || scorer == null || scorer.phone == null) return null;
     return directory.claim(scorer);
+  },
+  retry: _noRetry,
+);
+
+/// Shared teams and join requests. Null without the cloud.
+final cloudTeamsProvider = Provider<CloudTeams?>((ref) => null);
+
+/// Sharing a saved team's invite. `main()` points it at the same
+/// `SyncingTeamRepository` as [teamRepositoryProvider]; null without the cloud.
+final teamSharingProvider = Provider<TeamSharing?>((ref) => null);
+
+/// Players asking to join a team, live, for its captain. Empty without the
+/// cloud.
+final teamJoinsProvider = StreamProvider.autoDispose.family<List<JoinRequest>, String>(
+  (ref, teamId) => ref.watch(cloudTeamsProvider)?.joins(teamId) ?? Stream.value(const []),
+  retry: _noRetry,
+);
+
+/// The names of the shared teams a player is in, for their profile. Empty
+/// without the cloud or when it cannot be read.
+final playerTeamsProvider = FutureProvider.autoDispose.family<List<String>, String>(
+  (ref, playerId) async {
+    final cloud = ref.watch(cloudTeamsProvider);
+    if (cloud == null) return const [];
+    try {
+      return [for (final t in await cloud.teamsOfPlayer(playerId)) t.team.name];
+    } on Object catch (e) {
+      debugPrint('Could not read the teams of $playerId: $e');
+      return const [];
+    }
   },
   retry: _noRetry,
 );

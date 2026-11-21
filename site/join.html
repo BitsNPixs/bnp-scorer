@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Join a Team</title>
+  <meta name="description" content="Your captain invited you to a team on BNP Scorer, the free cricket scoring app. Install it and type the join code.">
+  <meta name="theme-color" content="#081008">
+  <link rel="icon" href="img/icon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/icon-512.png">
+  <meta property="og:title" content="Join my team on BNP Scorer">
+  <meta property="og:description" content="Install the free cricket scoring app and type the join code, so the matches we play count on your profile.">
+  <meta property="og:image" content="https://bitsnpixs.github.io/bnp-scorer/img/share.png">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .code {
+      display: inline-block;
+      margin: 14px 0 4px;
+      padding: 6px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--neon);
+      font: 800 clamp(36px, 10vw, 52px)/1.1 "Barlow Condensed", "Arial Narrow", sans-serif;
+      letter-spacing: 0.12em;
+    }
+    ol { padding-left: 22px; }
+    ol li { margin: 8px 0; }
+  </style>
+</head>
+<body>
+<main>
+  <header class="hero">
+    <img class="mark" src="img/icon-64.png" width="64" height="64" alt="">
+    <h1>Join a team</h1>
+    <p>Your captain invited you to their team on BNP Scorer.</p>
+    <div class="code" id="code" hidden></div>
+  </header>
+
+  <section>
+    <h2>Three steps</h2>
+    <ol>
+      <li><strong>Get the app</strong> on your Android phone. It is free, with no ads.
+        <div class="links"><a class="button" href="https://github.com/BitsNPixs/bnp-scorer/releases/latest/download/bnp-scorer.apk">Download for Android</a></div></li>
+      <li><strong>Add your mobile number:</strong> open Settings, sign in with Google, and
+        confirm your number with the code we text you. That makes the profile yours.</li>
+      <li><strong>Join:</strong> open Teams, tap Join a team, and type
+        <span id="code-inline">the code your captain sent</span>. Your captain adds you,
+        and the matches you play count on your profile.</li>
+    </ol>
+    <p class="muted">Your number is never shown to anyone. See the <a href="privacy.html">privacy policy</a>.</p>
+  </section>
+
+  <footer>
+    <a href="./">BNP Scorer home</a> · © 2026 <a href="https://bitsnpixs.com/">BitsNPixs</a> Technologies Private Limited. All rights reserved.
+  </footer>
+</main>
+<script>
+  // Shows the code from the invite link (?code=ABC234). Only the app's own
+  // code letters are accepted, so nothing else from the link reaches the page.
+  (function () {
+    var raw = new URLSearchParams(location.search).get('code') || '';
+    var code = raw.toUpperCase().replace(/[^ABCDEFGHJKMNPQRSTUVWXYZ23456789]/g, '').slice(0, 6);
+    if (code.length !== 6) return;
+    var big = document.getElementById('code');
+    big.textContent = code;
+    big.hidden = false;
+    document.getElementById('code-inline').textContent = code;
+  })();
+</script>
+</body>
+</html>

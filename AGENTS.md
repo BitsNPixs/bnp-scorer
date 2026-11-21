@@ -293,6 +293,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Tournament logic | `roundRobinFixtures`, `leagueFixtures`, `knockoutFixtures`, `knockoutBracket`, `Tournament.bracket`, `sideName`, `progressOf` (`cricket_engine`, `tournament.dart`) |
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
+| Shared teams, join codes, invites, join requests | `CloudTeams`, `PublishedTeam`, `JoinRequest`, `joinCodeOf`, `normalizeJoinCode` (`data/cloud_teams.dart`), `SyncingTeamRepository`, `TeamSharing` (`data/syncing_teams.dart`), `showJoinTeamSheet` (`widgets/join_team_sheet.dart`), `teamInviteText`, `joinPageAddress` (`ui/format.dart`), `site/join.html`; `FakeCloudTeams` in tests |
 | Contact picker (one tapped contact, no permission) | `DeviceContacts`, `PickedContact` (`data/device_contacts.dart`), `deviceContactsProvider`, channel in `MainActivity.kt`; `FakeContacts` in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
@@ -321,8 +322,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
   `bnp_scorer.tournament.<id>`, `bnp_scorer.scheduleIds`,
   `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode`,
-  `bnp_scorer.errorLog` and `bnp_scorer.playerIdsBackfill`. Changing them
-  loses users' data.
+  `bnp_scorer.errorLog`, `bnp_scorer.playerIdsBackfill` and
+  `bnp_scorer.sharedTeamIds`. Changing them loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and

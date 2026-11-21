@@ -44,7 +44,9 @@
    such as privacy@, the owner's call); the Data safety form (answers in README
    "Cloud"); the $25 account and a closed test with about 12 testers for 14
    days.
-4. **Cloud step 5:** teams in the cloud, and handing a match to another scorer.
+4. **Cloud step 5:** teams in the cloud are done as shared teams with invites
+   (docs/PLAYER_PROFILES.md, release 4); handing a match to another scorer is
+   still to do.
 
 ## Phases
 **Phase 0: make v0.1 real (next)**

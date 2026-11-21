@@ -208,3 +208,13 @@ String matchStatus(MatchState state) {
     _ => '$batting ${scoreLine(inn)} (${inn.oversText} ov)',
   };
 }
+
+/// The web page that explains a join code to someone without the app.
+const joinPageAddress = 'https://bitsnpixs.github.io/bnp-scorer/join.html';
+
+/// A WhatsApp invite to ask to join [teamName] with its [code].
+String teamInviteText(String teamName, String code) => [
+      'Join $teamName on BNP Scorer, so the matches we play count on your profile.',
+      'In the app: Teams, then Join a team, and type the code $code',
+      'No app yet? $joinPageAddress?code=$code',
+    ].join('\n');

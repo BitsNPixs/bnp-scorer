@@ -5,6 +5,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/cloud_cups.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
+import 'package:bnp_scorer/data/cloud_teams.dart';
 import 'package:bnp_scorer/data/device_contacts.dart';
 import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
@@ -480,5 +481,65 @@ class FakeContacts implements DeviceContacts {
     final failure = failWith;
     if (failure != null) throw DeviceContactsException(failure);
     return next;
+  }
+}
+
+/// Shared teams and join requests as maps. [offline] makes every call fail.
+class FakeCloudTeams implements CloudTeams {
+  final teams = <String, PublishedTeam>{};
+  final requests = <String, Map<String, JoinRequest>>{};
+  bool offline = false;
+  final _changes = StreamController<void>.broadcast();
+
+  void _checkSignal() {
+    if (offline) throw StateError('No connection');
+  }
+
+  @override
+  Future<void> publishTeam(Team team, Scorer owner) async {
+    _checkSignal();
+    teams[team.id] = PublishedTeam(team: team, ownerUid: owner.uid, ownerName: owner.name);
+  }
+
+  @override
+  Future<void> unpublishTeam(String teamId) async {
+    _checkSignal();
+    teams.remove(teamId);
+  }
+
+  @override
+  Future<PublishedTeam?> teamByCode(String code) async {
+    _checkSignal();
+    return teams.values.where((t) => joinCodeOf(t.team.id) == code).firstOrNull;
+  }
+
+  @override
+  Future<List<PublishedTeam>> teamsOfPlayer(String playerId) async {
+    _checkSignal();
+    return [for (final t in teams.values) if (t.team.hasPlayer(playerId)) t];
+  }
+
+  List<JoinRequest> _joinsOf(String teamId) => [...?requests[teamId]?.values];
+
+  @override
+  Stream<List<JoinRequest>> joins(String teamId) async* {
+    yield _joinsOf(teamId);
+    await for (final _ in _changes.stream) {
+      yield _joinsOf(teamId);
+    }
+  }
+
+  @override
+  Future<void> requestJoin(String teamId, {required String playerId, required String name}) async {
+    _checkSignal();
+    (requests[teamId] ??= {})[playerId] = JoinRequest(playerId: playerId, name: name);
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> dismissJoin(String teamId, String playerId) async {
+    _checkSignal();
+    requests[teamId]?.remove(playerId);
+    _changes.add(null);
   }
 }

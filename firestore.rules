@@ -154,6 +154,43 @@ service cloud.firestore {
       allow delete: if holdsNumber(phoneId);
     }
 
+    // Teams a captain shared with an invite. Anyone may read them, so a join
+    // code finds its team; only the captain changes one.
+    match /teams/{teamId} {
+      allow read: if true;
+
+      allow create: if createsOwn()
+        && request.resource.data.id == teamId
+        && request.resource.data.players is list
+        && request.resource.data.joinCode is string;
+
+      allow update: if changesOwn()
+        && request.resource.data.id == teamId
+        && request.resource.data.players is list
+        && request.resource.data.joinCode is string;
+
+      allow delete: if deletesOwn();
+
+      // A player asks to join, under the profile they own. The captain and
+      // that player may read and remove the request; nobody else sees it.
+      match /joins/{playerId} {
+        function teamOwner() {
+          return get(/databases/$(database)/documents/teams/$(teamId)).data.ownerUid == request.auth.uid;
+        }
+        function playerOwner() {
+          return get(/databases/$(database)/documents/players/$(playerId)).data.ownerUid == request.auth.uid;
+        }
+
+        allow read, delete: if request.auth != null && (teamOwner() || playerOwner());
+
+        allow create: if request.auth != null
+          && playerOwner()
+          && request.resource.data.playerId == playerId
+          && request.resource.data.name is string
+          && request.resource.data.name.size() <= 60;
+      }
+    }
+
     // Everything else is closed until a later step opens it on purpose.
     match /{document=**} {
       allow read, write: if false;

@@ -9,6 +9,7 @@ import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/motion.dart';
 import '../widgets/avatars.dart';
+import '../widgets/join_team_sheet.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/stat_widgets.dart';
 import '../widgets/surface_panel.dart';
@@ -133,6 +134,17 @@ class TeamsScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Teams'),
         actions: [
+          if (ref.watch(cloudTeamsProvider) != null)
+            IconButton(
+              tooltip: 'Join a team',
+              onPressed: () async {
+                final joined = await showJoinTeamSheet(context);
+                if (joined != null && context.mounted) {
+                  showMessage(context, 'Asked to join $joined. Your captain adds you.');
+                }
+              },
+              icon: const Icon(Icons.group_add_rounded),
+            ),
           IconButton(
             tooltip: 'Import teams from a CSV file',
             onPressed: () => _startImport(context, ref),

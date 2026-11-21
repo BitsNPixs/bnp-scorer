@@ -11,6 +11,7 @@ import 'data/app_settings.dart';
 import 'data/backfill.dart';
 import 'data/cloud_cups.dart';
 import 'data/cloud_matches.dart';
+import 'data/cloud_teams.dart';
 import 'data/demo_data.dart';
 import 'data/error_log.dart';
 import 'data/local_match_repository.dart';
@@ -20,6 +21,8 @@ import 'data/player_directory.dart';
 import 'data/scheduled_match.dart';
 import 'data/syncing_cups.dart';
 import 'data/syncing_match_repository.dart';
+import 'data/syncing_teams.dart';
+import 'data/team_repository.dart';
 import 'data/tournament_repository.dart';
 import 'state/providers.dart';
 import 'theme/app_theme.dart';
@@ -38,8 +41,11 @@ Future<void> main() async {
   final cloud = hasCloud ? FirestoreCloudMatches(FirebaseFirestore.instance) : null;
   final cups = hasCloud ? FirestoreCloudCups(FirebaseFirestore.instance) : null;
   final players = hasCloud ? FirestorePlayerDirectory(FirebaseFirestore.instance) : null;
+  final cloudTeams = hasCloud ? FirestoreCloudTeams(FirebaseFirestore.instance) : null;
   final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
-  final teams = LocalTeamRepository(prefs);
+  final localTeams = LocalTeamRepository(prefs);
+  final syncingTeams = cloudTeams == null ? null : SyncingTeamRepository(localTeams, cloudTeams, accounts, prefs);
+  final TeamRepository teams = syncingTeams ?? localTeams;
   final localTournaments = LocalTournamentRepository(prefs);
   final localSchedules = LocalScheduleRepository(prefs);
   final TournamentRepository tournaments =
@@ -52,7 +58,7 @@ Future<void> main() async {
   if (demoMode) {
     // Straight to the phone: demo matches are never published.
     await seedDemoMatches(local);
-    await seedDemoTeams(teams);
+    await seedDemoTeams(localTeams);
     await seedDemoTournaments(localTournaments);
   }
   runApp(
@@ -64,6 +70,8 @@ Future<void> main() async {
         cloudMatchesProvider.overrideWithValue(cloud),
         cloudCupsProvider.overrideWithValue(cups),
         playerDirectoryProvider.overrideWithValue(players),
+        cloudTeamsProvider.overrideWithValue(cloudTeams),
+        teamSharingProvider.overrideWithValue(syncingTeams),
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),

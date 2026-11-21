@@ -100,7 +100,8 @@ class _AccountSection extends ConsumerWidget {
   static const publicNotice = "While you're signed in, every new match, tournament and scheduled "
       'match you create is public: anyone with BNP Scorer can follow it, including the player names '
       'and your Google name. Your email and who has paid entry fees are never shared. Deleting '
-      'unpublishes it. What is already on this phone stays private. A mobile number you add is '
+      'unpublishes it. What is already on this phone stays private. A team becomes public when you '
+      'share its invite. A mobile number you add is '
       'used only to find your player profile and is never shown.';
 
   @override

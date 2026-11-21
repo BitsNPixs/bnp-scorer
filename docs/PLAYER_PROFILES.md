@@ -58,9 +58,9 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [x] README Data safety and privacy Permissions paragraph; site feature list. (2026-11-21)
 
 ## Release 4: teams in the cloud, join code, invite, join requests
-- [ ] `CloudTeams`, `SyncingTeamRepository`, `teams` rules.
-- [ ] Join a team by code; captain accepts requests; Share invite; `site/join.html`.
-- [ ] Profile Teams panel lists published teams; privacy text; ROADMAP cloud step 5.
+- [x] `CloudTeams`, `SyncingTeamRepository`, `teams` rules. (2026-11-21)
+- [x] Join a team by code; captain accepts requests; Share invite; `site/join.html`. (2026-11-21; a team is public only once its invite is shared)
+- [x] Profile Teams panel lists published teams; privacy text; ROADMAP cloud step 5. (2026-11-21)
 
 ## Release 5: one-tap link, QR, share a profile
 - [ ] Android App Links (`.well-known/assetlinks.json` on the site), route handling in `HomeScreen`.

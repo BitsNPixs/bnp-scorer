@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- Team invites (cloud builds): on a saved team's page, the share button
+  publishes the team and sends a WhatsApp-ready invite with its six-letter
+  join code and a link to the new `site/join.html`, which shows the code and
+  how to join. Players tap Join a team on the Teams tab, type the code and
+  ask to join under their verified profile; the captain sees "Asked to join"
+  on the team's page and taps Add (the player joins under their shared id)
+  or Ignore. A shared team keeps its cloud copy in step on later saves and is
+  unshared when deleted. A player's profile lists the shared teams they are
+  in, even before they play. Rules for `teams` and their join requests are
+  in `firestore.rules`.
 - Add by number: "Pick from contacts" opens Android's own contact picker.
   The tapped contact's number is looked up straight away, and their name is
   ready if nobody has joined with it. The app sees only that one contact and

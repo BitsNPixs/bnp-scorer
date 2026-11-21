@@ -296,6 +296,10 @@ class _InfoTab extends ConsumerWidget {
     for (final line in view.lines.reversed) {
       if (!teams.contains(line.teamName)) teams.add(line.teamName);
     }
+    // Shared squads they are in, even before playing for them.
+    for (final name in ref.watch(playerTeamsProvider(view.playerId)).value ?? const <String>[]) {
+      if (!teams.contains(name)) teams.add(name);
+    }
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
@@ -322,10 +326,8 @@ class _InfoTab extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 12),
-        if (view.isEmpty)
-          _noMatches
-        else ...[
-          _RecentForm(view: view),
+        if (view.isEmpty) _noMatches else _RecentForm(view: view),
+        if (teams.isNotEmpty) ...[
           const SizedBox(height: 12),
           SurfacePanel(
             child: Column(
@@ -344,25 +346,25 @@ class _InfoTab extends ConsumerWidget {
               ],
             ),
           ),
-          if (stats != null) ...[
-            const SizedBox(height: 12),
-            StatGrid(
-              title: 'Awards',
-              stats: [
-                ('MVP points', '${stats.mvpPoints}'),
-                ('Player of the Match', '${stats.playerOfMatchAwards}'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            StatGrid(
-              title: 'Fielding',
-              stats: [
-                ('Catches', '${stats.fielding.catches}'),
-                ('Stumpings', '${stats.fielding.stumpings}'),
-                ('Run outs', '${stats.fielding.runOuts}'),
-              ],
-            ),
-          ],
+        ],
+        if (stats != null) ...[
+          const SizedBox(height: 12),
+          StatGrid(
+            title: 'Awards',
+            stats: [
+              ('MVP points', '${stats.mvpPoints}'),
+              ('Player of the Match', '${stats.playerOfMatchAwards}'),
+            ],
+          ),
+          const SizedBox(height: 12),
+          StatGrid(
+            title: 'Fielding',
+            stats: [
+              ('Catches', '${stats.fielding.catches}'),
+              ('Stumpings', '${stats.fielding.stumpings}'),
+              ('Run outs', '${stats.fielding.runOuts}'),
+            ],
+          ),
         ],
       ],
     );

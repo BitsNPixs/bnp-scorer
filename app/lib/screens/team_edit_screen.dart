@@ -2,6 +2,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/cloud_teams.dart';
 import '../data/ids.dart';
 import '../data/squad_import.dart';
 import '../state/providers.dart';
@@ -125,6 +126,53 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     }
     setState(() => _players.add(found.player));
     showMessage(context, 'Added ${found.name}.');
+  }
+
+  /// Shares the saved team so players can ask to join it, then sends the
+  /// invite through the share sheet (WhatsApp, usually).
+  Future<void> _invite(Team team) async {
+    final sharing = ref.read(teamSharingProvider)!;
+    final files = ref.read(deviceFilesProvider);
+    if (ref.read(accountsProvider).current == null) {
+      showMessage(context, 'Sign in from Settings to invite players.');
+      return;
+    }
+    try {
+      await sharing.share(team);
+    } on Object catch (e) {
+      if (mounted) showMessage(context, 'Could not share the team. Check your connection and try again.', isError: true);
+      debugPrint('Sharing team ${team.id} failed: $e');
+      return;
+    }
+    if (!mounted) return;
+    setState(() {}); // the code and join requests now show
+    try {
+      await files.shareText(teamInviteText(team.name, joinCodeOf(team.id)), subject: 'Join ${team.name}');
+    } on Object catch (e) {
+      if (mounted) showMessage(context, 'Could not open sharing: $e', isError: true);
+    }
+  }
+
+  /// A player who asked to join comes into the squad under their profile id.
+  Future<void> _acceptJoin(Team team, JoinRequest request) async {
+    final cloud = ref.read(cloudTeamsProvider)!;
+    if (!_players.any((p) => p.id == request.playerId)) {
+      setState(() => _players.add(Player(id: request.playerId, name: request.name)));
+    }
+    showMessage(context, 'Added ${request.name}. Save to keep them.');
+    try {
+      await cloud.dismissJoin(team.id, request.playerId);
+    } on Object catch (e) {
+      debugPrint('Clearing a join request failed: $e');
+    }
+  }
+
+  Future<void> _ignoreJoin(Team team, JoinRequest request) async {
+    try {
+      await ref.read(cloudTeamsProvider)!.dismissJoin(team.id, request.playerId);
+    } on Object catch (e) {
+      if (mounted) showMessage(context, 'Could not remove the request: $e', isError: true);
+    }
   }
 
   void _replace(Player player, {String? name, PlayerRole? role}) {
@@ -286,10 +334,20 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     final blocker = _blocker(saved);
     final text = Theme.of(context).textTheme;
     final cloud = ref.watch(playerDirectoryProvider) != null;
+    final sharing = ref.watch(teamSharingProvider);
+    final savedTeam = widget.team;
+    final shared = sharing != null && savedTeam != null && sharing.isShared(savedTeam.id);
+    final requests = shared ? ref.watch(teamJoinsProvider(savedTeam.id)).value ?? const <JoinRequest>[] : const <JoinRequest>[];
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.team == null ? 'New team' : 'Edit team'),
         actions: [
+          if (sharing != null && savedTeam != null)
+            IconButton(
+              tooltip: 'Invite players',
+              onPressed: () => _invite(savedTeam),
+              icon: const Icon(Icons.share_rounded),
+            ),
           if (widget.team != null)
             IconButton(
               tooltip: 'Delete team',
@@ -306,6 +364,37 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
             textCapitalization: TextCapitalization.words,
             decoration: fieldDecoration(context, 'Team name', icon: Icons.groups_rounded),
           ),
+          if (shared) ...[
+            const SizedBox(height: 12),
+            SurfacePanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SectionLabel('Join code · ${joinCodeOf(savedTeam.id)}'),
+                  const SizedBox(height: 4),
+                  Text(
+                    requests.isEmpty
+                        ? 'Nobody has asked to join yet. Players type this code under Teams, Join a team.'
+                        : 'Asked to join',
+                    style: text.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                  ),
+                  for (final request in requests)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: PlayerAvatar(name: request.name),
+                      title: Text(request.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(onPressed: () => _ignoreJoin(savedTeam, request), child: const Text('Ignore')),
+                          TextButton(onPressed: () => _acceptJoin(savedTeam, request), child: const Text('Add')),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           SurfacePanel(
             child: Column(

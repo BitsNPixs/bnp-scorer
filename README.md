@@ -228,8 +228,9 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   SHA-256 hash to find or create their profile; the contact picker hands over
   one tapped contact, with no contacts permission, so Contacts stay "not
   collected"); App activity > Other
-  user-generated content (published matches, tournaments and scheduled
-  matches, including player names; app functionality). Entry fee payments are
+  user-generated content (published matches, tournaments, scheduled matches
+  and teams whose invite was shared, including player names; app
+  functionality). Entry fee payments are
   not collected: they stay on the phone. Not collected: location, contacts, photos, files, crash logs
   or diagnostics (problem reports are sent by the user through the share sheet),
   device ids. Not shared with third parties; Firebase is a processor. No ads.

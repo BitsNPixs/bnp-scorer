@@ -333,6 +333,18 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     offline instead of failing silently. `playerDirectoryProvider` (null
     without the cloud), `playerProfileProvider(id)`; `FakePlayerDirectory` in
     tests.
+  - `CloudTeams` (`data/cloud_teams.dart`): `teams/{id}` holds `Team.toJson()`
+    plus `playerIds`, `joinCode` (`joinCodeOf`: six characters from
+    `joinCodeAlphabet`, derived from the team id, so nothing extra is stored),
+    `ownerUid`, `ownerName`, `schema`, `savedAt`; anyone may read it so a code
+    finds its team. `teams/{id}/joins/{playerId}` is a request to join, created
+    only by the owner of that player profile and readable only by them and the
+    captain. `SyncingTeamRepository` (`data/syncing_teams.dart`) is both the
+    `TeamRepository` and the `TeamSharing` in cloud builds: `share` publishes a
+    team and remembers it (`bnp_scorer.sharedTeamIds`), later saves republish
+    it, and deleting unshares it. A team is public only once its invite is
+    shared. `cloudTeamsProvider`, `teamSharingProvider`, `teamJoinsProvider`,
+    `playerTeamsProvider`; `FakeCloudTeams` in tests.
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,
     which `app/build.gradle.kts` applies only when the file exists.

@@ -461,7 +461,12 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   never batted or bowled gets a note, not zeros. Career: debut and last match,
   overall and per format, each opening its match. `playerCareerProvider` joins
   this phone's matches with everyone's published matches carrying the player's
-  id (`byPlayer`); a match on the phone opens for scoring, any other read-only,
+  id (`byPlayer`). Info shows the profile's role, batting, bowling
+  (`PlayerProfile.bowlingStyle`, e.g. "Right-arm medium") and home town, and
+  the owner (signed in as `ownerUid`) gets a pencil that opens
+  `showEditProfileSheet` (`widgets/edit_profile_sheet.dart`, saved through
+  `PlayerDirectory.saveDetails`). The profile's role wins over the role in the
+  latest scorecard; a match on the phone opens for scoring, any other read-only,
   and a failed cloud read shows a notice and the phone's matches. Matches
   published without `playerIds` (before beta.7) are not found.
 - **Settings › Account** (signed in, cloud builds): "Add your mobile number"

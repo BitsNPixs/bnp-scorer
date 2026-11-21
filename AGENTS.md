@@ -279,6 +279,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | A player's profile and career | `openPlayer`, `PlayerProfileScreen`, `careerColumns`, `matchesIn` (`screens/player_profile_screen.dart`), `playerCareerProvider`; engine `playerMatchLines`, `formatOf` |
 | Players by mobile number, numbers | `PlayerDirectory`, `PlayerProfile` (`data/player_directory.dart`), `playerDirectoryProvider`, `playerProfileProvider`; `normalizePhone`, `maskPhone`, `phoneHash` (`data/phone_numbers.dart`); `FakePlayerDirectory` in tests |
 | Add a player by mobile number, same-name check | `showAddByNumberSheet`, `confirmSamePlayer`, `signInToAddByNumber` (`widgets/add_by_number_sheet.dart`); `mergeIntoSquad(..., sameAs:)` |
+| A player edits their own profile | `showEditProfileSheet` (`widgets/edit_profile_sheet.dart`), `PlayerDirectory.saveDetails`, `BattingStyle`, `BowlingArm`, `BowlingType` |
 | Confirm the scorer's own number | `showPhoneLinkSheet` (`widgets/phone_link_sheet.dart`), `myProfileProvider` |
 | Tab bar pill | `PillTabIndicator` (`theme/app_theme.dart`), set in both themes |
 | Stat text (`+1.25`, `48*`, `3/16`) | `decimal`, `signedDecimal`, `highScoreText`, `bestBowlingText` (`ui/format.dart`) |

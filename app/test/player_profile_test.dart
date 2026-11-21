@@ -41,6 +41,7 @@ void main() {
     bool seeded = true,
     FakeCloudMatches? cloud,
     FakePlayerDirectory? directory,
+    FakeAccounts? accounts,
   }) async {
     // 360 dp wide, like the smallest phones the app is tested at.
     tester.view
@@ -55,6 +56,7 @@ void main() {
         tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
         cloudMatchesProvider.overrideWithValue(cloud),
         playerDirectoryProvider.overrideWithValue(directory),
+        if (accounts != null) accountsProvider.overrideWithValue(accounts),
       ],
       child: MaterialApp(theme: AppTheme.light(), home: PlayerProfileScreen(playerId: playerId)),
     ));
@@ -197,6 +199,85 @@ void main() {
     expect(find.text('Invited, not claimed yet'), findsOneWidget);
     // The directory's name wins over the one in old scorecards.
     expect(find.text('Ravi'), findsWidgets);
+  });
+
+  testWidgets('the owner edits their profile, and Info shows it', (tester) async {
+    final top = _book.batters.first;
+    final directory = FakePlayerDirectory()..players[top.playerId] = PlayerProfile(id: top.playerId, name: top.name, ownerUid: 'u9');
+    await pump(
+      tester,
+      top.playerId,
+      directory: directory,
+      accounts: FakeAccounts(signedIn: const Scorer(uid: 'u9', name: 'Owner')),
+    );
+    expect(find.text('Batting'), findsWidgets);
+    expect(find.text('Not set'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Edit profile'));
+    await settle(tester);
+    expect(find.text('Edit profile'), findsOneWidget);
+    await tester.tap(find.text('All-rounder'));
+    await tester.tap(find.text('Left-hand bat'));
+    await tester.ensureVisible(find.text('Right-arm'));
+    await tester.tap(find.text('Right-arm'));
+    await tester.ensureVisible(find.text('Spin'));
+    await tester.tap(find.text('Spin'));
+    await tester.pump();
+    // A second tap clears a choice.
+    await tester.tap(find.text('Spin'));
+    await tester.pump();
+    await tester.enterText(find.byKey(const ValueKey('profile-town')), 'Arumanai');
+    await tester.pump();
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+
+    final saved = directory.players[top.playerId]!;
+    expect(saved.role, PlayerRole.allRounder);
+    expect(saved.battingStyle, BattingStyle.left);
+    expect(saved.bowlingStyle, 'Right-arm');
+    expect(saved.homeTown, 'Arumanai');
+    expect(find.text('All-rounder'), findsOneWidget);
+    expect(find.text('Left-hand bat'), findsOneWidget);
+    expect(find.text('Arumanai'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an empty name or no signal keeps the sheet open with a reason', (tester) async {
+    final top = _book.batters.first;
+    final directory = FakePlayerDirectory()..players[top.playerId] = PlayerProfile(id: top.playerId, name: top.name, ownerUid: 'u9');
+    await pump(
+      tester,
+      top.playerId,
+      directory: directory,
+      accounts: FakeAccounts(signedIn: const Scorer(uid: 'u9', name: 'Owner')),
+    );
+    await tester.tap(find.byTooltip('Edit profile'));
+    await settle(tester);
+    await tester.enterText(find.byKey(const ValueKey('profile-name')), '  ');
+    await tester.ensureVisible(find.text('Save'));
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    expect(find.text('Your name cannot be empty.'), findsOneWidget);
+
+    directory.offline = true;
+    await tester.enterText(find.byKey(const ValueKey('profile-name')), 'Ravi');
+    await tester.tap(find.text('Save'));
+    await settle(tester);
+    expect(find.text(offlineMessage), findsOneWidget);
+    expect(directory.players[top.playerId]!.name, top.name);
+  });
+
+  testWidgets('nobody else can edit a profile', (tester) async {
+    final top = _book.batters.first;
+    final directory = FakePlayerDirectory()..players[top.playerId] = PlayerProfile(id: top.playerId, name: top.name, ownerUid: 'u9');
+    await pump(
+      tester,
+      top.playerId,
+      directory: directory,
+      accounts: FakeAccounts(signedIn: const Scorer(uid: 'someone', name: 'Else')),
+    );
+    expect(find.byTooltip('Edit profile'), findsNothing);
   });
 
   testWidgets('a player with no finished match says so on every tab', (tester) async {

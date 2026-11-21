@@ -7,6 +7,7 @@ import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import '../widgets/avatars.dart';
+import '../widgets/edit_profile_sheet.dart';
 import '../widgets/match_card.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/stat_widgets.dart';
@@ -83,11 +84,23 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
       data: (career) {
         final view = _CareerView(widget.playerId, career.matches);
         final name = profile?.name ?? view.stats?.name ?? 'Player';
+        final me = ref.watch(scorerProvider).value ?? ref.watch(accountsProvider).current;
+        final mine = profile != null && me != null && profile.ownerUid == me.uid;
         return DefaultTabController(
           length: 4,
           child: Scaffold(
-            // The name is in the card below; the bar only takes the player back.
-            appBar: AppBar(),
+            // The name is in the card below; the bar takes the player back, and
+            // lets the owner edit their profile.
+            appBar: AppBar(
+              actions: [
+                if (mine)
+                  IconButton(
+                    tooltip: 'Edit profile',
+                    onPressed: () => showEditProfileSheet(context, profile),
+                    icon: const Icon(Icons.edit_rounded),
+                  ),
+              ],
+            ),
             body: Column(
               children: [
                 _Hero(name: name, view: view, profile: profile),
@@ -99,7 +112,7 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      _InfoTab(view: view, name: name, cloudMissed: career.cloudMissed),
+                      _InfoTab(view: view, name: name, profile: profile, cloudMissed: career.cloudMissed),
                       _TableTab(
                         view: view,
                         period: _period,
@@ -269,10 +282,11 @@ class _HeroChip extends StatelessWidget {
 const _noMatches = StatsEmpty(message: 'No finished matches yet.');
 
 class _InfoTab extends ConsumerWidget {
-  const _InfoTab({required this.view, required this.name, required this.cloudMissed});
+  const _InfoTab({required this.view, required this.name, required this.profile, required this.cloudMissed});
 
   final _CareerView view;
   final String name;
+  final PlayerProfile? profile;
   final bool cloudMissed;
 
   @override
@@ -296,7 +310,16 @@ class _InfoTab extends ConsumerWidget {
         ],
         KeyValueTable(
           title: 'Personal information',
-          rows: [('Full name', name), ('Role', view.role?.label ?? 'Not set')],
+          rows: [
+            ('Full name', name),
+            // The player's own choice wins over the role in their latest match.
+            ('Role', (profile?.role ?? view.role)?.label ?? 'Not set'),
+            if (profile != null) ...[
+              ('Batting', profile!.battingStyle?.label ?? 'Not set'),
+              ('Bowling', profile!.bowlingStyle ?? 'Not set'),
+              ('Home town', profile!.homeTown ?? 'Not set'),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         if (view.isEmpty)

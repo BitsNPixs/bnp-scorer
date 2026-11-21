@@ -446,6 +446,13 @@ class FakePlayerDirectory implements PlayerDirectory {
   }
 
   @override
+  Future<void> saveDetails(PlayerProfile profile) async {
+    _checkSignal();
+    players[profile.id] = profile;
+    _changes.add(null);
+  }
+
+  @override
   Stream<PlayerProfile?> watch(String playerId) async* {
     yield players[playerId];
     await for (final _ in _changes.stream) {

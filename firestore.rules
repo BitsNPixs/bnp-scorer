@@ -98,6 +98,13 @@ service cloud.firestore {
         && phoneId == hashing.sha256(request.auth.token.phone_number).toHexString().lower();
     }
 
+    // Names and home towns stay short text; styles are short names.
+    function profileTextOk(data) {
+      return data.name is string && data.name.size() <= 60
+        && (!('homeTown' in data) || data.homeTown == null
+            || (data.homeTown is string && data.homeTown.size() <= 60));
+    }
+
     // Anyone may read a profile; only its owner may list their own. A captain
     // creates an invited player (no owner); a player creates their own.
     match /players/{playerId} {
@@ -106,7 +113,7 @@ service cloud.firestore {
 
       allow create: if request.auth != null
         && request.resource.data.id == playerId
-        && request.resource.data.name is string
+        && profileTextOk(request.resource.data)
         && request.resource.data.createdBy == request.auth.uid
         && (request.resource.data.ownerUid == null
             || request.resource.data.ownerUid == request.auth.uid);
@@ -115,6 +122,8 @@ service cloud.firestore {
       // names this player claims it, in the same batch.
       allow update: if request.auth != null
         && request.resource.data.id == playerId
+        && profileTextOk(request.resource.data)
+        && request.resource.data.createdBy == resource.data.createdBy
         && ((resource.data.ownerUid == request.auth.uid
               && request.resource.data.ownerUid == request.auth.uid)
             || (request.resource.data.ownerUid == request.auth.uid

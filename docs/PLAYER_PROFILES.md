@@ -49,9 +49,9 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [ ] Paste the new `firestore.rules`; in the Rules Playground check `hashing.sha256(...).toHexString().lower()` matches the app's lowercase hex.
 
 ## Release 2: profile fields
-- [ ] Playing role, batting style, bowling arm and type, home town on `players/{id}`.
-- [ ] INFO tab rows; owner-only Edit profile sheet + tests.
-- [ ] Privacy text: styles and home town are public.
+- [x] Playing role, batting style, bowling arm and type, home town on `players/{id}`. (2026-11-21)
+- [x] INFO tab rows; owner-only Edit profile sheet + tests. (2026-11-21)
+- [x] Privacy text: styles and home town are public. (2026-11-21)
 
 ## Release 3: pick from phone contacts
 - [ ] `MainActivity.kt` picker channel; `DeviceContacts` + fake; button in the add-by-number sheet + tests.

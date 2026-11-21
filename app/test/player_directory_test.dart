@@ -1,5 +1,6 @@
 import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
+import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'fakes.dart';
@@ -82,6 +83,46 @@ void main() {
       expect(p.name, 'Ravi');
       expect(p.claimed, isFalse);
       expect(parsePlayerProfile({'id': 'p1', 'name': 'Ravi', 'ownerUid': 'u9'}).claimed, isTrue);
+    });
+
+    test('reads the details a player fills in, and ignores names it does not know', () {
+      final p = parsePlayerProfile({
+        'id': 'p1',
+        'name': 'Ravi',
+        'ownerUid': 'u9',
+        'role': 'allRounder',
+        'battingStyle': 'left',
+        'bowlingArm': 'right',
+        'bowlingType': 'spin',
+        'homeTown': 'Arumanai',
+      });
+      expect(p.role, PlayerRole.allRounder);
+      expect(p.battingStyle, BattingStyle.left);
+      expect(p.bowlingStyle, 'Right-arm spin');
+      expect(p.homeTown, 'Arumanai');
+      expect(p.player.role, PlayerRole.allRounder);
+      final odd = parsePlayerProfile({'id': 'p1', 'name': 'Ravi', 'battingStyle': 'switch'});
+      expect(odd.battingStyle, isNull);
+    });
+
+    test('details survive a round trip', () {
+      const p = PlayerProfile(
+        id: 'p1',
+        name: 'Ravi',
+        role: PlayerRole.bowler,
+        battingStyle: BattingStyle.right,
+        bowlingArm: BowlingArm.left,
+        bowlingType: BowlingType.fast,
+        homeTown: 'Arumanai',
+      );
+      final back = parsePlayerProfile({'id': 'p1', ...p.detailsJson()});
+      expect(back.detailsJson(), p.detailsJson());
+    });
+
+    test('bowling style reads naturally from either part', () {
+      expect(const PlayerProfile(id: 'p', name: 'R').bowlingStyle, isNull);
+      expect(const PlayerProfile(id: 'p', name: 'R', bowlingArm: BowlingArm.left).bowlingStyle, 'Left-arm');
+      expect(const PlayerProfile(id: 'p', name: 'R', bowlingType: BowlingType.medium).bowlingStyle, 'Medium');
     });
 
     test('refuses one saved by a newer version', () {

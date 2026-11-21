@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Added
+- A player fills in their own profile (pencil on their profile, owner only):
+  name, role, batting (right or left hand), bowling arm and type (fast,
+  medium or spin) and home town, shown on the Info tab. The player's role
+  wins over the role in their latest scorecard. The rules keep the name and
+  home town to 60 characters and the creator fixed.
+
 ## 0.9.0-beta.7 — 2026-11-21
 
 Registered players, the CricHeroes way: confirm your mobile number, get a

@@ -7,24 +7,88 @@ import 'accounts.dart';
 import 'ids.dart';
 import 'phone_numbers.dart';
 
+enum BattingStyle {
+  right('Right-hand bat'),
+  left('Left-hand bat');
+
+  const BattingStyle(this.label);
+
+  final String label;
+}
+
+enum BowlingArm {
+  right('Right-arm'),
+  left('Left-arm');
+
+  const BowlingArm(this.label);
+
+  final String label;
+}
+
+enum BowlingType {
+  fast('fast'),
+  medium('medium'),
+  spin('spin');
+
+  const BowlingType(this.label);
+
+  final String label;
+}
+
+/// The longest name or home town a profile keeps (the rules agree).
+const profileTextLimit = 60;
+
 /// A player in the cloud directory, found by mobile number. Their [id] is the
 /// `Player.id` used in every squad and match, so career stats follow them
 /// across scorers. A captain can add someone before they register: the
 /// player is "invited" until the owner of the number confirms it and claims
-/// the profile ([ownerUid] set).
+/// the profile ([ownerUid] set). Only the owner fills in the rest.
 class PlayerProfile {
-  const PlayerProfile({required this.id, required this.name, this.ownerUid});
+  const PlayerProfile({
+    required this.id,
+    required this.name,
+    this.ownerUid,
+    this.role,
+    this.battingStyle,
+    this.bowlingArm,
+    this.bowlingType,
+    this.homeTown,
+  });
 
   final String id;
   final String name;
 
   /// The account that confirmed the number, or null while only invited.
   final String? ownerUid;
+  final PlayerRole? role;
+  final BattingStyle? battingStyle;
+  final BowlingArm? bowlingArm;
+  final BowlingType? bowlingType;
+  final String? homeTown;
 
   bool get claimed => ownerUid != null;
 
+  /// "Right-arm medium", or null when neither part is set.
+  String? get bowlingStyle {
+    final arm = bowlingArm;
+    final type = bowlingType;
+    if (arm == null && type == null) return null;
+    if (arm == null) return type!.label[0].toUpperCase() + type.label.substring(1);
+    return type == null ? arm.label : '${arm.label} ${type.label}';
+  }
+
   /// The player as a squad holds them.
-  Player get player => Player(id: id, name: name);
+  Player get player => Player(id: id, name: name, role: role);
+
+  /// The fields only the owner edits, as stored.
+  Map<String, Object?> detailsJson() => {
+        'name': name,
+        'role': role?.name,
+        'battingStyle': battingStyle?.name,
+        'bowlingArm': bowlingArm?.name,
+        'bowlingType': bowlingType?.name,
+        'homeTown': homeTown,
+      };
 }
 
 /// Thrown when the directory cannot be reached or refuses a change. The
@@ -57,6 +121,9 @@ abstract interface class PlayerDirectory {
 
   /// One player as they change. Null when there is no such player.
   Stream<PlayerProfile?> watch(String playerId);
+
+  /// Saves the owner's own details: name, role, styles and home town.
+  Future<void> saveDetails(PlayerProfile profile);
 }
 
 class FirestorePlayerDirectory implements PlayerDirectory {
@@ -139,6 +206,11 @@ class FirestorePlayerDirectory implements PlayerDirectory {
         return data == null ? null : parsePlayerProfile(data);
       });
 
+  @override
+  Future<void> saveDetails(PlayerProfile profile) => _guard(
+        () => _players.doc(profile.id).update({...profile.detailsJson(), 'savedAt': FieldValue.serverTimestamp()}),
+      );
+
   Map<String, Object?> _newPlayer(String id, String name, {required String createdBy, String? ownerUid}) => {
         'id': id,
         'name': name,
@@ -173,9 +245,15 @@ PlayerProfile parsePlayerProfile(Map<String, Object?> data) {
   if (schema is int && schema > FirestorePlayerDirectory.schema) {
     throw const FormatException('This was saved by a newer version of BNP Scorer.');
   }
+  T? named<T extends Enum>(List<T> values, Object? name) => values.where((v) => v.name == name).firstOrNull;
   return PlayerProfile(
     id: data['id']! as String,
     name: data['name']! as String,
     ownerUid: data['ownerUid'] as String?,
+    role: named(PlayerRole.values, data['role']),
+    battingStyle: named(BattingStyle.values, data['battingStyle']),
+    bowlingArm: named(BowlingArm.values, data['bowlingArm']),
+    bowlingType: named(BowlingType.values, data['bowlingType']),
+    homeTown: data['homeTown'] as String?,
   );
 }

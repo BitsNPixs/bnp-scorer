@@ -142,7 +142,11 @@ class _AccountSection extends ConsumerWidget {
               : Column(
                   children: [
                     ListTile(
-                      leading: PlayerAvatar(name: scorer.name, radius: 18),
+                      leading: PlayerAvatar(
+                        name: scorer.name,
+                        radius: 18,
+                        photoUrl: scorer.phone == null ? null : ref.watch(myProfileProvider).value?.photoUrl,
+                      ),
                       title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                       subtitle: const Text('New matches and tournaments you create are public'),
                       trailing: TextButton(

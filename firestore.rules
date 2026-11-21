@@ -105,6 +105,13 @@ service cloud.firestore {
             || (data.homeTown is string && data.homeTown.size() <= 60));
     }
 
+    // A profile photo is the owner's own upload to the photos Worker.
+    function photoOk(data) {
+      return !('photoUrl' in data) || data.photoUrl == null
+        || (data.photoUrl is string && data.photoUrl.size() <= 300
+            && data.photoUrl.matches('https://[^/]+/img/avatars/' + request.auth.uid + '[.]img([?]v=[0-9]+)?'));
+    }
+
     // Anyone may read a profile; only its owner may list their own. A captain
     // creates an invited player (no owner); a player creates their own.
     match /players/{playerId} {
@@ -123,6 +130,7 @@ service cloud.firestore {
       allow update: if request.auth != null
         && request.resource.data.id == playerId
         && profileTextOk(request.resource.data)
+        && photoOk(request.resource.data)
         && request.resource.data.createdBy == resource.data.createdBy
         && ((resource.data.ownerUid == request.auth.uid
               && request.resource.data.ownerUid == request.auth.uid)

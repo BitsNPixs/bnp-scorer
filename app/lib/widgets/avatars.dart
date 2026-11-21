@@ -24,15 +24,20 @@ Color colorForName(String name) {
 }
 
 class PlayerAvatar extends StatelessWidget {
-  const PlayerAvatar({super.key, required this.name, this.radius = 18});
+  const PlayerAvatar({super.key, required this.name, this.radius = 18, this.photoUrl});
 
   final String name;
   final double radius;
+
+  /// The player's photo; the initials show until it loads, and if it cannot.
+  final String? photoUrl;
 
   @override
   Widget build(BuildContext context) => CircleAvatar(
         radius: radius,
         backgroundColor: colorForName(name),
+        foregroundImage: photoUrl == null ? null : NetworkImage(photoUrl!),
+        onForegroundImageError: photoUrl == null ? null : (_, _) {},
         child: Text(
           initials(name),
           style: TextStyle(

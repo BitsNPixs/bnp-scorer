@@ -53,6 +53,7 @@ class PlayerProfile {
     this.bowlingArm,
     this.bowlingType,
     this.homeTown,
+    this.photoUrl,
   });
 
   final String id;
@@ -65,6 +66,9 @@ class PlayerProfile {
   final BowlingArm? bowlingArm;
   final BowlingType? bowlingType;
   final String? homeTown;
+
+  /// The player's photo in the photos Worker, or null for initials.
+  final String? photoUrl;
 
   bool get claimed => ownerUid != null;
 
@@ -80,6 +84,19 @@ class PlayerProfile {
   /// The player as a squad holds them.
   Player get player => Player(id: id, name: name, role: role);
 
+  /// The same profile with [photo] as its photo (null removes it).
+  PlayerProfile withPhoto(String? photo) => PlayerProfile(
+        id: id,
+        name: name,
+        ownerUid: ownerUid,
+        role: role,
+        battingStyle: battingStyle,
+        bowlingArm: bowlingArm,
+        bowlingType: bowlingType,
+        homeTown: homeTown,
+        photoUrl: photo,
+      );
+
   /// The fields only the owner edits, as stored.
   Map<String, Object?> detailsJson() => {
         'name': name,
@@ -88,6 +105,7 @@ class PlayerProfile {
         'bowlingArm': bowlingArm?.name,
         'bowlingType': bowlingType?.name,
         'homeTown': homeTown,
+        'photoUrl': photoUrl,
       };
 }
 
@@ -185,7 +203,8 @@ class FirestorePlayerDirectory implements PlayerDirectory {
           if (existing?['claimedBy'] != me.uid) {
             await (_db.batch()
                   ..update(phoneRef, {'claimedBy': me.uid})
-                  ..update(playerRef, {'ownerUid': me.uid, 'savedAt': FieldValue.serverTimestamp()}))
+                  // A photo belongs to the account that set it, so a new owner starts without one.
+                  ..update(playerRef, {'ownerUid': me.uid, 'photoUrl': null, 'savedAt': FieldValue.serverTimestamp()}))
                 .commit();
           }
           final data = (await playerRef.get(_fromServer)).data();
@@ -255,5 +274,6 @@ PlayerProfile parsePlayerProfile(Map<String, Object?> data) {
     bowlingArm: named(BowlingArm.values, data['bowlingArm']),
     bowlingType: named(BowlingType.values, data['bowlingType']),
     homeTown: data['homeTown'] as String?,
+    photoUrl: data['photoUrl'] as String?,
   );
 }

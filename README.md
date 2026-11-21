@@ -226,7 +226,9 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
 - **Play Data safety answers** (for the cloud build): data is collected, all of
   it optional (only when signed in), encrypted in transit, and deletable on
   request (an account made with a mobile number has no email: its name is
-  the one typed). Collected: Personal info > Name, Email address, User IDs and Phone
+  the one typed). Photos and videos > Photos: only a profile photo the
+  player chooses to add (app functionality; shown publicly on their profile).
+  Collected: Personal info > Name, Email address, User IDs and Phone
   number (account management and app functionality; the name is shown publicly
   as "Scored by" and on the player profile, the number never is; numbers
   captains type or pick from contacts for other players are sent only as a
@@ -239,6 +241,27 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   not collected: they stay on the phone. Not collected: location, contacts, photos, files, crash logs
   or diagnostics (problem reports are sent by the user through the share sheet),
   device ids. Not shared with third parties; Firebase is a processor. No ads.
+
+## Photos (Cloudflare R2)
+
+Player photos (and, next, team logos) live in the R2 bucket `bnp-photos`
+behind the Worker in `cloud/photos-worker`, which checks each upload's
+Firebase sign-in token. The app never holds R2 keys.
+
+1. In the Cloudflare dashboard, enable R2 (a payment method is asked for;
+   the free tier is 10 GB with free downloads).
+2. From `cloud/photos-worker`: `npm ci`, `npx wrangler login`, then
+   `npx wrangler r2 bucket create bnp-photos` and `npx wrangler deploy`.
+   Wrangler prints the Worker's address (`https://bnp-photos.<account>.workers.dev`).
+3. Build the app with `--dart-define=BNP_PHOTOS_URL=<that address>`; without
+   it, photos are off. Paste the updated `firestore.rules` (it checks photo
+   addresses).
+4. Later, a custom domain on Cloudflare in front of the Worker is better
+   than `workers.dev` for real traffic.
+
+Tests: `npx tsc --noEmit && npx vitest run`. On Windows run them from an
+uppercase `D:` path (PowerShell `Set-Location D:\...`): with a lowercase
+drive letter Vitest loads twice and fails before any test runs.
 
 ## Beta builds
 

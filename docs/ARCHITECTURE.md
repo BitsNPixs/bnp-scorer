@@ -365,6 +365,22 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     at the root of bitsnpixs.github.io, outside this project's Pages site.
     `showTeamInviteSheet` (`widgets/team_invite_sheet.dart`) shows the code and
     a `qr_flutter` QR of `joinPageLink(code)`.
+  - Photos (`data/photo_store.dart`): `cloud/photos-worker` is a Cloudflare
+    Worker in front of the R2 bucket `bnp-photos`. `PUT|DELETE /v1/avatar`
+    and `/v1/team-logo/{teamId}` need `Authorization: Bearer <Firebase ID
+    token>`; the Worker verifies it against Google's keys (`jose`, issuer and
+    audience = the project) and writes only `avatars/{uid}.img` or
+    `teams/{uid}/{teamId}.img`, so nobody can overwrite another account's
+    photo. It accepts JPEG, PNG or WebP by their first bytes, up to 512 KB,
+    and returns `/img/<key>?v=<time>`, which it serves with a year-long
+    immutable cache (each upload changes `v`). `HttpPhotoStore` (dart:io,
+    `Accounts.idToken`) talks to it at `photosBaseUrl`
+    (`--dart-define=BNP_PHOTOS_URL`; empty turns photos off);
+    `PlatformDevicePhotos` picks from the gallery at 512 px, quality 80.
+    `PlayerProfile.photoUrl` is the owner's to set; the rules accept only an
+    address ending `/img/avatars/<their uid>.img`, and claiming a profile
+    clears a previous owner's photo. `photoStoreProvider`,
+    `devicePhotosProvider`; `FakePhotoStore`, `FakeDevicePhotos` in tests.
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,
     which `app/build.gradle.kts` applies only when the file exists.

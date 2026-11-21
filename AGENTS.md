@@ -306,6 +306,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Shared teams, join codes, invites, join requests | `CloudTeams`, `PublishedTeam`, `JoinRequest`, `joinCodeOf`, `normalizeJoinCode` (`data/cloud_teams.dart`), `SyncingTeamRepository`, `TeamSharing` (`data/syncing_teams.dart`), `showJoinTeamSheet` (`widgets/join_team_sheet.dart`), `teamInviteText`, `joinPageAddress` (`ui/format.dart`), `site/join.html`; `FakeCloudTeams` in tests |
 | Links that open the app, team invite sheet with QR, profile share line | `AppLinks`, `joinCodeFromLink` (`data/app_links.dart`), `appLinksProvider`; `showTeamInviteSheet` (`widgets/team_invite_sheet.dart`); `joinPageLink`, `profileShareText` (`ui/format.dart`); `FakeAppLinks` in tests |
+| Photos: upload, pick, show | `PhotoStore`, `HttpPhotoStore`, `DevicePhotos`, `photosBaseUrl` (`data/photo_store.dart`), `photoStoreProvider`, `devicePhotosProvider`, `PlayerAvatar(photoUrl:)`; the Worker is `cloud/photos-worker`; `FakePhotoStore`, `FakeDevicePhotos` in tests |
 | Contact picker (one tapped contact, no permission) | `DeviceContacts`, `PickedContact` (`data/device_contacts.dart`), `deviceContactsProvider`, channel in `MainActivity.kt`; `FakeContacts` in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |
@@ -363,6 +364,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Commands
 ```sh
+# photos Worker (run from an uppercase D: path on Windows, or Vitest loads twice)
+cd cloud/photos-worker && npm ci && npx tsc --noEmit && npx vitest run && npx wrangler deploy --dry-run
 # engine
 cd packages/cricket_engine && dart pub get && dart analyze && dart test
 # app

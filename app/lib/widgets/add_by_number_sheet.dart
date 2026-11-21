@@ -192,7 +192,7 @@ class _AddByNumberSheetState extends ConsumerState<_AddByNumberSheet> {
             SurfacePanel(
               child: Row(
                 children: [
-                  PlayerAvatar(name: found.name),
+                  PlayerAvatar(name: found.name, photoUrl: found.photoUrl),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

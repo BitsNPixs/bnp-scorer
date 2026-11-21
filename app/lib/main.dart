@@ -17,6 +17,7 @@ import 'data/error_log.dart';
 import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
 import 'data/match_repository.dart';
+import 'data/photo_store.dart';
 import 'data/player_directory.dart';
 import 'data/scheduled_match.dart';
 import 'data/syncing_cups.dart';
@@ -42,6 +43,7 @@ Future<void> main() async {
   final cups = hasCloud ? FirestoreCloudCups(FirebaseFirestore.instance) : null;
   final players = hasCloud ? FirestorePlayerDirectory(FirebaseFirestore.instance) : null;
   final cloudTeams = hasCloud ? FirestoreCloudTeams(FirebaseFirestore.instance) : null;
+  final photos = hasCloud && photosBaseUrl.isNotEmpty ? HttpPhotoStore(accounts) : null;
   final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
   final localTeams = LocalTeamRepository(prefs);
   final syncingTeams = cloudTeams == null ? null : SyncingTeamRepository(localTeams, cloudTeams, accounts, prefs);
@@ -71,6 +73,7 @@ Future<void> main() async {
         cloudCupsProvider.overrideWithValue(cups),
         playerDirectoryProvider.overrideWithValue(players),
         cloudTeamsProvider.overrideWithValue(cloudTeams),
+        photoStoreProvider.overrideWithValue(photos),
         teamSharingProvider.overrideWithValue(syncingTeams),
         matchRepositoryProvider.overrideWithValue(repository),
         teamRepositoryProvider.overrideWithValue(teams),

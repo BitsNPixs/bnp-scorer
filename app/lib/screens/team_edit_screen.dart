@@ -401,11 +401,11 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
                 for (final player in _players)
                   Consumer(
                     builder: (context, ref, _) {
-                      final joined = cloud ? ref.watch(playerProfileProvider(player.id)).value?.claimed : null;
-                      final subtitle = _subtitle(player, joined);
+                      final profile = cloud ? ref.watch(playerProfileProvider(player.id)).value : null;
+                      final subtitle = _subtitle(player, profile?.claimed);
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
-                        leading: PlayerAvatar(name: player.name),
+                        leading: PlayerAvatar(name: player.name, photoUrl: profile?.photoUrl),
                         title: Text(player.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                         subtitle: subtitle.isEmpty
                             ? null

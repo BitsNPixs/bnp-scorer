@@ -23,6 +23,7 @@
 | Charts | fl_chart (wagon wheel, Manhattan, worm) | hand-drawn on a canvas | Keeps out a dependency; three simple charts did not need one |
 | Sharing, files | — | share_plus, file_picker behind `DeviceFiles` | Needs platform code |
 | QR codes | — | qr_flutter (team invites) | Drawing a QR by hand is not worth it |
+| Photos | — | Cloudflare R2 behind a Worker (`cloud/photos-worker`), image_picker | Owner's choice; free downloads, and the app holds no keys |
 | Stats at scale | Postgres later, only if Firestore aggregates hurt | — | Keep the event log portable |
 
 ## Next, in order (as of 2026-11-21)

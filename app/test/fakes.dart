@@ -12,6 +12,7 @@ import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
+import 'package:bnp_scorer/data/photo_store.dart';
 import 'package:bnp_scorer/data/scheduled_match.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
 import 'package:bnp_scorer/data/tournament_repository.dart';
@@ -172,6 +173,9 @@ class FakeAccounts implements Accounts {
     _current = null;
     _changes.add(null);
   }
+
+  @override
+  Future<String?> idToken() async => _current == null ? null : 'token-${_current!.uid}';
 
   /// The code the next SMS carries.
   String smsCode = '123456';
@@ -594,4 +598,40 @@ class FakeAppLinks implements AppLinks {
 
   @override
   Stream<Uri> get links => _links.stream;
+}
+
+/// The photos Worker as a map of uploads. [failWith] makes calls fail.
+class FakePhotoStore implements PhotoStore {
+  Uint8List? avatar;
+  int uploads = 0;
+  String? failWith;
+
+  void _check() {
+    final failure = failWith;
+    if (failure != null) throw PhotoException(failure);
+  }
+
+  @override
+  Future<String> uploadAvatar(Uint8List image) async {
+    _check();
+    avatar = image;
+    uploads++;
+    return 'https://photos.example/img/avatars/me.img?v=$uploads';
+  }
+
+  @override
+  Future<void> removeAvatar() async {
+    _check();
+    avatar = null;
+  }
+}
+
+/// The photo picker: [next] is what the next pick returns.
+class FakeDevicePhotos implements DevicePhotos {
+  FakeDevicePhotos({this.next});
+
+  Uint8List? next;
+
+  @override
+  Future<Uint8List?> pickPhoto() async => next;
 }

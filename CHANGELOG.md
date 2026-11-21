@@ -3,6 +3,14 @@
 ## Unreleased
 
 ### Added
+- Profile photos (cloud builds, once the photos Worker is deployed): the
+  profile's owner adds, changes or removes a photo from the edit sheet. The
+  phone shrinks it to 512 px (about 50 KB) and sends it, with the Firebase
+  sign-in token, to `cloud/photos-worker`, a Cloudflare Worker that checks
+  the token, keeps the photo in R2 under that account's id only, and serves
+  it back. Avatars on the profile, in Settings, on the team page and in Add
+  by number show the photo, falling back to initials. New dependency:
+  `image_picker` (gallery only; the APK's permissions are unchanged).
 - Sign in with your mobile number (cloud builds), beside Google, after the
   owner asked: Settings › Account › Sign in with mobile number texts a code;
   a number already on an account signs in to it, a new one makes an account

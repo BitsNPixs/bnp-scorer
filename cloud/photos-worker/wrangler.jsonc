@@ -1,0 +1,21 @@
+// BNP Scorer photos: player profile photos and team logos in R2, uploaded by
+// signed-in players through this Worker and served back from it. The app
+// never holds R2 credentials; it sends its Firebase ID token instead.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "bnp-photos",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "r2_buckets": [
+    { "binding": "PHOTOS", "bucket_name": "bnp-photos" }
+  ],
+  "vars": {
+    // Tokens must be issued for this Firebase project. Not a secret.
+    "FIREBASE_PROJECT_ID": "bnp-scorer"
+  },
+  "observability": {
+    "enabled": true,
+    "head_sampling_rate": 1
+  }
+}

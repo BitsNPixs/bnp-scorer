@@ -70,6 +70,10 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 
 ## After the releases (owner's asks)
 - [x] Sign in with a mobile number beside Google; name asked once; link Google later. (2026-11-21, owner chose "offer both")
+- [x] Profile photos on Cloudflare R2 through `cloud/photos-worker` (owner's choice). (2026-11-21; the Worker is deployed once the owner logs Wrangler in)
+- [ ] Team logos on the same Worker.
+- [ ] Deploy: owner enables R2 and logs in (`npx wrangler login`); bucket `bnp-photos`; set the Worker address in the app; paste the rules.
+- [ ] Before wide release: a way to report a photo.
 
 ## Later, tied to account deletion (ROADMAP "Before the Play Store")
 - [ ] Deleting the account also forgets the number, releases the profile and unlinks phone auth.

@@ -14,6 +14,7 @@ import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
+import '../data/photo_store.dart';
 import '../data/player_directory.dart';
 import '../data/scheduled_match.dart';
 import '../data/syncing_teams.dart';
@@ -229,6 +230,13 @@ final errorLogProvider = Provider<ErrorLog>(
 
 /// The share sheet and file picker. Tests override this.
 final deviceFilesProvider = Provider<DeviceFiles>((ref) => const PlatformDeviceFiles());
+
+/// Player photos in the photos Worker. Null without the cloud or before the
+/// Worker's address is set (`BNP_PHOTOS_URL`).
+final photoStoreProvider = Provider<PhotoStore?>((ref) => null);
+
+/// The phone's photo picker. Tests override this.
+final devicePhotosProvider = Provider<DevicePhotos>((ref) => const PlatformDevicePhotos());
 
 /// Links that open the app (team invites). Tests override this.
 final appLinksProvider = Provider<AppLinks>((ref) => PlatformAppLinks());

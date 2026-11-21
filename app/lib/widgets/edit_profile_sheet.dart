@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/photo_store.dart';
 import '../data/player_directory.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/inputs.dart';
+import 'avatars.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
 
@@ -36,8 +38,43 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   late BattingStyle? _batting = widget.profile.battingStyle;
   late BowlingArm? _arm = widget.profile.bowlingArm;
   late BowlingType? _type = widget.profile.bowlingType;
+  late String? _photo = widget.profile.photoUrl;
   String? _error;
   bool _saving = false;
+  bool _photoBusy = false;
+
+  /// Photo changes save at once, on the profile as it was when the sheet
+  /// opened; the other fields still wait for Save.
+  Future<void> _setPhoto({required bool remove}) async {
+    final store = ref.read(photoStoreProvider)!;
+    final directory = ref.read(playerDirectoryProvider)!;
+    final bytes = remove ? null : await ref.read(devicePhotosProvider).pickPhoto();
+    if ((!remove && bytes == null) || !mounted) return;
+    setState(() {
+      _photoBusy = true;
+      _error = null;
+    });
+    try {
+      final url = remove ? null : await store.uploadAvatar(bytes!);
+      if (remove) await store.removeAvatar();
+      await directory.saveDetails(widget.profile.withPhoto(url));
+      if (mounted) {
+        setState(() {
+          _photo = url;
+          _photoBusy = false;
+        });
+      }
+    } on Exception catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = switch (e) {
+          PhotoException(:final message) || PlayerDirectoryException(:final message) => message,
+          _ => 'The photo did not save. Try again.',
+        };
+        _photoBusy = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -63,6 +100,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       bowlingArm: _arm,
       bowlingType: _type,
       homeTown: town.isEmpty ? null : town,
+      photoUrl: _photo,
     );
     setState(() {
       _saving = true;
@@ -110,6 +148,33 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (ref.watch(photoStoreProvider) != null) ...[
+            Row(
+              children: [
+                PlayerAvatar(name: _name.text.isEmpty ? widget.profile.name : _name.text, radius: 32, photoUrl: _photo),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Wrap(
+                    spacing: 4,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _photoBusy ? null : () => _setPhoto(remove: false),
+                        icon: const Icon(Icons.photo_camera_rounded, size: 18),
+                        label: Text(_photo == null ? 'Add photo' : 'Change photo'),
+                      ),
+                      if (_photo != null)
+                        TextButton(
+                          onPressed: _photoBusy ? null : () => _setPhoto(remove: true),
+                          child: const Text('Remove'),
+                        ),
+                    ],
+                  ),
+                ),
+                if (_photoBusy) const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              ],
+            ),
+            const SizedBox(height: 16),
+          ],
           TextField(
             key: const ValueKey('profile-name'),
             controller: _name,

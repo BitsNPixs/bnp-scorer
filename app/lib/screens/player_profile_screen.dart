@@ -219,7 +219,7 @@ class _Hero extends StatelessWidget {
       ),
       child: Row(
         children: [
-          PlayerAvatar(name: name, radius: 30),
+          PlayerAvatar(name: name, radius: 30, photoUrl: profile?.photoUrl),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

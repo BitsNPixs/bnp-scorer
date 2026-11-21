@@ -95,6 +95,10 @@ abstract interface class Accounts {
   /// Adds Google sign-in to an account made with a number, so either works on
   /// any phone. Null when the scorer cancels. Throws [AccountsException].
   Future<Scorer?> linkGoogle();
+
+  /// The signed-in account's Firebase ID token, for services that check who
+  /// is calling (the photos Worker). Null when signed out.
+  Future<String?> idToken();
 }
 
 /// For builds without `google-services.json`, and the default in tests.
@@ -130,6 +134,9 @@ class LocalOnlyAccounts implements Accounts {
 
   @override
   Future<Scorer?> linkGoogle() async => throw const AccountsException('Signing in is not set up in this build.');
+
+  @override
+  Future<String?> idToken() async => null;
 }
 
 /// Google and mobile-number sign-in through Firebase Auth.
@@ -181,6 +188,9 @@ class FirebaseAccounts implements Accounts {
       rethrow;
     }
   }
+
+  @override
+  Future<String?> idToken() async => _auth.currentUser?.getIdToken();
 
   @override
   Future<void> setName(String name) async {

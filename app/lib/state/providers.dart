@@ -112,6 +112,20 @@ final playerProfileProvider = StreamProvider.autoDispose.family<PlayerProfile?, 
   retry: _noRetry,
 );
 
+/// The signed-in scorer's own player profile, claimed under their confirmed
+/// number: the one a captain invited, or a new one. Null when signed out,
+/// without a confirmed number, or without the cloud. Claiming again is only
+/// reads, so this is safe to rebuild.
+final myProfileProvider = FutureProvider.autoDispose<PlayerProfile?>(
+  (ref) async {
+    final directory = ref.watch(playerDirectoryProvider);
+    final scorer = ref.watch(scorerProvider).value ?? ref.watch(accountsProvider).current;
+    if (directory == null || scorer == null || scorer.phone == null) return null;
+    return directory.claim(scorer);
+  },
+  retry: _noRetry,
+);
+
 /// Published tournaments and friendlies. Null without the cloud, like
 /// [cloudMatchesProvider].
 final cloudCupsProvider = Provider<CloudCups?>((ref) => null);

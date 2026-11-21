@@ -35,6 +35,14 @@ Registered players, in progress (`docs/PLAYER_PROFILES.md`).
   everyone's published matches the player was picked in, so a player tapped
   in a watched cup now shows their numbers instead of nothing.
 
+- Settings, signed in (cloud builds): "Add your mobile number" texts a code and
+  confirms the number (Android may confirm it without one), then "My
+  profile" opens the player profile claimed under it: the player a captain
+  already added under that number, so their runs and wickets come along, or
+  a new one in the scorer's name. "Change number" swaps it. Offline, the
+  profile waits with "Tap to try again". The sign-in notice says the number
+  is used only to find the profile and is never shown.
+
 ### Changed
 - Tab bars: the selected tab's pill is inset to about 30 dp instead of filling
   the whole tab, on every tabbed screen (owner's feedback: too big for a

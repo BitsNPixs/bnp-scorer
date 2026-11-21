@@ -448,6 +448,15 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   id (`byPlayer`); a match on the phone opens for scoring, any other read-only,
   and a failed cloud read shows a notice and the phone's matches. Matches
   published without `playerIds` (before beta.7) are not found.
+- **Settings › Account** (signed in, cloud builds): "Add your mobile number"
+  opens `showPhoneLinkSheet` (`widgets/phone_link_sheet.dart`): the number
+  (`normalizePhone`), Send code, the 6-digit code, Send again, Change number;
+  errors show inside the sheet, and the sheet closes by itself when Android
+  confirms the number without a code (it watches `scorerProvider`). Once
+  linked, "My profile" (`myProfileProvider`, which claims through
+  `PlayerDirectory.claim`; claiming again is only reads) shows
+  `Verified · +91 •••• 3210` and opens `PlayerProfileScreen`, and "Change
+  number" reopens the sheet. Hidden without the player directory.
 - **Tabs:** every `TabBar` uses the theme's `PillTabIndicator`, a pill inset 8 dp
   top and bottom (about 30 dp tall), so it hugs the label on a phone.
 - **Tournaments:** the list, then one tournament with Matches, Bracket (when it

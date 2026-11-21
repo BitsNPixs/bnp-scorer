@@ -6,11 +6,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/accounts.dart';
 import '../data/app_info.dart';
 import '../data/error_log.dart';
+import '../data/phone_numbers.dart';
+import '../screens/player_profile_screen.dart';
 import '../screens/backup_screen.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import 'avatars.dart';
+import 'phone_link_sheet.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
 
@@ -97,7 +100,8 @@ class _AccountSection extends ConsumerWidget {
   static const publicNotice = "While you're signed in, every new match, tournament and scheduled "
       'match you create is public: anyone with BNP Scorer can follow it, including the player names '
       'and your Google name. Your email and who has paid entry fees are never shared. Deleting '
-      'unpublishes it. What is already on this phone stays private.';
+      'unpublishes it. What is already on this phone stays private. A mobile number you add is '
+      'used only to find your player profile and is never shown.';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -120,14 +124,19 @@ class _AccountSection extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: () => _signIn(context, accounts),
                 )
-              : ListTile(
-                  leading: PlayerAvatar(name: scorer.name, radius: 18),
-                  title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
-                  subtitle: const Text('New matches and tournaments you create are public'),
-                  trailing: TextButton(
-                    onPressed: () => _signOut(context, accounts),
-                    child: const Text('Sign out'),
-                  ),
+              : Column(
+                  children: [
+                    ListTile(
+                      leading: PlayerAvatar(name: scorer.name, radius: 18),
+                      title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      subtitle: const Text('New matches and tournaments you create are public'),
+                      trailing: TextButton(
+                        onPressed: () => _signOut(context, accounts),
+                        child: const Text('Sign out'),
+                      ),
+                    ),
+                    _MyPlayer(scorer: scorer),
+                  ],
                 ),
         ),
       ],
@@ -166,6 +175,67 @@ class _AccountSection extends ConsumerWidget {
     } on Object catch (e) {
       if (context.mounted) showMessage(context, 'Could not sign out: $e', isError: true);
     }
+  }
+}
+
+/// The scorer as a player: add a mobile number to claim a profile, then open
+/// it. Hidden without the player directory.
+class _MyPlayer extends ConsumerWidget {
+  const _MyPlayer({required this.scorer});
+
+  final Scorer scorer;
+
+  Future<void> _link(BuildContext context) async {
+    final linked = await showPhoneLinkSheet(context);
+    if (linked && context.mounted) showMessage(context, 'Number confirmed.');
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (ref.watch(playerDirectoryProvider) == null) return const SizedBox.shrink();
+    final phone = scorer.phone;
+    if (phone == null) {
+      return Column(
+        children: [
+          const Divider(height: 1),
+          ListTile(
+            leading: const Icon(Icons.badge_outlined),
+            title: const Text('Add your mobile number'),
+            subtitle: const Text('Claim your player profile and career stats'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => _link(context),
+          ),
+        ],
+      );
+    }
+    final mine = ref.watch(myProfileProvider);
+    final profile = mine.value;
+    return Column(
+      children: [
+        const Divider(height: 1),
+        ListTile(
+          leading: const Icon(Icons.verified_rounded, color: AppColors.neonDeep),
+          title: const Text('My profile'),
+          subtitle: Text(switch (mine) {
+            AsyncData() => 'Verified · ${maskPhone(phone)}',
+            AsyncError() => 'Could not reach the cloud. Tap to try again.',
+            _ => 'Setting up your profile…',
+          }),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: profile == null
+              ? () => ref.invalidate(myProfileProvider)
+              : () => Navigator.of(context)
+                ..pop()
+                ..push(MaterialPageRoute<void>(builder: (_) => PlayerProfileScreen(playerId: profile.id))),
+        ),
+        ListTile(
+          leading: const Icon(Icons.phone_rounded),
+          title: const Text('Change number'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => _link(context),
+        ),
+      ],
+    );
   }
 }
 

@@ -178,7 +178,7 @@ class TeamsScreen extends ConsumerWidget {
                     child: SurfacePanel(
                       padding: EdgeInsets.zero,
                       child: ListTile(
-                        leading: TeamBadge(name: team.name, size: 40),
+                        leading: TeamBadge(name: team.name, size: 40, logoUrl: team.logoUrl),
                         title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                         subtitle: Text(
                           [plural(team.players.length, 'player'), if (captain != null) 'Captain: $captain'].join(' · '),

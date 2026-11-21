@@ -232,7 +232,7 @@ class _NewTournamentScreenState extends ConsumerState<NewTournamentScreen> {
                 for (final team in saved)
                   CheckboxListTile(
                     contentPadding: EdgeInsets.zero,
-                    secondary: TeamBadge(name: team.name, size: 36),
+                    secondary: TeamBadge(name: team.name, size: 36, logoUrl: team.logoUrl),
                     title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                     subtitle: Text(plural(team.players.length, 'player')),
                     value: _teamIds.contains(team.id),

@@ -100,7 +100,7 @@ class _ScoreHeaderState extends State<ScoreHeader> with SingleTickerProviderStat
               children: [
                 Row(
                   children: [
-                    TeamBadge(name: team.name),
+                    TeamBadge(name: team.name, logoUrl: team.logoUrl),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(

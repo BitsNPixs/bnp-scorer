@@ -3,6 +3,15 @@
 ## Unreleased
 
 ### Added
+- Team logos (cloud builds, signed in, once the photos Worker is deployed):
+  Add, change or remove a logo on a team's page; it uploads at once and the
+  team keeps it on Save. `Team.logoUrl` is a new optional field, written only
+  when set, so it travels with the team into matches and tournaments and old
+  teams read as before. Badges show the logo on the team list, saved-team
+  picker, New match, New tournament, the score header, the prizes tab and
+  the join sheet. The app loads photo and logo addresses only from its own
+  photos service, so a doctored published match cannot make phones fetch
+  another server. Rules accept only the captain's own logo address.
 - Profile photos (cloud builds, once the photos Worker is deployed): the
   profile's owner adds, changes or removes a photo from the edit sheet. The
   phone shrinks it to 512 px (about 50 KB) and sends it, with the Firebase

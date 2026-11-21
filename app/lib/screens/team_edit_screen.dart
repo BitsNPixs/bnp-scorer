@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/cloud_teams.dart';
 import '../data/ids.dart';
+import '../data/photo_store.dart';
 import '../data/squad_import.dart';
 import '../state/providers.dart';
 import 'player_profile_screen.dart';
@@ -37,6 +38,33 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
   String? _viceCaptainId;
   String? _keeperId;
   bool _saving = false;
+
+  /// Fixed from the start, so a new team can have its logo before it is saved.
+  late final String _teamId = widget.team?.id ?? newId();
+  late String? _logoUrl = widget.team?.logoUrl;
+  bool _logoBusy = false;
+
+  /// Uploads or removes the logo at once; the team keeps it on Save.
+  Future<void> _setLogo({required bool remove}) async {
+    final store = ref.read(photoStoreProvider)!;
+    final bytes = remove ? null : await ref.read(devicePhotosProvider).pickPhoto();
+    if ((!remove && bytes == null) || !mounted) return;
+    setState(() => _logoBusy = true);
+    try {
+      final url = remove ? null : await store.uploadTeamLogo(_teamId, bytes!);
+      if (remove) await store.removeTeamLogo(_teamId);
+      if (mounted) {
+        setState(() {
+          _logoUrl = url;
+          _logoBusy = false;
+        });
+      }
+    } on PhotoException catch (e) {
+      if (!mounted) return;
+      setState(() => _logoBusy = false);
+      showMessage(context, e.message, isError: true);
+    }
+  }
 
   @override
   void initState() {
@@ -258,12 +286,13 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     if (_saving) return;
     setState(() => _saving = true);
     final team = Team(
-      id: widget.team?.id ?? newId(),
+      id: _teamId,
       name: _name.text.trim(),
       players: _players,
       captainId: _captainId,
       viceCaptainId: _viceCaptainId,
       keeperId: _keeperId,
+      logoUrl: _logoUrl,
     );
     try {
       await ref.read(teamRepositoryProvider).save(team);
@@ -360,6 +389,33 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
             textCapitalization: TextCapitalization.words,
             decoration: fieldDecoration(context, 'Team name', icon: Icons.groups_rounded),
           ),
+          if (ref.watch(photoStoreProvider) != null && ref.watch(accountsProvider).current != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                TeamBadge(name: _name.text.isEmpty ? 'Team' : _name.text, size: 48, logoUrl: _logoUrl),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Wrap(
+                    spacing: 4,
+                    children: [
+                      TextButton.icon(
+                        onPressed: _logoBusy ? null : () => _setLogo(remove: false),
+                        icon: const Icon(Icons.image_rounded, size: 18),
+                        label: Text(_logoUrl == null ? 'Add logo' : 'Change logo'),
+                      ),
+                      if (_logoUrl != null)
+                        TextButton(
+                          onPressed: _logoBusy ? null : () => _setLogo(remove: true),
+                          child: const Text('Remove logo'),
+                        ),
+                    ],
+                  ),
+                ),
+                if (_logoBusy) const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+              ],
+            ),
+          ],
           if (shared) ...[
             const SizedBox(height: 12),
             SurfacePanel(

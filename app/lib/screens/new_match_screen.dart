@@ -547,6 +547,9 @@ class _TeamDraft {
 
   String? get savedTeamId => _saved?.id;
 
+  /// The saved team's logo, shown while picking.
+  String? get logoUrl => _saved?.logoUrl;
+
   String get displayName => name.text.trim().isEmpty ? _hint : name.text.trim();
 
   bool isSaved(String player) => _savedPlayers.containsKey(player);
@@ -595,6 +598,7 @@ class _TeamDraft {
       captainId: linked(_saved?.captainId),
       viceCaptainId: linked(_saved?.viceCaptainId),
       keeperId: linked(_saved?.keeperId),
+      logoUrl: _saved?.logoUrl,
     );
   }
 
@@ -726,7 +730,7 @@ class _TeamEditorState extends ConsumerState<_TeamEditor> {
         children: [
           Row(
             children: [
-              TeamBadge(name: _draft.displayName, size: 36),
+              TeamBadge(name: _draft.displayName, size: 36, logoUrl: _draft.logoUrl),
               const SizedBox(width: 12),
               Expanded(
                 child: TextField(

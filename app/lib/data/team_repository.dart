@@ -43,5 +43,6 @@ Team? mergeIntoSquad(List<Team> saved, Team played, {Map<String, String> sameAs 
     captainId: linked(existing?.captainId) ?? played.captainId,
     viceCaptainId: linked(existing?.viceCaptainId) ?? played.viceCaptainId,
     keeperId: linked(existing?.keeperId) ?? played.keeperId,
+    logoUrl: existing?.logoUrl ?? played.logoUrl,
   );
 }

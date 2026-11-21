@@ -379,7 +379,12 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     `PlatformDevicePhotos` picks from the gallery at 512 px, quality 80.
     `PlayerProfile.photoUrl` is the owner's to set; the rules accept only an
     address ending `/img/avatars/<their uid>.img`, and claiming a profile
-    clears a previous owner's photo. `photoStoreProvider`,
+    clears a previous owner's photo. Team logos (`Team.logoUrl`, optional,
+    written only when set) upload from the team page under the team's id,
+    which a new team fixes before its first save; `mergeIntoSquad` and the
+    import keep a saved team's logo. `trustedPhoto` loads only addresses under
+    `photosBaseUrl/img/`, since matches and teams carry them from other
+    phones. `photoStoreProvider`,
     `devicePhotosProvider`; `FakePhotoStore`, `FakeDevicePhotos` in tests.
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,

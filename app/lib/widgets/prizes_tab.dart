@@ -203,7 +203,7 @@ class _PaymentRow extends StatelessWidget {
     };
     return ListTile(
       onTap: onTap,
-      leading: TeamBadge(name: team.name, size: 36),
+      leading: TeamBadge(name: team.name, size: 36, logoUrl: team.logoUrl),
       title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
       trailing: Text(status, style: text.labelLarge?.copyWith(color: color, fontWeight: FontWeight.w800)),
     );

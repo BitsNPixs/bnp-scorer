@@ -134,6 +134,7 @@ class Team {
     this.captainId,
     this.viceCaptainId,
     this.keeperId,
+    this.logoUrl,
   }) : players = List.unmodifiable(players) {
     if (players.length < 2) {
       throw ArgumentError('A team needs at least 2 players.');
@@ -151,6 +152,9 @@ class Team {
   final String? viceCaptainId;
   final String? keeperId;
 
+  /// The team's logo on the app's photos service, or null for initials.
+  final String? logoUrl;
+
   bool hasPlayer(String playerId) => players.any((p) => p.id == playerId);
 
   Player? playerById(String playerId) {
@@ -167,6 +171,8 @@ class Team {
         'captainId': captainId,
         'viceCaptainId': viceCaptainId,
         'keeperId': keeperId,
+        // Written only when set, so teams without a logo read as before.
+        if (logoUrl != null) 'logoUrl': logoUrl,
       };
 
   factory Team.fromJson(Json json) => Team(
@@ -179,6 +185,7 @@ class Team {
         captainId: json['captainId'] as String?,
         viceCaptainId: json['viceCaptainId'] as String?,
         keeperId: json['keeperId'] as String?,
+        logoUrl: json['logoUrl'] as String?,
       );
 }
 

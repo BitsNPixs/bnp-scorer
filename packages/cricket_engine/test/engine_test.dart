@@ -848,4 +848,23 @@ void main() {
     expect(formatOvers(9, 6), '1.3');
     expect(formatOvers(12, 6), '2');
   });
+
+  group('team logo', () {
+    Team team({String? logo}) => Team(
+          id: 't',
+          name: 'Alpha',
+          players: const [Player(id: 'a', name: 'A'), Player(id: 'b', name: 'B')],
+          logoUrl: logo,
+        );
+
+    test('survives a round trip', () {
+      final back = Team.fromJson(team(logo: 'https://photos.example/img/teams/u/t.img?v=1').toJson());
+      expect(back.logoUrl, 'https://photos.example/img/teams/u/t.img?v=1');
+    });
+
+    test('a team without one is stored exactly as before', () {
+      expect(team().toJson().containsKey('logoUrl'), isFalse);
+      expect(Team.fromJson(team().toJson()).logoUrl, isNull);
+    });
+  });
 }

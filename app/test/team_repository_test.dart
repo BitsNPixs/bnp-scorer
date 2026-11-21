@@ -115,6 +115,13 @@ void main() {
       expect(mergeIntoSquad([saved], played)!.players.map((p) => p.id), ['1-A', '1-B']);
     });
 
+    test("a saved team's logo is kept, and a new team's comes along", () {
+      final saved = Team(id: '1', name: 'Team A', players: _team('1', 'Team A', ['A', 'B']).players, logoUrl: 'logo-1');
+      expect(mergeIntoSquad([saved], _team('1', 'Team A', ['A', 'C']))!.logoUrl, 'logo-1');
+      final fresh = Team(id: '2', name: 'New', players: _team('2', 'New', ['A', 'B']).players, logoUrl: 'logo-2');
+      expect(mergeIntoSquad([], fresh)!.logoUrl, 'logo-2');
+    });
+
     test('Fill to 11 placeholders are not kept', () {
       final filled = _team('1', 'Team', [placeholderPlayerName(1), placeholderPlayerName(2)]);
       expect(mergeIntoSquad([], filled), isNull);

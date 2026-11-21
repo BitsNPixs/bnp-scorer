@@ -624,6 +624,22 @@ class FakePhotoStore implements PhotoStore {
     _check();
     avatar = null;
   }
+
+  final logos = <String, Uint8List>{};
+
+  @override
+  Future<String> uploadTeamLogo(String teamId, Uint8List image) async {
+    _check();
+    logos[teamId] = image;
+    uploads++;
+    return 'https://photos.example/img/teams/me/$teamId.img?v=$uploads';
+  }
+
+  @override
+  Future<void> removeTeamLogo(String teamId) async {
+    _check();
+    logos.remove(teamId);
+  }
 }
 
 /// The photo picker: [next] is what the next pick returns.

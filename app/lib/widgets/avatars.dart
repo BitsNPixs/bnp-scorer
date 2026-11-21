@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../data/photo_store.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 
@@ -36,8 +37,8 @@ class PlayerAvatar extends StatelessWidget {
   Widget build(BuildContext context) => CircleAvatar(
         radius: radius,
         backgroundColor: colorForName(name),
-        foregroundImage: photoUrl == null ? null : NetworkImage(photoUrl!),
-        onForegroundImageError: photoUrl == null ? null : (_, _) {},
+        foregroundImage: trustedPhoto(photoUrl) == null ? null : NetworkImage(photoUrl!),
+        onForegroundImageError: trustedPhoto(photoUrl) == null ? null : (_, _) {},
         child: Text(
           initials(name),
           style: TextStyle(
@@ -51,23 +52,39 @@ class PlayerAvatar extends StatelessWidget {
 
 /// Neon badge with team initials, used on the dark hero cards.
 class TeamBadge extends StatelessWidget {
-  const TeamBadge({super.key, required this.name, this.size = 40});
+  const TeamBadge({super.key, required this.name, this.size = 40, this.logoUrl});
 
   final String name;
   final double size;
 
+  /// The team's logo; the initials show until it loads, and if it cannot.
+  final String? logoUrl;
+
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(size * 0.32);
+    final letters = Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(gradient: AppColors.neonGradient, borderRadius: radius),
+      child: Text(
+        initials(name),
+        style: scoreStyle(size * 0.42, color: AppColors.night, weight: FontWeight.w800),
+      ),
+    );
+    final logo = trustedPhoto(logoUrl);
+    if (logo == null) return letters;
+    return ClipRRect(
+      borderRadius: radius,
+      child: Image.network(
+        logo,
         width: size,
         height: size,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: AppColors.neonGradient,
-          borderRadius: BorderRadius.circular(size * 0.32),
-        ),
-        child: Text(
-          initials(name),
-          style: scoreStyle(size * 0.42, color: AppColors.night, weight: FontWeight.w800),
-        ),
-      );
+        fit: BoxFit.cover,
+        frameBuilder: (_, child, frame, _) => frame == null ? letters : child,
+        errorBuilder: (_, _, _) => letters,
+      ),
+    );
+  }
 }

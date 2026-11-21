@@ -485,6 +485,7 @@ List<PlannedTeam> planImport(List<Team> saved, List<ImportedTeam> teams, {requir
                     captainId: update.captainId,
                     viceCaptainId: update.viceCaptainId,
                     keeperId: update.keeperId,
+                    logoUrl: existing?.logoUrl,
                   ),
           );
         }(),

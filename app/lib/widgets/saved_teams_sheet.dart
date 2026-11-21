@@ -73,7 +73,7 @@ class _SavedTeamsSheet extends ConsumerWidget {
                 for (final team in teams)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: TeamBadge(name: team.name, size: 40),
+                    leading: TeamBadge(name: team.name, size: 40, logoUrl: team.logoUrl),
                     title: Text(team.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                     subtitle: Text(plural(team.players.length, 'player')),
                     trailing: IconButton(

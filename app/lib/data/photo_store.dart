@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 
 import 'accounts.dart';
@@ -10,6 +10,18 @@ import 'accounts.dart';
 /// in Cloudflare R2. Empty turns photos off, as in builds before it is
 /// deployed.
 const photosBaseUrl = String.fromEnvironment('BNP_PHOTOS_URL');
+
+String _trustedBase = photosBaseUrl;
+
+/// Tests point this at their stand-in photos service.
+@visibleForTesting
+set photosBaseForTesting(String base) => _trustedBase = base;
+
+/// [url] when it is on our photos service, else null. Photo and logo
+/// addresses arrive inside published matches and teams; loading only our
+/// own keeps a doctored one from making phones fetch some other server.
+String? trustedPhoto(String? url) =>
+    url != null && _trustedBase.isNotEmpty && url.startsWith('$_trustedBase/img/') ? url : null;
 
 /// Thrown when a photo cannot be uploaded or removed. The message is written
 /// for players.
@@ -29,6 +41,11 @@ abstract interface class PhotoStore {
   Future<String> uploadAvatar(Uint8List image);
 
   Future<void> removeAvatar();
+
+  /// Replaces the logo of the team [teamId]; returns its new address.
+  Future<String> uploadTeamLogo(String teamId, Uint8List image);
+
+  Future<void> removeTeamLogo(String teamId);
 }
 
 class HttpPhotoStore implements PhotoStore {
@@ -52,6 +69,17 @@ class HttpPhotoStore implements PhotoStore {
 
   @override
   Future<void> removeAvatar() async => _send('DELETE', '/v1/avatar', null);
+
+  @override
+  Future<String> uploadTeamLogo(String teamId, Uint8List image) async {
+    final body = await _send('PUT', '/v1/team-logo/$teamId', image);
+    final url = body['url'];
+    if (url is! String) throw const PhotoException('The logo did not save. Try again.');
+    return url;
+  }
+
+  @override
+  Future<void> removeTeamLogo(String teamId) async => _send('DELETE', '/v1/team-logo/$teamId', null);
 
   Future<Map<String, Object?>> _send(String method, String path, Uint8List? image) async {
     final token = await _accounts.idToken();

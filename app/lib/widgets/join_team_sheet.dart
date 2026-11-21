@@ -130,7 +130,7 @@ class _JoinTeamSheetState extends ConsumerState<_JoinTeamSheet> {
             SurfacePanel(
               child: Row(
                 children: [
-                  TeamBadge(name: team.team.name),
+                  TeamBadge(name: team.team.name, logoUrl: team.team.logoUrl),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(

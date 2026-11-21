@@ -162,6 +162,13 @@ service cloud.firestore {
       allow delete: if holdsNumber(phoneId);
     }
 
+    // A team logo is the captain's own upload to the photos Worker.
+    function logoOk(data, teamId) {
+      return !('logoUrl' in data) || data.logoUrl == null
+        || (data.logoUrl is string && data.logoUrl.size() <= 300
+            && data.logoUrl.matches('https://[^/]+/img/teams/' + request.auth.uid + '/' + teamId + '[.]img([?]v=[0-9]+)?'));
+    }
+
     // Teams a captain shared with an invite. Anyone may read them, so a join
     // code finds its team; only the captain changes one.
     match /teams/{teamId} {
@@ -170,12 +177,14 @@ service cloud.firestore {
       allow create: if createsOwn()
         && request.resource.data.id == teamId
         && request.resource.data.players is list
-        && request.resource.data.joinCode is string;
+        && request.resource.data.joinCode is string
+        && logoOk(request.resource.data, teamId);
 
       allow update: if changesOwn()
         && request.resource.data.id == teamId
         && request.resource.data.players is list
-        && request.resource.data.joinCode is string;
+        && request.resource.data.joinCode is string
+        && logoOk(request.resource.data, teamId);
 
       allow delete: if deletesOwn();
 

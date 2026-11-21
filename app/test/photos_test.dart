@@ -6,9 +6,11 @@ import 'package:bnp_scorer/data/accounts.dart';
 import 'package:bnp_scorer/data/photo_store.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/screens/player_profile_screen.dart';
+import 'package:bnp_scorer/screens/team_edit_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/widgets/avatars.dart';
+import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -19,7 +21,10 @@ const _settle = Duration(milliseconds: 400);
 final _jpeg = Uint8List.fromList([0xff, 0xd8, 0xff, 0xe0, 1, 2, 3]);
 
 void main() {
-  setUpAll(() => AppFonts.useGoogleFonts = false);
+  setUpAll(() {
+    AppFonts.useGoogleFonts = false;
+    photosBaseForTesting = 'https://photos.example';
+  });
 
   group('HttpPhotoStore', () {
     late HttpServer server;
@@ -87,6 +92,31 @@ void main() {
         throwsA(isA<PhotoException>().having((e) => e.message, 'message', contains('internet'))),
       );
     });
+  });
+
+  test('only addresses on our photos service are loaded', () {
+    expect(trustedPhoto('https://photos.example/img/avatars/u1.img?v=1'), 'https://photos.example/img/avatars/u1.img?v=1');
+    expect(trustedPhoto('https://tracker.example/img/avatars/u1.img'), isNull);
+    expect(trustedPhoto('https://photos.example/other'), isNull);
+    expect(trustedPhoto(null), isNull);
+  });
+
+  testWidgets('a team badge shows a logo from our service, and initials for anything else', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: Column(
+        children: [
+          TeamBadge(name: 'Alpha', logoUrl: 'https://photos.example/img/teams/u/t.img?v=1'),
+          TeamBadge(name: 'Beta', logoUrl: 'https://tracker.example/img/teams/u/t.img'),
+        ],
+      ),
+    ));
+    await tester.pump(_settle);
+    expect(find.byType(Image), findsOneWidget);
+    // Until (and unless) the logo loads, the initials show in its place.
+    expect(find.text('AL'), findsOneWidget);
+    expect(find.text('BE'), findsOneWidget);
+    expect(tester.getSize(find.byType(TeamBadge).first), const Size(40, 40));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('an avatar with a photo that cannot load still shows the initials', (tester) async {
@@ -174,6 +204,103 @@ void main() {
     testWidgets('without the photos service there is no photo row', (tester) async {
       await openEdit(tester, withStore: false);
       expect(find.text('Add photo'), findsNothing);
+    });
+  });
+
+  group('team logo', () {
+    late InMemoryTeamRepository teams;
+    late FakePhotoStore photos;
+    late FakeDevicePhotos picker;
+
+    setUp(() {
+      teams = InMemoryTeamRepository();
+      photos = FakePhotoStore();
+      picker = FakeDevicePhotos(next: _jpeg);
+    });
+
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(_settle);
+      }
+    }
+
+    Future<void> pump(WidgetTester tester, Widget home, {bool signedIn = true}) async {
+      tester.view
+        ..physicalSize = const Size(1080, 4000)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          teamRepositoryProvider.overrideWithValue(teams),
+          matchRepositoryProvider.overrideWithValue(InMemoryMatchRepository()),
+          accountsProvider.overrideWithValue(FakeAccounts(signedIn: signedIn ? const Scorer(uid: 'c1', name: 'Asha') : null)),
+          photoStoreProvider.overrideWithValue(photos),
+          devicePhotosProvider.overrideWithValue(picker),
+        ],
+        child: MaterialApp(theme: AppTheme.light(), home: home),
+      ));
+      await settle(tester);
+    }
+
+    Future<void> tapText(WidgetTester tester, String text) async {
+      await tester.tap(find.text(text));
+      await settle(tester);
+    }
+
+    final alpha = Team(
+      id: 't1',
+      name: 'Alpha',
+      players: const [Player(id: 'a', name: 'Asha'), Player(id: 'b', name: 'Bilal')],
+    );
+
+    testWidgets('a captain adds a logo, and the saved team keeps it', (tester) async {
+      await pump(tester, TeamEditScreen(team: alpha));
+      await tapText(tester, 'Add logo');
+      expect(photos.logos.keys, ['t1']);
+      expect(find.text('Change logo'), findsOneWidget);
+      await tapText(tester, 'Save team');
+      expect(teams.teams['t1']!.logoUrl, 'https://photos.example/img/teams/me/t1.img?v=1');
+    });
+
+    testWidgets('a new team gets its logo under the id it is then saved with', (tester) async {
+      await pump(tester, const TeamEditScreen());
+      await tester.enterText(find.widgetWithText(TextField, 'Team name'), 'Gamma');
+      for (final name in ['Asha', 'Bilal']) {
+        await tester.enterText(find.widgetWithText(TextField, 'Add player name'), name);
+        await tester.testTextInput.receiveAction(TextInputAction.done);
+        await tester.pump(_settle);
+      }
+      await tapText(tester, 'Add logo');
+      await tapText(tester, 'Save team');
+      final saved = teams.teams.values.single;
+      expect(photos.logos.keys, [saved.id]);
+      expect(saved.logoUrl, contains('/img/teams/me/${saved.id}.img'));
+    });
+
+    testWidgets('removing the logo clears it on save', (tester) async {
+      final withLogo = Team(
+        id: 't1',
+        name: 'Alpha',
+        players: alpha.players,
+        logoUrl: 'https://photos.example/img/teams/me/t1.img?v=1',
+      );
+      await pump(tester, TeamEditScreen(team: withLogo));
+      await tapText(tester, 'Remove logo');
+      await tapText(tester, 'Save team');
+      expect(teams.teams['t1']!.logoUrl, isNull);
+    });
+
+    testWidgets('a failed upload says why and keeps the team as it was', (tester) async {
+      photos.failWith = 'That photo is too large.';
+      await pump(tester, TeamEditScreen(team: alpha));
+      await tapText(tester, 'Add logo');
+      expect(find.text('That photo is too large.'), findsOneWidget);
+      expect(find.text('Add logo'), findsOneWidget);
+    });
+
+    testWidgets('signed out there is no logo row', (tester) async {
+      await pump(tester, TeamEditScreen(team: alpha), signedIn: false);
+      expect(find.text('Add logo'), findsNothing);
     });
   });
 }

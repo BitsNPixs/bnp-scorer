@@ -119,7 +119,7 @@ class HttpPhotoStore implements PhotoStore {
 /// The phone's photo picker, behind a boundary so screens can be tested
 /// without it.
 abstract interface class DevicePhotos {
-  /// A photo the player picks, shrunk to at most 512 px, or null when they
+  /// A photo the player picks, shrunk to at most 1024 px, or null when they
   /// back out.
   Future<Uint8List?> pickPhoto();
 }
@@ -129,11 +129,12 @@ class PlatformDevicePhotos implements DevicePhotos {
 
   @override
   Future<Uint8List?> pickPhoto() async {
-    // Shrunk on the phone: about 50 KB, so uploads are quick and storage stays tiny.
+    // Shrunk on the phone to about 150 KB: sharp across a phone's width at the
+    // top of a profile, quick to upload, and well under the Worker's 512 KB.
     final file = await ImagePicker().pickImage(
       source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
+      maxWidth: 1024,
+      maxHeight: 1024,
       imageQuality: 80,
       requestFullMetadata: false,
     );

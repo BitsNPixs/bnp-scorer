@@ -1,7 +1,9 @@
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/photo_store.dart';
 import '../data/player_directory.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
@@ -29,13 +31,13 @@ enum CareerPeriod {
 
 /// The matches of [played] (oldest first) that [period] covers.
 List<CareerMatch> matchesIn(List<CareerMatch> played, CareerPeriod period, DateTime now) => switch (period) {
-      CareerPeriod.career => played,
-      CareerPeriod.thisYear => [
-          for (final m in played)
-            if (m.record.createdAt.toLocal().year == now.year) m,
-        ],
-      CareerPeriod.lastTen => played.length <= 10 ? played : played.sublist(played.length - 10),
-    };
+  CareerPeriod.career => played,
+  CareerPeriod.thisYear => [
+    for (final m in played)
+      if (m.record.createdAt.toLocal().year == now.year) m,
+  ],
+  CareerPeriod.lastTen => played.length <= 10 ? played : played.sublist(played.length - 10),
+};
 
 /// The columns of a career table: every match, then one column per format,
 /// but only when the player has played more than one format (otherwise the
@@ -47,15 +49,20 @@ List<(String label, List<CareerMatch> matches)> careerColumns(List<CareerMatch> 
     if (formats.length > 1)
       for (final format in MatchFormat.values)
         if (formats.contains(format))
-          (format.label, [for (final m in inPeriod) if (formatOf(m.state.setup.rules) == format) m]),
+          (
+            format.label,
+            [
+              for (final m in inPeriod)
+                if (formatOf(m.state.setup.rules) == format) m,
+            ],
+          ),
   ];
 }
 
 /// Opens a player's profile: their career from every match on this phone and,
 /// in cloud builds, everyone's published matches they were picked in.
-void openPlayer(BuildContext context, String playerId) => Navigator.of(context).push(
-      MaterialPageRoute<void>(builder: (_) => PlayerProfileScreen(playerId: playerId)),
-    );
+void openPlayer(BuildContext context, String playerId) =>
+    Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => PlayerProfileScreen(playerId: playerId)));
 
 class PlayerProfileScreen extends ConsumerStatefulWidget {
   const PlayerProfileScreen({super.key, required this.playerId});
@@ -98,52 +105,93 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
         return DefaultTabController(
           length: 4,
           child: Scaffold(
-            // The name is in the card below; the bar takes the player back, and
-            // lets the owner edit their profile.
-            appBar: AppBar(
-              actions: [
-                IconButton(
-                  tooltip: 'Share profile',
-                  onPressed: () => _share(name, view.stats),
-                  icon: const Icon(Icons.share_rounded),
-                ),
-                if (mine)
-                  IconButton(
-                    tooltip: 'Edit profile',
-                    onPressed: () => showEditProfileSheet(context, profile),
-                    icon: const Icon(Icons.edit_rounded),
-                  ),
-              ],
-            ),
-            body: Column(
-              children: [
-                _Hero(name: name, view: view, profile: profile),
-                const TabBar(
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  tabs: [Tab(text: 'Info'), Tab(text: 'Batting'), Tab(text: 'Bowling'), Tab(text: 'Career')],
-                ),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      _InfoTab(view: view, name: name, profile: profile, cloudMissed: career.cloudMissed),
-                      _TableTab(
-                        view: view,
-                        period: _period,
-                        onPeriod: (p) => setState(() => _period = p),
-                        spec: _battingSpec,
+            body: NestedScrollView(
+              headerSliverBuilder: (context, scrolled) => [
+                SliverOverlapAbsorber(
+                  handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context),
+                  sliver: SliverAppBar(
+                    pinned: true,
+                    // Tall with a photo, like a player card; shorter with initials.
+                    expandedHeight: trustedPhoto(profile?.photoUrl) != null ? 440 : 290,
+                    backgroundColor: AppColors.night,
+                    foregroundColor: Colors.white,
+                    systemOverlayStyle: SystemUiOverlayStyle.light,
+                    leading: Navigator.of(context).canPop()
+                        ? _RoundButton(
+                            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                            icon: Icons.arrow_back_rounded,
+                            onPressed: () => Navigator.of(context).maybePop(),
+                          )
+                        : null,
+                    // The name joins the bar once the photo has scrolled away.
+                    title: AnimatedOpacity(
+                      opacity: scrolled ? 1 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      // White on the night bar in both themes.
+                      style: AppFonts.display(
+                        const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
                       ),
-                      _TableTab(
-                        view: view,
-                        period: _period,
-                        onPeriod: (p) => setState(() => _period = p),
-                        spec: _bowlingSpec,
+                    ),
+                    ),
+                    actions: [
+                      _RoundButton(
+                        tooltip: 'Share profile',
+                        icon: Icons.share_rounded,
+                        onPressed: () => _share(name, view.stats),
                       ),
-                      _CareerTab(view: view),
+                      if (mine)
+                        _RoundButton(
+                          tooltip: 'Edit profile',
+                          icon: Icons.edit_rounded,
+                          onPressed: () => showEditProfileSheet(context, profile),
+                        ),
+                      const SizedBox(width: 8),
                     ],
+                    flexibleSpace: FlexibleSpaceBar(
+                      collapseMode: CollapseMode.parallax,
+                      background: _Hero(name: name, view: view, profile: profile),
+                    ),
+                    bottom: PreferredSize(
+                      preferredSize: const Size.fromHeight(_tabsHeight),
+                      child: Material(
+                        color: Theme.of(context).colorScheme.surface,
+                        child: const TabBar(
+                          isScrollable: true,
+                          tabAlignment: TabAlignment.start,
+                          tabs: [
+                            Tab(text: 'Info'),
+                            Tab(text: 'Batting'),
+                            Tab(text: 'Bowling'),
+                            Tab(text: 'Career'),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ],
+              body: TabBarView(
+                children: [
+                  _InfoTab(view: view, name: name, profile: profile, cloudMissed: career.cloudMissed),
+                  _TableTab(
+                    view: view,
+                    period: _period,
+                    onPeriod: (p) => setState(() => _period = p),
+                    spec: _battingSpec,
+                  ),
+                  _TableTab(
+                    view: view,
+                    period: _period,
+                    onPeriod: (p) => setState(() => _period = p),
+                    spec: _bowlingSpec,
+                  ),
+                  _CareerTab(view: view),
+                ],
+              ),
             ),
           ),
         );
@@ -190,12 +238,56 @@ class _CareerView {
 Future<void> _openMatch(BuildContext context, WidgetRef ref, CareerMatch match) async {
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
-      builder: (_) => match.onPhone ? ScoringScreen(matchId: match.record.id) : WatchMatchScreen(matchId: match.record.id),
+      builder: (_) =>
+          match.onPhone ? ScoringScreen(matchId: match.record.id) : WatchMatchScreen(matchId: match.record.id),
     ),
   );
   if (context.mounted && match.onPhone) ref.invalidate(matchListProvider);
 }
 
+const _tabsHeight = 46.0;
+
+/// A tab's content under the collapsing header: it starts below the pinned
+/// bar and never scrolls underneath it.
+class _TabScroll extends StatelessWidget {
+  const _TabScroll({required this.children});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => CustomScrollView(
+    slivers: [
+      SliverOverlapInjector(handle: NestedScrollView.sliverOverlapAbsorberHandleFor(context)),
+      SliverPadding(
+        padding: const EdgeInsets.all(16),
+        sliver: SliverList(delegate: SliverChildListDelegate(children)),
+      ),
+    ],
+  );
+}
+
+/// A round, see-through button over the photo, like the back button.
+class _RoundButton extends StatelessWidget {
+  const _RoundButton({required this.tooltip, required this.icon, required this.onPressed});
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(6),
+    child: IconButton(
+      tooltip: tooltip,
+      onPressed: onPressed,
+      icon: Icon(icon, size: 20),
+      style: IconButton.styleFrom(backgroundColor: Colors.black38, foregroundColor: Colors.white),
+    ),
+  );
+}
+
+/// The top of the profile: the player's photo large (or their initials on
+/// the night pitch), fading into their name and details.
 class _Hero extends StatelessWidget {
   const _Hero({required this.name, required this.view, required this.profile});
 
@@ -208,59 +300,92 @@ class _Hero extends StatelessWidget {
     final text = Theme.of(context).textTheme;
     final team = view.lines.lastOrNull?.teamName;
     final profile = this.profile;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.neon.withValues(alpha: 0.35)),
+    final photo = trustedPhoto(profile?.photoUrl);
+    final initialsBackdrop = DecoratedBox(
+      decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+      child: Align(
+        alignment: const Alignment(0.75, -0.35),
+        child: Text(
+          initials(name),
+          style: scoreStyle(150, color: Colors.white.withValues(alpha: 0.08), weight: FontWeight.w800),
+        ),
       ),
-      child: Row(
-        children: [
-          PlayerAvatar(name: name, radius: 30, photoUrl: profile?.photoUrl),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  plural(view.played.length, 'match'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: text.labelMedium?.copyWith(color: Colors.white70),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    if (team != null) _HeroChip(icon: TeamBadge(name: team, size: 18), label: team),
-                    if (profile != null && profile.claimed)
-                      const _HeroChip(
-                        icon: Icon(Icons.verified_rounded, size: 18, color: AppColors.neon),
-                        label: 'Verified',
-                      )
-                    else if (profile != null)
-                      const _HeroChip(
-                        icon: Icon(Icons.mark_email_unread_outlined, size: 18, color: Colors.white70),
-                        label: 'Invited, not claimed yet',
-                      ),
-                  ],
-                ),
-              ],
+    );
+    final details = [
+      [?profile?.homeTown, plural(view.played.length, 'match')].join(' | '),
+      [?(profile?.role ?? view.role)?.label, ?profile?.battingStyle?.label].join(' | '),
+      ?profile?.bowlingStyle,
+    ].where((line) => line.isNotEmpty);
+    final soft = text.bodyMedium?.copyWith(color: Colors.white70);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        if (photo == null)
+          initialsBackdrop
+        else
+          Image.network(
+            photo,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            frameBuilder: (_, child, frame, _) => frame == null ? initialsBackdrop : child,
+            errorBuilder: (_, _, _) => initialsBackdrop,
+          ),
+        // Dark at the top for the buttons, clear in the middle, night at the
+        // bottom so the name reads on any photo.
+        const DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0, 0.22, 0.5, 0.85],
+              colors: [Color(0x66000000), Color(0x00000000), Color(0x33081008), AppColors.night],
             ),
           ),
-        ],
-      ),
+        ),
+        Positioned(
+          left: 16,
+          right: 16,
+          bottom: _tabsHeight + 14,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppFonts.display(
+                  const TextStyle(fontSize: 34, fontWeight: FontWeight.w800, color: Colors.white, height: 1.05),
+                ),
+              ),
+              const SizedBox(height: 6),
+              for (final line in details) Text(line, maxLines: 1, overflow: TextOverflow.ellipsis, style: soft),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 6,
+                children: [
+                  if (team != null)
+                    _HeroChip(
+                      icon: TeamBadge(name: team, size: 18),
+                      label: team,
+                    ),
+                  if (profile != null && profile.claimed)
+                    const _HeroChip(
+                      icon: Icon(Icons.verified_rounded, size: 18, color: AppColors.neon),
+                      label: 'Verified',
+                    )
+                  else if (profile != null)
+                    const _HeroChip(
+                      icon: Icon(Icons.mark_email_unread_outlined, size: 18, color: Colors.white70),
+                      label: 'Invited, not claimed yet',
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -273,24 +398,24 @@ class _HeroChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(999)),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white),
-              ),
-            ),
-          ],
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(999)),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        icon,
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(color: Colors.white),
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 const _noMatches = StatsEmpty(message: 'No finished matches yet.');
@@ -314,8 +439,7 @@ class _InfoTab extends ConsumerWidget {
     for (final name in ref.watch(playerTeamsProvider(view.playerId)).value ?? const <String>[]) {
       if (!teams.contains(name)) teams.add(name);
     }
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return _TabScroll(
       children: [
         if (cloudMissed) ...[
           const NoticeBanner(
@@ -354,7 +478,10 @@ class _InfoTab extends ConsumerWidget {
                   runSpacing: 8,
                   children: [
                     for (final team in teams)
-                      Chip(avatar: TeamBadge(name: team, size: 22), label: Text(team)),
+                      Chip(
+                        avatar: TeamBadge(name: team, size: 22),
+                        label: Text(team),
+                      ),
                   ],
                 ),
               ],
@@ -365,10 +492,7 @@ class _InfoTab extends ConsumerWidget {
           const SizedBox(height: 12),
           StatGrid(
             title: 'Awards',
-            stats: [
-              ('MVP points', '${stats.mvpPoints}'),
-              ('Player of the Match', '${stats.playerOfMatchAwards}'),
-            ],
+            stats: [('MVP points', '${stats.mvpPoints}'), ('Player of the Match', '${stats.playerOfMatchAwards}')],
           ),
           const SizedBox(height: 12),
           StatGrid(
@@ -404,15 +528,15 @@ class _RecentForm extends ConsumerWidget {
     final header = text.labelSmall?.copyWith(color: scheme.onSurfaceVariant, fontWeight: FontWeight.w700);
 
     Widget cells(List<String> values, TextStyle? style, {Widget? trailing}) => Row(
-          children: [
-            for (final (i, flex) in const [3, 4, 3, 3].indexed)
-              Expanded(
-                flex: flex,
-                child: Text(values[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
-              ),
-            SizedBox(width: 24, child: trailing),
-          ],
-        );
+      children: [
+        for (final (i, flex) in const [3, 4, 3, 3].indexed)
+          Expanded(
+            flex: flex,
+            child: Text(values[i], maxLines: 1, overflow: TextOverflow.ellipsis, style: style),
+          ),
+        SizedBox(width: 24, child: trailing),
+      ],
+    );
 
     return SurfacePanel(
       padding: EdgeInsets.zero,
@@ -445,9 +569,8 @@ class _RecentForm extends ConsumerWidget {
             ),
           const Divider(height: 1),
           TextButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => _PlayerMatchesScreen(view: view)),
-            ),
+            onPressed: () =>
+                Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => _PlayerMatchesScreen(view: view))),
             child: const Text('View all matches'),
           ),
         ],
@@ -535,12 +658,11 @@ class _TableTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (view.isEmpty) return _noMatches;
+    if (view.isEmpty) return const _TabScroll(children: [_noMatches]);
     final columns = careerColumns(view.played, matchesIn(view.played, period, DateTime.now()));
     final stats = [for (final (_, matches) in columns) view.statsOf(matches)];
     final all = stats.first;
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return _TabScroll(
       children: [
         OptionChips<CareerPeriod>(
           options: CareerPeriod.values,
@@ -558,8 +680,7 @@ class _TableTab extends StatelessWidget {
           StatsTable(
             columns: [for (final (label, _) in columns) label],
             rows: [
-              for (final (label, value) in spec.rows)
-                (label, [for (final s in stats) s == null ? '—' : value(s)]),
+              for (final (label, value) in spec.rows) (label, [for (final s in stats) s == null ? '—' : value(s)]),
             ],
           ),
         ],
@@ -576,33 +697,33 @@ class _Headline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          gradient: AppColors.heroGradient,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.neon.withValues(alpha: 0.35)),
-        ),
-        child: Row(
-          children: [
-            for (final (i, (label, value)) in numbers.indexed) ...[
-              if (i > 0) Container(width: 1, height: 36, color: Colors.white24),
-              Expanded(
-                child: Column(
-                  children: [
-                    Text(value, maxLines: 1, style: scoreStyle(28, color: AppColors.neon)),
-                    Text(
-                      label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white70),
-                    ),
-                  ],
+    padding: const EdgeInsets.symmetric(vertical: 14),
+    decoration: BoxDecoration(
+      gradient: AppColors.heroGradient,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: AppColors.neon.withValues(alpha: 0.35)),
+    ),
+    child: Row(
+      children: [
+        for (final (i, (label, value)) in numbers.indexed) ...[
+          if (i > 0) Container(width: 1, height: 36, color: Colors.white24),
+          Expanded(
+            child: Column(
+              children: [
+                Text(value, maxLines: 1, style: scoreStyle(28, color: AppColors.neon)),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(color: Colors.white70),
                 ),
-              ),
-            ],
-          ],
-        ),
-      );
+              ],
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
 }
 
 /// Debut and latest match, overall and in each format.
@@ -613,13 +734,19 @@ class _CareerTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (view.isEmpty) return _noMatches;
+    if (view.isEmpty) return const _TabScroll(children: [_noMatches]);
     final buckets = [
       ('All matches', view.lines),
-      for (final format in MatchFormat.values) (format.label, [for (final l in view.lines) if (l.format == format) l]),
+      for (final format in MatchFormat.values)
+        (
+          format.label,
+          [
+            for (final l in view.lines)
+              if (l.format == format) l,
+          ],
+        ),
     ];
-    return ListView(
-      padding: const EdgeInsets.all(16),
+    return _TabScroll(
       children: [
         for (final (title, lines) in buckets) ...[
           SurfacePanel(
@@ -656,11 +783,7 @@ class _CareerRow extends ConsumerWidget {
     final date = match?.record.createdAt.toLocal();
     final detail = line == null
         ? 'Not played'
-        : [
-            'vs ${line.opponentName}',
-            '${shortDate(date!)} ${date.year}',
-            ?line.venue,
-          ].join(' · ');
+        : ['vs ${line.opponentName}', '${shortDate(date!)} ${date.year}', ?line.venue].join(' · ');
     return InkWell(
       onTap: match == null ? null : () => _openMatch(context, ref, match),
       child: Padding(

@@ -146,7 +146,7 @@ void main() {
       }
     }
 
-    Future<void> openEdit(WidgetTester tester, {bool withStore = true}) async {
+    Future<void> openEdit(WidgetTester tester, {bool withStore = true, bool edit = true}) async {
       tester.view
         ..physicalSize = const Size(1080, 2400)
         ..devicePixelRatio = 3;
@@ -163,6 +163,7 @@ void main() {
         child: MaterialApp(theme: AppTheme.light(), home: const PlayerProfileScreen(playerId: 'me')),
       ));
       await settle(tester);
+      if (!edit) return;
       await tester.tap(find.byTooltip('Edit profile'));
       await settle(tester);
     }
@@ -199,6 +200,21 @@ void main() {
       await settle(tester);
       expect(find.text('No internet. Connect and try again.'), findsOneWidget);
       expect(directory.players['me']!.photoUrl, isNull);
+    });
+
+    testWidgets('a photo makes the header tall, like a player card; initials keep it shorter', (tester) async {
+      Future<double> headerHeight() async {
+        await openEdit(tester, edit: false);
+        return tester.widget<SliverAppBar>(find.byType(SliverAppBar)).expandedHeight!;
+      }
+
+      expect(await headerHeight(), 290);
+      await directory.saveDetails(directory.players['me']!.withPhoto('https://photos.example/img/avatars/me.img?v=1'));
+      await settle(tester);
+      expect(tester.widget<SliverAppBar>(find.byType(SliverAppBar)).expandedHeight, 440);
+      expect(find.byTooltip('Share profile'), findsOneWidget);
+      expect(find.byTooltip('Edit profile'), findsOneWidget);
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('without the photos service there is no photo row', (tester) async {

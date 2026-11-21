@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+- The player profile opens on a big header, after the owner pointed to
+  CricHeroes: the photo across the top (or large initials on the night
+  pitch), fading into the name, home town and matches, role and batting
+  style, bowling style, team and Verified, with round back, share and edit
+  buttons over it. It collapses into the bar as the tabs scroll, and the
+  tabs' content never slides under it. Photos now upload at 1024 px so the
+  header stays sharp.
+
 ### Added
 - Team logos (cloud builds, signed in, once the photos Worker is deployed):
   Add, change or remove a logo on a team's page; it uploads at once and the
@@ -14,7 +23,7 @@
   another server. Rules accept only the captain's own logo address.
 - Profile photos (cloud builds, once the photos Worker is deployed): the
   profile's owner adds, changes or removes a photo from the edit sheet. The
-  phone shrinks it to 512 px (about 50 KB) and sends it, with the Firebase
+  phone shrinks it to 1024 px (about 150 KB) and sends it, with the Firebase
   sign-in token, to `cloud/photos-worker`, a Cloudflare Worker that checks
   the token, keeps the photo in R2 under that account's id only, and serves
   it back. Avatars on the profile, in Settings, on the team page and in Add

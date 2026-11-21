@@ -25,6 +25,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   owner's Cloudflare login at https://bnp-photos.quikfly-api.workers.dev and
   smoke-tested (missing photo 404, no real sign-in 401). Not yet tried end to
   end from a phone; the owner must paste the updated `firestore.rules`.
+  Update: the owner uploaded a profile photo from the phone the same day and
+  it worked (the stored copy is a 31 KB JPEG; uploads are now 1024 px).
   Mobile-number sign-in (beside Google) is in too. Both are after beta.7's
   first install on the phone.
 - **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** all five

@@ -376,7 +376,8 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     immutable cache (each upload changes `v`). `HttpPhotoStore` (dart:io,
     `Accounts.idToken`) talks to it at `photosBaseUrl`
     (`--dart-define=BNP_PHOTOS_URL`; empty turns photos off);
-    `PlatformDevicePhotos` picks from the gallery at 512 px, quality 80.
+    `PlatformDevicePhotos` picks from the gallery at 1024 px, quality 80
+    (sharp as the profile's full-width header).
     `PlayerProfile.photoUrl` is the owner's to set; the rules accept only an
     address ending `/img/avatars/<their uid>.img`, and claiming a profile
     clears a previous owner's photo. Team logos (`Team.logoUrl`, optional,
@@ -512,8 +513,12 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
 - **Player profile** (`PlayerProfileScreen`, opened by `openPlayer` from every
-  stats list, a tournament's own or watched): a hero card (name, matches, latest
-  team, Verified or Invited from the directory) over four tabs. Info: personal
+  stats list, a tournament's own or watched): a `NestedScrollView` whose
+  pinned `SliverAppBar` holds the hero (the photo, 440 tall, or initials on
+  the night gradient, 290; then name, home town, matches, role, styles, team
+  and Verified or Invited) and collapses to the name; it sits in a
+  `SliverOverlapAbsorber` and each tab starts with a `SliverOverlapInjector`
+  (`_TabScroll`), so content never scrolls under the pinned bar. Four tabs: Info: personal
   details (`KeyValueTable`), the last five innings (each opens its match), teams,
   awards and fielding. Batting and Bowling: a period (Career, This year, Last
   10) carried across both, three headline numbers, then a `StatsTable` with an

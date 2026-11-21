@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- Invite sheet: sharing a team's invite now shows its join code and a QR
+  code (dark on white in both themes) that opens the join page, with Send
+  invite for WhatsApp. New dependency: `qr_flutter`.
+- Opening an invite: the join page has "Open in BNP Scorer", which starts the
+  app (`bnpscorer://join?code=...`) on the Teams tab with the join sheet open
+  and the code already looked up. Verified Android App Links need a file at
+  the root of bitsnpixs.github.io, which this project's site does not
+  control, so the page's button does the opening instead.
+- Tapping a batter or bowler in a scorecard opens their profile, and a
+  profile can be shared as a short line of numbers.
 - Team invites (cloud builds): on a saved team's page, the share button
   publishes the team and sends a WhatsApp-ready invite with its six-letter
   join code and a link to the new `site/join.html`, which shows the code and

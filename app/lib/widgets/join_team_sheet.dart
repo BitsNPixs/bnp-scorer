@@ -37,6 +37,13 @@ class _JoinTeamSheetState extends ConsumerState<_JoinTeamSheet> {
   bool _busy = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Opened from an invite link: look the code up straight away.
+    if (widget.code != null) WidgetsBinding.instance.addPostFrameCallback((_) => _find());
+  }
+
+  @override
   void dispose() {
     _code.dispose();
     super.dispose();
@@ -48,6 +55,7 @@ class _JoinTeamSheetState extends ConsumerState<_JoinTeamSheet> {
       });
 
   Future<void> _find() async {
+    if (!mounted) return;
     final code = normalizeJoinCode(_code.text);
     if (code == null) return _fail('A join code is 6 letters and numbers, like ${joinCodeOf('example')}.');
     setState(() {

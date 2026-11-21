@@ -1,6 +1,7 @@
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 
+import '../screens/player_profile_screen.dart';
 import '../theme/app_theme.dart';
 import '../ui/format.dart';
 import '../ui/motion.dart';
@@ -151,49 +152,54 @@ class _BatterRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final notOut = b.dismissal == null;
     final isTop = topRuns > 0 && b.runs == topRuns;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 7),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      taggedPlayerName(setup, b.playerId),
-                      style: text.bodyMedium?.copyWith(fontWeight: atCrease || isTop ? FontWeight.w800 : FontWeight.w600),
-                    ),
-                    Text(
-                      dismissalText(setup, b),
-                      style: text.bodySmall?.copyWith(
-                        color: notOut ? scheme.primary : scheme.onSurfaceVariant,
-                        fontWeight: notOut ? FontWeight.w700 : FontWeight.w400,
+    // Tapping a batter opens their profile.
+    return InkWell(
+      onTap: () => openPlayer(context, b.playerId),
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        taggedPlayerName(setup, b.playerId),
+                        style: text.bodyMedium?.copyWith(fontWeight: atCrease || isTop ? FontWeight.w800 : FontWeight.w600),
                       ),
-                    ),
-                  ],
+                      Text(
+                        dismissalText(setup, b),
+                        style: text.bodySmall?.copyWith(
+                          color: notOut ? scheme.primary : scheme.onSurfaceVariant,
+                          fontWeight: notOut ? FontWeight.w700 : FontWeight.w400,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              _Cell(
-                notOut ? '${b.runs}*' : '${b.runs}',
-                width: _battingWidths[0],
-                size: 18,
-                weight: FontWeight.w800,
-                color: isTop ? scheme.primary : null,
-              ),
-              _Cell('${b.balls}', width: _battingWidths[1]),
-              _BadgeCell(b.fours, width: _battingWidths[2], color: AppColors.four),
-              _BadgeCell(b.sixes, width: _battingWidths[3], color: AppColors.six),
-              _Cell(b.strikeRate.toStringAsFixed(1), width: _battingWidths[4]),
+                _Cell(
+                  notOut ? '${b.runs}*' : '${b.runs}',
+                  width: _battingWidths[0],
+                  size: 18,
+                  weight: FontWeight.w800,
+                  color: isTop ? scheme.primary : null,
+                ),
+                _Cell('${b.balls}', width: _battingWidths[1]),
+                _BadgeCell(b.fours, width: _battingWidths[2], color: AppColors.four),
+                _BadgeCell(b.sixes, width: _battingWidths[3], color: AppColors.six),
+                _Cell(b.strikeRate.toStringAsFixed(1), width: _battingWidths[4]),
+              ],
+            ),
+            if (b.runs > 0) ...[
+              const SizedBox(height: 6),
+              _RunBar(share: b.runs / topRuns, lit: isTop),
             ],
-          ),
-          if (b.runs > 0) ...[
-            const SizedBox(height: 6),
-            _RunBar(share: b.runs / topRuns, lit: isTop),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -412,47 +418,52 @@ class _BowlingCard extends StatelessWidget {
             inset: _rowInset,
           ),
           for (final f in inn.bowlers)
-            Container(
-              margin: const EdgeInsets.symmetric(vertical: 2),
-              padding: const EdgeInsets.symmetric(vertical: 7, horizontal: _rowInset),
-              decoration: BoxDecoration(
-                color: f.playerId == bestId ? scheme.primary.withValues(alpha: 0.10) : Colors.transparent,
-                borderRadius: BorderRadius.circular(14),
-                border: f.playerId == bestId ? Border.all(color: scheme.primary.withValues(alpha: 0.35)) : null,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          playerName(setup, f.playerId),
-                          style: text.bodyMedium?.copyWith(
-                            fontWeight: f.playerId == bestId || f.playerId == inn.bowlerId
-                                ? FontWeight.w800
-                                : FontWeight.w600,
-                          ),
-                        ),
-                        if (f.playerId == bestId)
+            GestureDetector(
+              // Tapping a bowler opens their profile.
+              behavior: HitTestBehavior.opaque,
+              onTap: () => openPlayer(context, f.playerId),
+              child: Container(
+                margin: const EdgeInsets.symmetric(vertical: 2),
+                padding: const EdgeInsets.symmetric(vertical: 7, horizontal: _rowInset),
+                decoration: BoxDecoration(
+                  color: f.playerId == bestId ? scheme.primary.withValues(alpha: 0.10) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(14),
+                  border: f.playerId == bestId ? Border.all(color: scheme.primary.withValues(alpha: 0.35)) : null,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            'Best figures',
-                            style: text.bodySmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700),
-                          )
-                        else if (f.wides + f.noBalls > 0)
-                          Text(
-                            'wd ${f.wides} · nb ${f.noBalls}',
-                            style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                            playerName(setup, f.playerId),
+                            style: text.bodyMedium?.copyWith(
+                              fontWeight: f.playerId == bestId || f.playerId == inn.bowlerId
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                            ),
                           ),
-                      ],
+                          if (f.playerId == bestId)
+                            Text(
+                              'Best figures',
+                              style: text.bodySmall?.copyWith(color: scheme.primary, fontWeight: FontWeight.w700),
+                            )
+                          else if (f.wides + f.noBalls > 0)
+                            Text(
+                              'wd ${f.wides} · nb ${f.noBalls}',
+                              style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                  _Cell(f.overs(inn.ballsPerOver), width: _bowlingWidths[0]),
-                  _Cell('${f.maidens}', width: _bowlingWidths[1]),
-                  _Cell('${f.runs}', width: _bowlingWidths[2]),
-                  _BadgeCell(f.wickets, width: _bowlingWidths[3], color: AppColors.wicket, size: 16),
-                  _Cell(f.economy(inn.ballsPerOver).toStringAsFixed(1), width: _bowlingWidths[4]),
-                ],
+                    _Cell(f.overs(inn.ballsPerOver), width: _bowlingWidths[0]),
+                    _Cell('${f.maidens}', width: _bowlingWidths[1]),
+                    _Cell('${f.runs}', width: _bowlingWidths[2]),
+                    _BadgeCell(f.wickets, width: _bowlingWidths[3], color: AppColors.wicket, size: 16),
+                    _Cell(f.economy(inn.ballsPerOver).toStringAsFixed(1), width: _bowlingWidths[4]),
+                  ],
+                ),
               ),
             ),
         ],

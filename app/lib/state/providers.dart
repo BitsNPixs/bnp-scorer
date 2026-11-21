@@ -4,6 +4,7 @@ import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/accounts.dart';
+import '../data/app_links.dart';
 import '../data/app_settings.dart';
 import '../data/cloud_cups.dart';
 import '../data/cloud_matches.dart';
@@ -225,6 +226,9 @@ final errorLogProvider = Provider<ErrorLog>(
 
 /// The share sheet and file picker. Tests override this.
 final deviceFilesProvider = Provider<DeviceFiles>((ref) => const PlatformDeviceFiles());
+
+/// Links that open the app (team invites). Tests override this.
+final appLinksProvider = Provider<AppLinks>((ref) => PlatformAppLinks());
 
 /// The phone's contact picker. Tests override this.
 final deviceContactsProvider = Provider<DeviceContacts>((ref) => const PlatformDeviceContacts());

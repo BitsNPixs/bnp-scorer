@@ -8,6 +8,7 @@ import 'package:bnp_scorer/screens/watch_match_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
 import 'package:bnp_scorer/ui/format.dart';
+import 'package:bnp_scorer/widgets/innings_scorecard.dart';
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,7 @@ void main() {
     FakeCloudMatches? cloud,
     FakePlayerDirectory? directory,
     FakeAccounts? accounts,
+    TextShares? shares,
   }) async {
     // 360 dp wide, like the smallest phones the app is tested at.
     tester.view
@@ -57,6 +59,7 @@ void main() {
         cloudMatchesProvider.overrideWithValue(cloud),
         playerDirectoryProvider.overrideWithValue(directory),
         if (accounts != null) accountsProvider.overrideWithValue(accounts),
+        if (shares != null) deviceFilesProvider.overrideWithValue(shares),
       ],
       child: MaterialApp(theme: AppTheme.light(), home: PlayerProfileScreen(playerId: playerId)),
     ));
@@ -278,6 +281,62 @@ void main() {
       accounts: FakeAccounts(signedIn: const Scorer(uid: 'someone', name: 'Else')),
     );
     expect(find.byTooltip('Edit profile'), findsNothing);
+  });
+
+  testWidgets('a profile can be shared as a line of numbers', (tester) async {
+    final top = _book.batters.first;
+    final shares = TextShares();
+    await pump(tester, top.playerId, shares: shares);
+    await tester.tap(find.byTooltip('Share profile'));
+    await settle(tester);
+    expect(shares.text, profileShareText(top.name, top));
+    expect(shares.text, contains('${top.batting.runs} runs'));
+  });
+
+  test('the shared line leaves out bowling for a player who never bowled', () {
+    final batter = _book.players.firstWhere((p) => p.bowling.innings == 0 && p.batting.innings > 0);
+    expect(profileShareText(batter.name, batter), isNot(contains('Bowling')));
+    expect(profileShareText('Ravi', null), 'Ravi on BNP Scorer: no finished matches yet.');
+  });
+
+  testWidgets('a player in a scorecard opens their profile', (tester) async {
+    final match = _demo.firstWhere((m) => ScoringEngine.replay(m.setup, m.events).isCompleted);
+    final state = ScoringEngine.replay(match.setup, match.events);
+    final batter = state.innings.first.batters.first;
+    final bowler = state.innings.first.bowlers.first;
+    tester.view
+      ..physicalSize = const Size(1080, 4000)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final repo = InMemoryMatchRepository();
+    await seedDemoMatches(repo, now: _now);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [
+        matchRepositoryProvider.overrideWithValue(repo),
+        tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: InningsScorecard(state: state, innings: state.innings.first, onInnings: (_) {}),
+        ),
+      ),
+    ));
+    await settle(tester);
+    await tester.tap(find.text(taggedPlayerName(match.setup, batter.playerId)).first);
+    await settle(tester);
+    expect(find.byType(PlayerProfileScreen), findsOneWidget);
+
+    await tester.pageBack();
+    await settle(tester);
+    await tester.scrollUntilVisible(find.text('Bowling'), 300, scrollable: find.byType(Scrollable).first);
+    final bowlerName = find.text(playerName(match.setup, bowler.playerId)).last;
+    await tester.scrollUntilVisible(bowlerName, 200, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(bowlerName);
+    await settle(tester);
+    await tester.tap(bowlerName);
+    await settle(tester);
+    expect(find.byType(PlayerProfileScreen), findsOneWidget);
   });
 
   testWidgets('a player with no finished match says so on every tab', (tester) async {

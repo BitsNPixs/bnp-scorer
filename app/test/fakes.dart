@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/app_links.dart';
 import 'package:bnp_scorer/data/cloud_cups.dart';
 import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/cloud_teams.dart';
@@ -542,4 +543,24 @@ class FakeCloudTeams implements CloudTeams {
     requests[teamId]?.remove(playerId);
     _changes.add(null);
   }
+}
+
+/// Links that open the app: [initial] once, then whatever [send] pushes.
+class FakeAppLinks implements AppLinks {
+  FakeAppLinks({this.initial});
+
+  Uri? initial;
+  final _links = StreamController<Uri>.broadcast();
+
+  void send(Uri link) => _links.add(link);
+
+  @override
+  Future<Uri?> initialLink() async {
+    final link = initial;
+    initial = null;
+    return link;
+  }
+
+  @override
+  Stream<Uri> get links => _links.stream;
 }

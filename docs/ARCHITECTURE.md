@@ -345,6 +345,19 @@ scheduled, `outdated` offers that game with the teams the results now call for.
     it, and deleting unshares it. A team is public only once its invite is
     shared. `cloudTeamsProvider`, `teamSharingProvider`, `teamJoinsProvider`,
     `playerTeamsProvider`; `FakeCloudTeams` in tests.
+  - Invite links: `site/join.html?code=...` shows the code and an "Open in BNP
+    Scorer" button whose `intent://` URL starts the app with
+    `bnpscorer://join?code=...` (intent filter in `AndroidManifest.xml`;
+    `flutter_deeplinking_enabled` is off so the link never becomes a Navigator
+    route). `MainActivity` keeps the first link and passes later ones on the
+    `com.bitsnpixs.bnp_scorer/links` channel; `AppLinks`
+    (`data/app_links.dart`, `appLinksProvider`, `FakeAppLinks` in tests)
+    reads them, and `HomeScreen` turns an invite (`joinCodeFromLink`) into the
+    Teams tab with `showJoinTeamSheet(code:)`, which looks the code up at once.
+    Verified App Links were not used: they need `/.well-known/assetlinks.json`
+    at the root of bitsnpixs.github.io, outside this project's Pages site.
+    `showTeamInviteSheet` (`widgets/team_invite_sheet.dart`) shows the code and
+    a `qr_flutter` QR of `joinPageLink(code)`.
   - `main()` starts Firebase with `Firebase.initializeApp()`; the Android config
     comes from `google-services.json` through the Google Services Gradle plugin,
     which `app/build.gradle.kts` applies only when the file exists.
@@ -466,7 +479,8 @@ from `state.phase` / `state.current` → record saved → home list invalidated.
   - bowling, with the best figures (most wickets, then fewest runs) highlighted
     and wickets in a red badge.
   Columns are sized per column (`_battingWidths`, `_bowlingWidths`) so names keep
-  room at 360 dp.
+  room at 360 dp. Tapping a batter or bowler row opens their profile
+  (`openPlayer`).
 - **Stats:** Teams, Batting, Bowling, MVP and Boundaries across every match, leading
   to team and player profiles.
 - **Player profile** (`PlayerProfileScreen`, opened by `openPlayer` from every

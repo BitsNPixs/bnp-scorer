@@ -233,7 +233,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   a bottom bar over four tabs (Matches, Tournaments, Stats, Teams) kept in an
   `IndexedStack`, built on first visit. Every other screen is pushed over it.
   Back on a tab other than Matches returns to Matches. Add go_router only with
-  deep links (shared scorecards).
+  deep links (shared scorecards). Team invite links come in through
+  `AppLinks` and open a sheet, not a route.
 - **Theme:** colours come from `Theme.of(context).colorScheme` or `AppColors`.
   The accent (`AppColors.neon`, the brand green since 2026-11-18; the name is
   kept) is a fill and an accent on dark surfaces. Text on light surfaces uses
@@ -294,6 +295,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Charts | `MatchCharts` (`widgets/match_charts.dart`), `AppColors.chartSeries`. Run the dataviz palette check before changing colours |
 | Share sheet, file picker | `DeviceFiles` (`data/device_files.dart`), `deviceFilesProvider`. Override it in tests |
 | Shared teams, join codes, invites, join requests | `CloudTeams`, `PublishedTeam`, `JoinRequest`, `joinCodeOf`, `normalizeJoinCode` (`data/cloud_teams.dart`), `SyncingTeamRepository`, `TeamSharing` (`data/syncing_teams.dart`), `showJoinTeamSheet` (`widgets/join_team_sheet.dart`), `teamInviteText`, `joinPageAddress` (`ui/format.dart`), `site/join.html`; `FakeCloudTeams` in tests |
+| Links that open the app, team invite sheet with QR, profile share line | `AppLinks`, `joinCodeFromLink` (`data/app_links.dart`), `appLinksProvider`; `showTeamInviteSheet` (`widgets/team_invite_sheet.dart`); `joinPageLink`, `profileShareText` (`ui/format.dart`); `FakeAppLinks` in tests |
 | Contact picker (one tapped contact, no permission) | `DeviceContacts`, `PickedContact` (`data/device_contacts.dart`), `deviceContactsProvider`, channel in `MainActivity.kt`; `FakeContacts` in tests |
 | Over-by-over data | `InningsState.overs`, `OverSummary`, `overHeadline` (`ui/format.dart`) |
 | Saved squads | `TeamRepository`, `mergeIntoSquad` (`data/team_repository.dart`), `showSavedTeamsSheet` (`widgets/saved_teams_sheet.dart`) |

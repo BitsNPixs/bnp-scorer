@@ -14,6 +14,7 @@ import '../widgets/add_by_number_sheet.dart';
 import '../widgets/avatars.dart';
 import '../widgets/paste_players_sheet.dart';
 import '../widgets/scoring_sheets.dart';
+import '../widgets/team_invite_sheet.dart';
 import '../widgets/surface_panel.dart';
 
 /// Creates a team, or edits a saved squad. Past matches keep their own copy of
@@ -128,11 +129,10 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     showMessage(context, 'Added ${found.name}.');
   }
 
-  /// Shares the saved team so players can ask to join it, then sends the
-  /// invite through the share sheet (WhatsApp, usually).
+  /// Shares the saved team so players can ask to join it, then shows its
+  /// code and QR with a button to send the invite (WhatsApp, usually).
   Future<void> _invite(Team team) async {
     final sharing = ref.read(teamSharingProvider)!;
-    final files = ref.read(deviceFilesProvider);
     if (ref.read(accountsProvider).current == null) {
       showMessage(context, 'Sign in from Settings to invite players.');
       return;
@@ -146,11 +146,7 @@ class _TeamEditScreenState extends ConsumerState<TeamEditScreen> {
     }
     if (!mounted) return;
     setState(() {}); // the code and join requests now show
-    try {
-      await files.shareText(teamInviteText(team.name, joinCodeOf(team.id)), subject: 'Join ${team.name}');
-    } on Object catch (e) {
-      if (mounted) showMessage(context, 'Could not open sharing: $e', isError: true);
-    }
+    await showTeamInviteSheet(context, teamId: team.id, teamName: team.name);
   }
 
   /// A player who asked to join comes into the squad under their profile id.

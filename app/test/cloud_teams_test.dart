@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:bnp_scorer/data/accounts.dart';
+import 'package:bnp_scorer/data/app_links.dart';
 import 'package:bnp_scorer/data/cloud_teams.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/data/syncing_teams.dart';
+import 'package:bnp_scorer/screens/home_screen.dart';
 import 'package:bnp_scorer/screens/player_profile_screen.dart';
 import 'package:bnp_scorer/screens/team_edit_screen.dart';
 import 'package:bnp_scorer/screens/teams_screen.dart';
@@ -59,7 +61,25 @@ void main() {
       final text = teamInviteText('Alpha', 'ABC234');
       expect(text, contains('Join Alpha on BNP Scorer'));
       expect(text, contains('ABC234'));
-      expect(text, contains('$joinPageAddress?code=ABC234'));
+      expect(text, contains(joinPageLink('ABC234')));
+      expect(joinPageLink('ABC234'), '$joinPageAddress?code=ABC234');
+    });
+
+    test('an invite link gives its code; any other link gives nothing', () {
+      final code = joinCodeOf('alpha');
+      expect(joinCodeFromLink(Uri.parse('bnpscorer://join?code=$code')), code);
+      expect(joinCodeFromLink(Uri.parse('bnpscorer://join?code=${code.toLowerCase()}')), code);
+      expect(joinCodeFromLink(Uri.parse('bnpscorer://join?code=nope')), isNull);
+      expect(joinCodeFromLink(Uri.parse('bnpscorer://join')), isNull);
+      expect(joinCodeFromLink(Uri.parse('https://example.com/join?code=$code')), isNull);
+    });
+
+    test('the join page opens the app with the scheme the manifest declares', () {
+      final page = File('../site/join.html').readAsStringSync();
+      final manifest = File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+      expect(page, contains("'intent://join?code=' + code + '#Intent;scheme=bnpscorer;package=com.bitsnpixs.bnp_scorer;end'"));
+      expect(manifest, contains('<data android:scheme="bnpscorer" android:host="join"/>'));
+      expect(manifest, contains('android:name="flutter_deeplinking_enabled" android:value="false"'));
     });
   });
 
@@ -160,7 +180,7 @@ void main() {
       await settle(tester);
     }
 
-    testWidgets('Invite players shares the team and sends its code', (tester) async {
+    testWidgets('Invite players shares the team and shows its code and QR to send', (tester) async {
       await pump(tester, TeamEditScreen(team: _alpha()));
       expect(find.textContaining('Join code'), findsNothing);
       await tester.tap(find.byTooltip('Invite players'));
@@ -168,7 +188,17 @@ void main() {
 
       final code = joinCodeOf('alpha');
       expect(cloud.teams, contains('alpha'));
+      expect(find.text('Invite to Alpha'), findsOneWidget);
+      expect(find.byKey(const ValueKey('invite-qr')), findsOneWidget);
+      // The QR is a fair size to scan at the ground.
+      expect(tester.getSize(find.byKey(const ValueKey('invite-qr'))).width, greaterThanOrEqualTo(180));
+      expect(find.text(code), findsOneWidget);
+      await tester.tap(find.text('Send invite'));
+      await settle(tester);
       expect(files.text, contains(code));
+
+      await tester.tapAt(const Offset(180, 40)); // close the sheet
+      await settle(tester);
       expect(find.text('JOIN CODE · $code'), findsOneWidget);
       expect(find.textContaining('Nobody has asked to join yet'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -265,6 +295,39 @@ void main() {
         await settle(tester);
         expect(find.text('You are already in Alpha.'), findsOneWidget);
       });
+    });
+
+    testWidgets('an invite link opens the join sheet with the code looked up', (tester) async {
+      await repo.share(_alpha());
+      final links = FakeAppLinks(initial: Uri.parse('bnpscorer://join?code=${joinCodeOf('alpha')}'));
+      tester.view
+        ..physicalSize = const Size(1080, 2400)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(ProviderScope(
+        overrides: [
+          teamRepositoryProvider.overrideWithValue(repo),
+          teamSharingProvider.overrideWithValue(repo),
+          cloudTeamsProvider.overrideWithValue(cloud),
+          accountsProvider.overrideWithValue(accounts),
+          playerDirectoryProvider.overrideWithValue(directory),
+          appLinksProvider.overrideWithValue(links),
+          matchRepositoryProvider.overrideWithValue(InMemoryMatchRepository()),
+          tournamentRepositoryProvider.overrideWithValue(InMemoryTournamentRepository()),
+          scheduleRepositoryProvider.overrideWithValue(InMemoryScheduleRepository()),
+        ],
+        child: MaterialApp(theme: AppTheme.light(), home: const HomeScreen()),
+      ));
+      await settle(tester);
+      expect(find.text('Join a team'), findsWidgets);
+      expect(find.textContaining('Shared by Captain Asha'), findsOneWidget);
+
+      // A second link while the app is open does the same.
+      await tester.tapAt(const Offset(180, 40));
+      await settle(tester);
+      links.send(Uri.parse('bnpscorer://join?code=${joinCodeOf('alpha')}'));
+      await settle(tester);
+      expect(find.textContaining('Shared by Captain Asha'), findsOneWidget);
     });
 
     testWidgets("a player's profile lists the shared teams they are in", (tester) async {

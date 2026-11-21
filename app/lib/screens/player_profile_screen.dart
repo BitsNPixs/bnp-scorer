@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/player_directory.dart';
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
+import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../widgets/avatars.dart';
 import '../widgets/edit_profile_sheet.dart';
@@ -68,6 +69,14 @@ class PlayerProfileScreen extends ConsumerStatefulWidget {
 class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
   CareerPeriod _period = CareerPeriod.career;
 
+  Future<void> _share(String name, PlayerStats? stats) async {
+    try {
+      await ref.read(deviceFilesProvider).shareText(profileShareText(name, stats), subject: name);
+    } on Object catch (e) {
+      if (mounted) showMessage(context, 'Could not open sharing: $e', isError: true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final career = ref.watch(playerCareerProvider(widget.playerId));
@@ -93,6 +102,11 @@ class _PlayerProfileScreenState extends ConsumerState<PlayerProfileScreen> {
             // lets the owner edit their profile.
             appBar: AppBar(
               actions: [
+                IconButton(
+                  tooltip: 'Share profile',
+                  onPressed: () => _share(name, view.stats),
+                  icon: const Icon(Icons.share_rounded),
+                ),
                 if (mine)
                   IconButton(
                     tooltip: 'Edit profile',

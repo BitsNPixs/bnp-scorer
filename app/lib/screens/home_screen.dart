@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../data/app_links.dart';
 import '../state/providers.dart';
+import '../ui/feedback.dart';
 import '../ui/motion.dart';
 import '../widgets/app_bottom_bar.dart';
+import '../widgets/join_team_sheet.dart';
 import 'matches_tab.dart';
 import 'new_match_screen.dart';
 import 'stats_screen.dart';
@@ -28,6 +33,32 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
+  StreamSubscription<Uri>? _links;
+
+  @override
+  void initState() {
+    super.initState();
+    final links = ref.read(appLinksProvider);
+    _links = links.links.listen(_openLink);
+    links.initialLink().then((link) {
+      if (link != null && mounted) _openLink(link);
+    });
+  }
+
+  @override
+  void dispose() {
+    _links?.cancel();
+    super.dispose();
+  }
+
+  /// A team invite opens the Teams tab with the join sheet, code filled in.
+  Future<void> _openLink(Uri link) async {
+    final code = joinCodeFromLink(link);
+    if (code == null || ref.read(cloudTeamsProvider) == null) return;
+    _select(3);
+    final joined = await showJoinTeamSheet(context, code: code);
+    if (joined != null && mounted) showMessage(context, 'Asked to join $joined. Your captain adds you.');
+  }
 
   /// Tabs are built on first visit, then kept, so each keeps its scroll
   /// position and nothing is loaded before it is wanted.

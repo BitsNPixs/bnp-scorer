@@ -212,9 +212,24 @@ String matchStatus(MatchState state) {
 /// The web page that explains a join code to someone without the app.
 const joinPageAddress = 'https://bitsnpixs.github.io/bnp-scorer/join.html';
 
+/// The join page for [code]: what an invite links to and a team's QR opens.
+String joinPageLink(String code) => '$joinPageAddress?code=$code';
+
 /// A WhatsApp invite to ask to join [teamName] with its [code].
 String teamInviteText(String teamName, String code) => [
       'Join $teamName on BNP Scorer, so the matches we play count on your profile.',
       'In the app: Teams, then Join a team, and type the code $code',
-      'No app yet? $joinPageAddress?code=$code',
+      'Or open: ${joinPageLink(code)}',
     ].join('\n');
+
+/// A player's career in a line or two, to share.
+String profileShareText(String name, PlayerStats? stats) {
+  if (stats == null) return '$name on BNP Scorer: no finished matches yet.';
+  final b = stats.batting;
+  final w = stats.bowling;
+  return [
+    '$name on BNP Scorer: ${plural(stats.matches, 'match')}.',
+    'Batting: ${b.runs} runs, best ${highScoreText(b.high)}, strike rate ${decimal(b.strikeRate, 1)}.',
+    if (w.innings > 0) 'Bowling: ${plural(w.wickets, 'wicket')}, best ${bestBowlingText(w.best)}, economy ${decimal(w.economy)}.',
+  ].join('\n');
+}

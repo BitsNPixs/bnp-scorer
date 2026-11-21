@@ -20,19 +20,25 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** analyze
-  clean, 190 engine and 420 app tests passing, built with Firebase and
-  upload-signed (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released or
-  installed. A signed-in scorer confirms a mobile number by SMS (Settings ›
-  Account) and gets a player profile; captains add players by number on a
-  team's page and New match (invited until they join); the new
+- **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** all five
+  releases in docs/PLAYER_PROFILES.md are built. Analyze clean, 190 engine
+  and 452 app tests passing, built with Firebase and upload-signed
+  (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released, pushed or installed.
+  A signed-in scorer confirms a mobile number by SMS (Settings › Account),
+  gets a player profile and fills in role, styles and home town; captains
+  add players by number, typed or picked from contacts (Android's picker, no
+  permission), on a team's page and New match (invited until they join);
+  captains share a team's invite (join code, QR, WhatsApp text,
+  `site/join.html`), players ask to join, captains add them. The new
   `PlayerProfileScreen` (Info, Batting, Bowling, Career, after the owner's
-  reference) replaces the old player stats page and includes everyone's
-  published matches with the player's id (`playerIds`). The tab pill is inset
-  app-wide (owner's feedback). Step list and owner tasks:
-  docs/PLAYER_PROFILES.md. **Before testers:** the owner's Firebase tasks
-  (Blaze, Phone provider, SMS region, Play Integrity, rules) and a two-phone
-  try. Seen only in tests and real-font renders so far.
+  reference) replaces the old player stats page, includes everyone's
+  published matches with the player's id (`playerIds`), opens from scorecard
+  rows, and shares as text. The tab pill is inset app-wide (owner's
+  feedback). New dependency: `qr_flutter`. **Before testers:** the owner's
+  Firebase tasks (Blaze, Phone provider, SMS region, Play Integrity, paste
+  `firestore.rules`) and a two-phone try. Seen only in tests and real-font
+  renders so far; verified App Links are not possible on the project site,
+  so the join page's button opens the app.
 - Previous run (2026-11-18): analyze clean, 182 engine and 357 app tests passing,
   beta 0.9.0-beta.6 (build 7) built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.6.apk`): beta.5 (cups, prizes, upcoming

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+## 0.9.0-beta.7 — 2026-11-21
+
+Registered players, the CricHeroes way: confirm your mobile number, get a
+career profile you can fill in, be added to squads by number (typed or from
+contacts), and join teams by invite code or QR (`docs/PLAYER_PROFILES.md`).
+
 ### Added
 - Invite sheet: sharing a team's invite now shows its join code and a QR
   code (dark on white in both themes) that opens the join page, with Send
@@ -33,13 +39,6 @@
   medium or spin) and home town, shown on the Info tab. The player's role
   wins over the role in their latest scorecard. The rules keep the name and
   home town to 60 characters and the creator fixed.
-
-## 0.9.0-beta.7 — 2026-11-21
-
-Registered players, the CricHeroes way: confirm your mobile number, get a
-career profile, and be added to squads by number (`docs/PLAYER_PROFILES.md`).
-
-### Added
 - Engine: career numbers split by format (`formatOf`: T10 up to ten overs,
   T20 up to twenty, 20+ beyond), ducks in batting stats, and
   `playerMatchLines`, one line per finished match a player was picked in
@@ -100,8 +99,11 @@ career profile, and be added to squads by number (`docs/PLAYER_PROFILES.md`).
   Play Integrity and pastes the new rules (README "Cloud"). Linking, lookup,
   invites and claims are tested only against fakes; the rules are untried in
   the Rules Playground.
-- The profile, Settings sheet and add-by-number sheet are seen in tests and
-  real-font renders only, not on a phone.
+- The profile and its edit sheet, Settings, add by number, the invite sheet
+  and QR, and Join a team are seen in tests and real-font renders only, not
+  on a phone. The contact picker and opening the app from the join page need
+  a real Android phone; only their Dart side is tested (the Kotlin compiles
+  in the build).
 
 ## 0.9.0-beta.6 — 2026-11-18
 

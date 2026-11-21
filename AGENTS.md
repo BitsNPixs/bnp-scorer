@@ -20,6 +20,13 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- **Photos (2026-11-21):** profile photos and team logos go to the R2 bucket
+  `bnp-photos` through the Worker `cloud/photos-worker`, deployed with the
+  owner's Cloudflare login at https://bnp-photos.quikfly-api.workers.dev and
+  smoke-tested (missing photo 404, no real sign-in 401). Not yet tried end to
+  end from a phone; the owner must paste the updated `firestore.rules`.
+  Mobile-number sign-in (beside Google) is in too. Both are after beta.7's
+  first install on the phone.
 - **Registered players (2026-11-21), beta 0.9.0-beta.7 (build 8):** all five
   releases in docs/PLAYER_PROFILES.md are built. Analyze clean, 190 engine
   and 452 app tests passing, built with Firebase and upload-signed

@@ -253,9 +253,11 @@ Firebase sign-in token. The app never holds R2 keys.
 2. From `cloud/photos-worker`: `npm ci`, `npx wrangler login`, then
    `npx wrangler r2 bucket create bnp-photos` and `npx wrangler deploy`.
    Wrangler prints the Worker's address (`https://bnp-photos.<account>.workers.dev`).
-3. Build the app with `--dart-define=BNP_PHOTOS_URL=<that address>`; without
-   it, photos are off. Paste the updated `firestore.rules` (it checks photo
-   addresses).
+3. The app's default address is the live Worker,
+   `https://bnp-photos.quikfly-api.workers.dev` (deployed 2026-11-21 to the
+   owner's Cloudflare account); `--dart-define=BNP_PHOTOS_URL=<address>`
+   points a build elsewhere, and an empty value turns photos off. Paste the
+   updated `firestore.rules` (it checks photo and logo addresses).
 4. Later, a custom domain on Cloudflare in front of the Worker is better
    than `workers.dev` for real traffic.
 

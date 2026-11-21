@@ -72,7 +72,9 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [x] Sign in with a mobile number beside Google; name asked once; link Google later. (2026-11-21, owner chose "offer both")
 - [x] Profile photos on Cloudflare R2 through `cloud/photos-worker` (owner's choice). (2026-11-21; the Worker is deployed once the owner logs Wrangler in)
 - [x] Team logos on the same Worker. (2026-11-21)
-- [ ] Deploy: owner enables R2 and logs in (`npx wrangler login`); bucket `bnp-photos`; set the Worker address in the app; paste the rules.
+- [x] Deploy: bucket `bnp-photos` and Worker at https://bnp-photos.quikfly-api.workers.dev (2026-11-21; smoke-tested: 404 for a missing photo, 401 without a real sign-in). The address is the app's default.
+- [ ] Owner: paste the updated `firestore.rules` (photo and logo checks).
+- [ ] Later: a BNP domain in front of the Worker (the workers.dev name comes from the account's other project).
 - [ ] Before wide release: a way to report a photo.
 
 ## Later, tied to account deletion (ROADMAP "Before the Play Store")

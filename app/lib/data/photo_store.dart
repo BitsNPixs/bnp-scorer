@@ -7,9 +7,12 @@ import 'package:image_picker/image_picker.dart';
 import 'accounts.dart';
 
 /// The photos Worker (`cloud/photos-worker`): player photos and team logos
-/// in Cloudflare R2. Empty turns photos off, as in builds before it is
-/// deployed.
-const photosBaseUrl = String.fromEnvironment('BNP_PHOTOS_URL');
+/// in Cloudflare R2. `--dart-define=BNP_PHOTOS_URL=` (empty) turns photos
+/// off; another address points the app at another deployment.
+const photosBaseUrl = String.fromEnvironment(
+  'BNP_PHOTOS_URL',
+  defaultValue: 'https://bnp-photos.quikfly-api.workers.dev',
+);
 
 String _trustedBase = photosBaseUrl;
 

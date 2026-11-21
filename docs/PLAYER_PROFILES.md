@@ -43,7 +43,8 @@ Design detail is in `docs/ARCHITECTURE.md` "Cloud" once each piece lands.
 
 Owner tasks in the Firebase console before step 8 is tried on a phone:
 - [ ] Upgrade to Blaze with a budget alert. Owner asked (2026-11-21) to test with dummy codes first: use test phone numbers (next item), which send no SMS and cost nothing. Whether the console allows phone sign-in on Spark at all is unconfirmed; if it refuses, Blaze with a budget alert and only test numbers still costs nothing.
-- [ ] Authentication > Sign-in method: enable Phone; SMS region policy: allow India only. (Owner: yes, 2026-11-21.)
+- [x] Authentication > Sign-in method: enable Phone; Settings > SMS region policy: allow India (and United States for the +1 test numbers; the policy blocks test numbers too). (2026-11-21; a test number then linked on the owner's phone.)
+- [ ] Before testers: remove any real number from the test list (a test number accepts its fixed code from anyone).
 - [ ] Enable the Play Integrity API on the Google Cloud project (else a reCAPTCHA page opens in the browser). Optional: it only spares players that page; sideloaded betas may see it anyway.
 - [ ] Add test phone numbers under Phone > Phone numbers for testing: fictional ones such as +1 650-555-3434 and +1 650-555-3435, each with a six-digit code like 123456 (Firebase codes are six digits, so 1234 will not do). Up to 10.
 - [x] Paste the new `firestore.rules`. (Owner, 2026-11-21.)

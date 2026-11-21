@@ -208,8 +208,9 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
 - **Phone numbers (beta.7 on):** confirming a number uses Firebase phone auth,
   which needs the **Blaze** plan (about $0.07 an SMS in India after 10 free a
   day). In the console: upgrade with a budget alert; Authentication > Sign-in
-  method > Phone, on; Settings > SMS region policy, allow India only (stops
-  SMS fraud); add test numbers under Phone numbers for testing (fictional, such
+  method > Phone, on; Settings > SMS region policy, allow India (stops SMS
+  fraud; it blocks test numbers too, so also allow the United States while
+  testing with +1 650-555 numbers, and keep real numbers off the test list); add test numbers under Phone numbers for testing (fictional, such
   as +1 650-555-3434, each with a six-digit code like 123456; no SMS is sent and
   nothing is billed); and enable the Play Integrity API on the Google Cloud
   project, or users see a reCAPTCHA page in the browser first (it proves the

@@ -25,6 +25,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   and 452 app tests passing, built with Firebase and upload-signed
   (`dist/bnp-scorer-0.9.0-beta.7.apk`), not released or pushed; installed
   over beta.6 on the owner's phone with `adb install -r` on 2026-11-21.
+  Confirming a number worked there the same day with a test number, once the
+  console had the Phone provider on and the SMS region policy allowing the
+  number's country (it applies to test numbers too).
   A signed-in scorer confirms a mobile number by SMS (Settings › Account),
   gets a player profile and fills in role, styles and home town; captains
   add players by number, typed or picked from contacts (Android's picker, no

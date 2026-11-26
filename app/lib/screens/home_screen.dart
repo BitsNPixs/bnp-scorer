@@ -16,6 +16,7 @@ import 'new_match_screen.dart';
 import 'stats_screen.dart';
 import 'teams_screen.dart';
 import 'tournaments_screen.dart';
+import 'watch_match_screen.dart';
 import 'watch_tournament_screen.dart';
 
 const _tabs = <BottomBarItem>[
@@ -39,6 +40,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   StreamSubscription<Uri>? _links;
   StreamSubscription<String>? _reminderTaps;
   StreamSubscription<Object>? _foregroundPushes;
+  StreamSubscription<Object>? _openedPushes;
 
   @override
   void initState() {
@@ -49,12 +51,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       if (link != null && mounted) _openLink(link);
     });
     final notifications = ref.read(deviceNotificationsProvider);
-    _reminderTaps = notifications.taps.listen(_openReminder);
+    _reminderTaps = notifications.taps.listen(_openPayload);
     notifications.launchPayload().then((payload) {
-      if (payload != null && mounted) _openReminder(payload);
+      if (payload != null && mounted) _openPayload(payload);
     });
     // The phone shows no push while the app is open; show it the same way.
-    _foregroundPushes = ref.read(pushMessagesProvider).foreground.listen(notifications.show);
+    final push = ref.read(pushMessagesProvider);
+    _foregroundPushes = push.foreground.listen(notifications.show);
+    _openedPushes = push.opened.listen((notice) => _openPayload(notice.data['open']));
+    push.launchNotice().then((notice) {
+      if (notice != null && mounted) _openPayload(notice.data['open']);
+    });
   }
 
   @override
@@ -62,12 +69,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _links?.cancel();
     _reminderTaps?.cancel();
     _foregroundPushes?.cancel();
+    _openedPushes?.cancel();
     super.dispose();
   }
 
-  /// A tapped reminder opens its match: this phone's own on its sheet, ready
-  /// to start, and a followed cup fixture on the cup.
-  Future<void> _openReminder(String payload) async {
+  /// Pushes about a followed match say `match:<id>` for what to open.
+  static const _matchPrefix = 'match:';
+
+  /// A tapped notification opens what it is about: a followed match live; a
+  /// reminder's match on its sheet, ready to start, or a followed cup fixture
+  /// on the cup.
+  Future<void> _openPayload(String? payload) async {
+    if (payload == null) return;
+    if (payload.startsWith(_matchPrefix)) {
+      _select(0);
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(builder: (_) => WatchMatchScreen(matchId: payload.substring(_matchPrefix.length))),
+      );
+      return;
+    }
+    if (!isReminderPayload(payload)) return;
     _select(0);
     if (payload.startsWith(ownReminderPrefix)) {
       final id = payload.substring(ownReminderPrefix.length);

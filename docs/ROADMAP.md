@@ -281,10 +281,14 @@ Order of work (each step tested and committed):
    `cloud/functions` with `pushTest`, deployed 2026-11-26 after the owner
    logged in, upgraded to Blaze and published the rules. The test push
    reached the owner's Android phone the same day.
-3. Follow a live match: a bell on a watched match; the scorer's app adds a
-   small "latest highlight" to the published match (derived by the engine
-   on the phone, like the summary fields), and a Function sends it to the
-   match's followers.
+3. Follow a live match: done in code 2026-11-26 (owner agreed the plan).
+   The engine's `momentOf` finds the moment one event made; the scorer's app
+   words it and publishes it as `highlight` (seq, kind, title, body) with the
+   ball; the Function `matchHighlight` sends each new seq once to phones
+   following the match, never the scorer's. Bell on the watched match,
+   follows kept two days, a tap opens the match. Boundaries are not sent
+   (too many). Still to do: paste the rules, deploy, try with two phones.
+   Known limit: undoing a wicket and scoring it again sends it twice.
 4. Team activity, from `teams/{id}/joins` and team changes.
 5. Cup updates, from tournament changes.
 

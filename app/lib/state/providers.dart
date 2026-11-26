@@ -499,15 +499,62 @@ class PushKindsNotifier extends Notifier<Set<PushKind>> {
   }
 }
 
-/// Keeps this phone's push registration in step with the scorer and the
-/// kinds chosen, and with token changes. Watched by the home screen.
+/// How long a followed match stays followed: past a day's play, a match is
+/// over and its pushes with it.
+const followFor = Duration(days: 2);
+
+/// Published matches this phone follows, by id, with when it began.
+final followedMatchesProvider = NotifierProvider<FollowedMatchesNotifier, Map<String, DateTime>>(
+  FollowedMatchesNotifier.new,
+);
+
+class FollowedMatchesNotifier extends Notifier<Map<String, DateTime>> {
+  @override
+  Map<String, DateTime> build() {
+    final since = DateTime.now().subtract(followFor);
+    return {
+      for (final e in ref.watch(appSettingsProvider).followedMatches.entries)
+        if (e.value.isAfter(since)) e.key: e.value,
+    };
+  }
+
+  bool isFollowing(String matchId) => state.containsKey(matchId);
+
+  /// Follows or stops following a published match. Following needs a
+  /// signed-in scorer and turns "Matches you follow" on, asking for
+  /// permission then if it is the first time. Null when done, else the
+  /// message to show.
+  Future<String?> toggle(String matchId) async {
+    if (isFollowing(matchId)) {
+      await _save({...state}..remove(matchId));
+      return null;
+    }
+    if (!ref.read(pushKindsProvider).contains(PushKind.follow)) {
+      final refused = await ref.read(pushKindsProvider.notifier).set(PushKind.follow, true);
+      if (refused != null) return refused;
+    }
+    await _save({...state, matchId: DateTime.now()});
+    return null;
+  }
+
+  Future<void> _save(Map<String, DateTime> followed) async {
+    state = followed;
+    await ref.read(appSettingsProvider).setFollowedMatches(followed);
+  }
+}
+
+/// Keeps this phone's push registration in step with the scorer, the kinds
+/// chosen, the matches followed, and token changes. Watched by the home
+/// screen.
 final pushSyncProvider = FutureProvider.autoDispose<void>((ref) async {
   final registration = ref.watch(pushRegistrationProvider);
   if (!registration.available) return;
   final scorer = ref.watch(scorerProvider).value;
   final kinds = ref.watch(pushKindsProvider);
-  final refreshes = registration.push.tokenRefreshes.listen((_) => registration.sync(scorer, kinds));
+  final follows = ref.watch(followedMatchesProvider).keys.toList()..sort();
+  Future<void> sync() => registration.sync(scorer, kinds, follows: follows);
+  final refreshes = registration.push.tokenRefreshes.listen((_) => sync());
   ref.onDispose(refreshes.cancel);
-  await registration.sync(scorer, kinds);
+  await sync();
 }, retry: _noRetry);
 

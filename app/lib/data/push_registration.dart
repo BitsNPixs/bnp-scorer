@@ -20,10 +20,10 @@ class PushRegistration {
 
   bool get available => push.available && devices != null;
 
-  /// Registers or updates this phone when [scorer] wants any of [kinds];
-  /// otherwise removes it. Failures are logged, never thrown: push is extra,
+  /// Registers or updates this phone, with the matches it [follows], when
+  /// [scorer] wants any of [kinds]; otherwise removes it. Failures are logged, never thrown: push is extra,
   /// and the next change or launch tries again.
-  Future<void> sync(Scorer? scorer, Set<PushKind> kinds) async {
+  Future<void> sync(Scorer? scorer, Set<PushKind> kinds, {List<String> follows = const []}) async {
     final devices = this.devices;
     if (!push.available || devices == null) return;
     if (scorer == null || kinds.isEmpty) {
@@ -35,7 +35,7 @@ class PushRegistration {
     final token = await push.enable();
     if (token == null) return;
     PushDevice device(String id) =>
-        PushDevice(id: id, ownerUid: scorer.uid, token: token, platform: _platform, kinds: kinds);
+        PushDevice(id: id, ownerUid: scorer.uid, token: token, platform: _platform, kinds: kinds, follows: follows);
     try {
       await devices.save(device(settings.deviceId));
     } on Object catch (e) {

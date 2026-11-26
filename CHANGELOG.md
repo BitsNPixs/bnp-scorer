@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- Follow a live match (Android, cloud builds, signed in): a bell on a match
+  under Everyone follows it, turning on "Matches you follow" (and asking for
+  permission) the first time. Followers get a notification for the start,
+  each wicket ("WICKET! Arun c Bharat b Bilal 2 (2)" with the score), a
+  fifty or hundred, a five-for, the innings break with the target, and the
+  result; tapping one opens the match live. The scorer's app finds the
+  moment with the engine (`momentOf`, new) and publishes it with the ball;
+  the Function `matchHighlight` sends it once. Follows end after two days.
+  Firestore rules: `highlight` on matches, `follows` on devices (paste them
+  before installing this build). Privacy policy: followed matches.
 - Push setup (Android, cloud builds): Settings > Notifications gains a switch
   for each kind of live update (matches you follow, team activity, cup
   updates) while signed in, and "Send me a test notification". Turning one

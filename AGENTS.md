@@ -20,6 +20,18 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
+  engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
+  hundred, a five-for, the innings break and the result from the state
+  before and after one event; `matchHighlight` (`ui/format.dart`) words it,
+  and `SyncingMatchRepository` publishes it as `highlight` on the match
+  (clipped to the rules' 120/200 characters). The Function `matchHighlight`
+  sends a new `seq` once to devices whose `follows` holds the match and want
+  "follow", never to the scorer. A bell on `WatchMatchScreen` follows
+  (`followedMatchesProvider`, two days), turning the kind on if needed; a
+  tapped update opens the match. Tests pass; **the new rules must be in the
+  console before this build reaches a phone** (it writes `follows`), then
+  deploy the Function and try two phones.
 - **Notifications, stage 2 of 5: push setup (2026-11-26).** The Firebase
   CLI (Homebrew) and `cloud/functions` (TypeScript, Node 22, `asia-south1`,
   9 Vitest tests) with `pushTest`; the app (`firebase_messaging`, Android
@@ -308,6 +320,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
 | Match reminders: plan, settings, switches, the phone's notifications | `planReminders`, `ReminderLead`, `WatchedReminder`, `isReminderPayload` (`state/reminders.dart`), `reminderSettingsProvider`, `reminderSyncProvider`, `deviceNotificationsProvider`; `DeviceNotifications` (`data/device_notifications.dart`); `ReminderOffer`, `ReminderSwitch`, `ReminderSettingsPanel` (`widgets/reminders.dart`); `FakeDeviceNotifications` in tests |
+| Match moments for followers: find, word, follow | engine `momentOf`, `MatchMoment`, `MomentKind` (`moments.dart`); `momentText`, `matchHighlight`, `scoreVersus`, `clip` (`ui/format.dart`); `MatchHighlight` (`data/cloud_matches.dart`); `followedMatchesProvider`, `FollowMatchButton` (`widgets/push_settings.dart`); Functions `newHighlight`, `sendHighlight` |
 | Push: kinds, registration, sending | `PushKind`, `PushMessages`, `PushDevices`, `PushDevice` (`data/push_messages.dart`), `PushRegistration` (`data/push_registration.dart`), `pushKindsProvider`, `pushSyncProvider`, `pushRegistrationProvider`, `permitNotifications`; `PushSettingsPanel` (`widgets/push_settings.dart`); Functions: `sendToUsers`, `sendToDevices` (`cloud/functions/src/push.ts`); `FakePushMessages`, `FakePushDevices` in tests |
 | Upcoming matches: list, strip, sheet, invite | `upcomingMatches`, `UpcomingMatch` (`state/upcoming.dart`), `upcomingProvider`, `UpcomingStrip`, `showUpcomingSheet` (`widgets/upcoming.dart`), `inviteText`, `upcomingWhen` (`ui/format.dart`) |
 | Start a fixture or scheduled friendly | `startFixtureMatch`, `startScheduledMatch` (`screens/new_match_screen.dart`) |
@@ -379,8 +392,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp_scorer.errorLog`, `bnp_scorer.playerIdsBackfill`,
   `bnp_scorer.sharedTeamIds`, `bnp_scorer.reminders`,
   `bnp_scorer.reminderLead`, `bnp_scorer.watchedReminders`,
-  `bnp_scorer.pushKinds`, `bnp_scorer.deviceId` and
-  `bnp_scorer.pushRegistered`. Changing them loses users' data.
+  `bnp_scorer.pushKinds`, `bnp_scorer.deviceId`,
+  `bnp_scorer.pushRegistered` and `bnp_scorer.followedMatches`. Changing them loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and

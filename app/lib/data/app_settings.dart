@@ -22,6 +22,7 @@ class AppSettings {
   static const pushKindsKey = 'bnp_scorer.pushKinds';
   static const deviceIdKey = 'bnp_scorer.deviceId';
   static const pushRegisteredKey = 'bnp_scorer.pushRegistered';
+  static const followedMatchesKey = 'bnp_scorer.followedMatches';
 
   /// Follows the phone until the scorer picks light or dark.
   ThemeMode get themeMode {
@@ -65,6 +66,25 @@ class AppSettings {
 
   Future<void> setPushKinds(Set<PushKind> kinds) =>
       _prefs.setStringList(pushKindsKey, [for (final k in kinds) k.name]);
+
+  /// Published matches this phone follows, with when it started following.
+  Map<String, DateTime> get followedMatches {
+    final text = _prefs.getString(followedMatchesKey);
+    if (text == null) return {};
+    try {
+      return {
+        for (final e in (jsonDecode(text) as Json).entries) e.key: DateTime.parse(e.value as String),
+      };
+    } on Object catch (e) {
+      debugPrint('Forgetting unreadable followed matches: $e');
+      return {};
+    }
+  }
+
+  Future<void> setFollowedMatches(Map<String, DateTime> followed) => _prefs.setString(
+        followedMatchesKey,
+        jsonEncode({for (final e in followed.entries) e.key: e.value.toUtc().toIso8601String()}),
+      );
 
   /// This install's id, made on first use: names its push registration, so a
   /// new token replaces the old one instead of piling up.

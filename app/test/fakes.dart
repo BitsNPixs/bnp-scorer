@@ -268,11 +268,15 @@ class FakeCloudMatches implements CloudMatches {
 
   final _changes = StreamController<void>.broadcast();
 
+  /// Each publish's highlight, in order (null for an ordinary ball).
+  final highlights = <MatchHighlight?>[];
+
   @override
-  Future<void> publish(MatchRecord record, Scorer owner) async {
+  Future<void> publish(MatchRecord record, Scorer owner, {MatchHighlight? highlight}) async {
     if (failWrites) throw StateError('No connection');
     published[record.id] = record;
     owners[record.id] = owner;
+    highlights.add(highlight);
     _changes.add(null);
   }
 
@@ -736,8 +740,13 @@ class FakePushMessages implements PushMessages {
   @override
   Stream<PushNotice> get foreground => _foreground.stream;
 
+  final _opened = StreamController<PushNotice>.broadcast();
+
+  /// Acts as if the user tapped a push while the app was in the background.
+  void tapInBackground(PushNotice notice) => _opened.add(notice);
+
   @override
-  Stream<PushNotice> get opened => const Stream.empty();
+  Stream<PushNotice> get opened => _opened.stream;
 
   @override
   Future<PushNotice?> launchNotice() async => null;

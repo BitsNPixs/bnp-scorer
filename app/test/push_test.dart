@@ -35,6 +35,7 @@ void main() {
         'token': 't',
         'platform': 'android',
         'kinds': {'follow': false, 'team': true, 'cup': false},
+        'follows': <String>[],
       });
     });
   });

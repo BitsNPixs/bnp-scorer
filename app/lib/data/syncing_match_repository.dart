@@ -15,11 +15,16 @@ import 'match_repository.dart';
 /// and sends it when the phone is back online. Every save sends the whole
 /// match, so a missed write is made good by the next one.
 class SyncingMatchRepository implements MatchRepository {
-  SyncingMatchRepository(this._local, this._cloud, this._accounts);
+  SyncingMatchRepository(this._local, this._cloud, this._accounts, {MatchHighlight? Function(MatchRecord)? highlight})
+      : _highlight = highlight;
 
   final MatchRepository _local;
   final CloudMatches _cloud;
   final Accounts _accounts;
+
+  /// Words the moment a save made, for followers (`matchHighlight`). Passed
+  /// in so this layer needs no UI wording.
+  final MatchHighlight? Function(MatchRecord)? _highlight;
 
   @override
   Future<List<MatchRecord>> loadAll() => _local.loadAll();
@@ -31,7 +36,12 @@ class SyncingMatchRepository implements MatchRepository {
   Future<void> save(MatchRecord record) async {
     await _local.save(record);
     final owner = publisherOf(_accounts, record.publishedBy);
-    if (owner != null) sendInBackground(_cloud.publish(record, owner), 'Publishing match ${record.id}');
+    if (owner != null) {
+      sendInBackground(
+        _cloud.publish(record, owner, highlight: _highlight?.call(record)),
+        'Publishing match ${record.id}',
+      );
+    }
   }
 
   @override

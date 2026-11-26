@@ -310,6 +310,11 @@ Mac user; run it in Terminal, not through an agent.
 
 - `pushTest` answers Settings > Send me a test notification: the app sets
   `testRequestedAt` on its device document and the Function pushes back.
+- `matchHighlight` sends a match's `highlight` (written by the scorer's app
+  with the ball that made it: `momentOf` in the engine, worded by
+  `matchHighlight` in `ui/format.dart`) once per `seq` to devices whose
+  `follows` holds the match. It runs on every match write and stops at the
+  first check when there is nothing new.
 - `push.ts` holds the sending rules (who wants which kind, batches of 500,
   removing devices whose token is gone), tested with fakes; `adapters.ts`
   connects them to Firestore and Cloud Messaging.

@@ -9,7 +9,7 @@ import { logger } from "firebase-functions";
 import { onDocumentWritten } from "firebase-functions/v2/firestore";
 
 import { cloudMessaging, firestoreDevices } from "./adapters.js";
-import { asksForTest, type DeviceDoc, sendToDevices, testNotice } from "./push.js";
+import { asksForTest, type DeviceDoc, newHighlight, sendHighlight, sendToDevices, testNotice } from "./push.js";
 
 initializeApp();
 
@@ -36,3 +36,23 @@ export const pushTest = onDocumentWritten("pushDevices/{deviceId}", async (event
   );
   logger.info("test push", { deviceId: event.params.deviceId, ...outcome });
 });
+
+/**
+ * A ball that made a moment (a wicket, a milestone, the result): its scorer's
+ * app published a `highlight` with it, sent here once to the match's
+ * followers. Every other write ends at the first check.
+ */
+export const matchHighlight = onDocumentWritten("matches/{matchId}", async (event) => {
+  const after = event.data?.after.data();
+  const highlight = newHighlight(event.data?.before.data(), after);
+  if (!highlight) return;
+  const outcome = await sendHighlight(
+    firestoreDevices(getFirestore()),
+    cloudMessaging(getMessaging()),
+    event.params.matchId,
+    after?.ownerUid as string | undefined,
+    highlight,
+  );
+  logger.info("match highlight", { matchId: event.params.matchId, kind: highlight.kind, ...outcome });
+});
+

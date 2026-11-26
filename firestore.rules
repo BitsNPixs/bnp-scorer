@@ -36,18 +36,30 @@ service cloud.firestore {
         || request.resource.data.playerIds is list;
     }
 
+    // The moment the last ball made, which the Functions send to followers.
+    // Optional; short text only, so it cannot be used to spam a long push.
+    function highlightOk() {
+      let h = request.resource.data.get('highlight', null);
+      return h == null
+        || (h is map && h.seq is int && h.kind is string
+          && h.title is string && h.title.size() <= 120
+          && h.body is string && h.body.size() <= 200);
+    }
+
     match /matches/{matchId} {
       allow read: if true;
 
       allow create: if createsOwn()
         && request.resource.data.setup.id == matchId
         && request.resource.data.events is list
-        && playerIdsOk();
+        && playerIdsOk()
+        && highlightOk();
 
       allow update: if changesOwn()
         && request.resource.data.setup.id == matchId
         && request.resource.data.events is list
-        && playerIdsOk();
+        && playerIdsOk()
+        && highlightOk();
 
       allow delete: if deletesOwn();
     }
@@ -217,7 +229,8 @@ service cloud.firestore {
         return d.token is string && d.token.size() < 4096
           && d.platform in ['android', 'ios']
           && d.kinds is map
-          && d.keys().hasOnly(['ownerUid', 'token', 'platform', 'kinds', 'updatedAt', 'testRequestedAt']);
+          && (!('follows' in d) || (d.follows is list && d.follows.size() <= 50))
+          && d.keys().hasOnly(['ownerUid', 'token', 'platform', 'kinds', 'follows', 'updatedAt', 'testRequestedAt']);
       }
 
       allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;

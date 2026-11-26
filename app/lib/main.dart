@@ -32,6 +32,7 @@ import 'data/team_repository.dart';
 import 'data/tournament_repository.dart';
 import 'state/providers.dart';
 import 'theme/app_theme.dart';
+import 'ui/format.dart';
 import 'ui/error_handling.dart';
 
 Future<void> main() async {
@@ -55,7 +56,8 @@ Future<void> main() async {
   final PushMessages push =
       hasCloud && Platform.isAndroid ? FirebasePushMessages(FirebaseMessaging.instance) : const NoPushMessages();
   final pushDevices = hasCloud ? FirestorePushDevices(FirebaseFirestore.instance) : null;
-  final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
+  final MatchRepository repository =
+      cloud == null ? local : SyncingMatchRepository(local, cloud, accounts, highlight: matchHighlight);
   final localTeams = LocalTeamRepository(prefs);
   final syncingTeams = cloudTeams == null ? null : SyncingTeamRepository(localTeams, cloudTeams, accounts, prefs);
   final TeamRepository teams = syncingTeams ?? localTeams;

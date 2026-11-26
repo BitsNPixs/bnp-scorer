@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   asksForTest,
+  highlightNotice,
+  newHighlight,
+  sendHighlight,
   chunks,
   type Device,
   type DeviceStore,
@@ -14,8 +17,13 @@ import {
   wants,
 } from "../src/push.js";
 
-function device(id: string, ownerUid: string, kinds: Record<string, boolean> = { follow: true }): Device {
-  return { id, data: { ownerUid, token: `token-${id}`, platform: "android", kinds } };
+function device(
+  id: string,
+  ownerUid: string,
+  kinds: Record<string, boolean> = { follow: true },
+  follows: string[] = [],
+): Device {
+  return { id, data: { ownerUid, token: `token-${id}`, platform: "android", kinds, follows } };
 }
 
 /** Devices in memory; records removals and the uid groups it was asked for. */
@@ -27,6 +35,10 @@ class FakeStore implements DeviceStore {
   async devicesOf(uids: string[]): Promise<Device[]> {
     this.queries.push(uids);
     return this.devices.filter((d) => uids.includes(d.data.ownerUid));
+  }
+
+  async devicesFollowing(matchId: string): Promise<Device[]> {
+    return this.devices.filter((d) => d.data.follows?.includes(matchId));
   }
 
   async remove(id: string): Promise<void> {
@@ -140,3 +152,39 @@ describe("test notifications", () => {
     expect(asksForTest({ testRequestedAt: 1000 }, undefined), "a removal").toBe(false);
   });
 });
+
+describe("match highlights", () => {
+  const wicket = { seq: 42, kind: "wicket", title: "WICKET! Ravi c Kumar b Arun 34 (22)", body: "Lions 87/4 (11.2 ov) v Tigers" };
+
+  it("are new only when a seq appears that was not there before", () => {
+    expect(newHighlight({}, { highlight: wicket })).toEqual(wicket);
+    expect(newHighlight({ highlight: { ...wicket, seq: 30 } }, { highlight: wicket })).toEqual(wicket);
+    expect(newHighlight({ highlight: wicket }, { highlight: wicket }), "a resent write").toBeNull();
+    expect(newHighlight({ highlight: wicket }, { events: [] }), "an ordinary ball").toBeNull();
+    expect(newHighlight(undefined, undefined), "a deleted match").toBeNull();
+    expect(newHighlight({}, { highlight: { seq: "x", title: 1 } }), "malformed").toBeNull();
+  });
+
+  it("open the match when tapped", () => {
+    expect(highlightNotice("m1", wicket)).toEqual({
+      title: wicket.title,
+      body: wicket.body,
+      data: { open: "match:m1", kind: "wicket" },
+    });
+  });
+
+  it("go to followers who want match updates, never to the scorer's own phones", async () => {
+    const store = new FakeStore([
+      device("f1", "asha", { follow: true }, ["m1"]),
+      device("f2", "bala", { follow: false, team: true }, ["m1"]),
+      device("f3", "chitra", { follow: true }, ["m2"]),
+      device("s1", "scorer", { follow: true }, ["m1"]),
+    ]);
+    const sender = new FakeSender();
+    const outcome = await sendHighlight(store, sender, "m1", "scorer", wicket);
+    expect(sender.sent.map((m) => m.token)).toEqual(["token-f1"]);
+    expect(sender.sent[0].data).toEqual({ open: "match:m1", kind: "wicket" });
+    expect(outcome.sent).toBe(1);
+  });
+});
+

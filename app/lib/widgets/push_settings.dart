@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/push_messages.dart';
 import '../state/providers.dart';
+import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import 'surface_panel.dart';
 
@@ -67,3 +68,42 @@ class PushSettingsPanel extends ConsumerWidget {
     );
   }
 }
+
+/// The bell on a watched match: follow it for its wickets, milestones and
+/// result. Hidden where push is not available, on a finished match, and on
+/// the scorer's own match. Signed out, it says to sign in.
+class FollowMatchButton extends ConsumerWidget {
+  const FollowMatchButton({super.key, required this.matchId, required this.ownerUid, required this.finished});
+
+  final String matchId;
+  final String ownerUid;
+  final bool finished;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final available = ref.watch(pushMessagesProvider).available && ref.watch(pushDevicesProvider) != null;
+    if (!available || finished) return const SizedBox.shrink();
+    final scorer = ref.watch(scorerProvider).value;
+    if (scorer?.uid == ownerUid) return const SizedBox.shrink();
+    final following = ref.watch(followedMatchesProvider).containsKey(matchId);
+    return IconButton(
+      tooltip: following ? 'Following: tap to stop' : 'Follow this match',
+      isSelected: following,
+      icon: const Icon(Icons.notifications_none_rounded),
+      selectedIcon: const Icon(Icons.notifications_active_rounded, color: AppColors.neon),
+      onPressed: () async {
+        if (scorer == null) {
+          showMessage(context, 'Sign in from Settings to follow matches.');
+          return;
+        }
+        final result = await ref.read(followedMatchesProvider.notifier).toggle(matchId);
+        if (!context.mounted || !reportResult(context, result)) return;
+        showMessage(
+          context,
+          following ? 'Stopped following' : "Following: you'll hear about wickets, milestones and the result",
+        );
+      },
+    );
+  }
+}
+

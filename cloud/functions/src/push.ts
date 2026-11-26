@@ -14,6 +14,8 @@ export interface DeviceDoc {
   token: string;
   platform: string;
   kinds?: Partial<Record<PushKind, boolean>>;
+  /** Published matches this phone follows. */
+  follows?: string[];
 }
 
 export interface Device {
@@ -31,6 +33,8 @@ export interface Notice {
 export interface DeviceStore {
   /** Every device registered to any of [uids]. */
   devicesOf(uids: string[]): Promise<Device[]>;
+  /** Every device whose `follows` holds [matchId]. */
+  devicesFollowing(matchId: string): Promise<Device[]>;
   remove(id: string): Promise<void>;
 }
 
@@ -156,3 +160,57 @@ export function asksForTest(before: Record<string, unknown> | undefined, after: 
   if (now === undefined || now === null) return false;
   return String(now) !== String(before?.testRequestedAt ?? "");
 }
+
+/**
+ * The moment the scorer's app published with a ball (`MatchHighlight` in the
+ * app): field names are a storage format.
+ */
+export interface Highlight {
+  seq: number;
+  kind: string;
+  title: string;
+  body: string;
+}
+
+/**
+ * The highlight a write to `matches/{id}` adds: one present after, with a
+ * [seq] it did not have before. A resent write (same seq) or an ordinary ball
+ * (none) adds nothing.
+ */
+export function newHighlight(
+  before: Record<string, unknown> | undefined,
+  after: Record<string, unknown> | undefined,
+): Highlight | null {
+  const h = after?.highlight as Partial<Highlight> | undefined;
+  if (!h || typeof h.seq !== "number" || typeof h.title !== "string" || typeof h.body !== "string") return null;
+  const was = (before?.highlight as Partial<Highlight> | undefined)?.seq;
+  if (was === h.seq) return null;
+  return { seq: h.seq, kind: String(h.kind ?? ""), title: h.title, body: h.body };
+}
+
+/** What a follower sees; a tap opens the match live. */
+export function highlightNotice(matchId: string, highlight: Highlight): Notice {
+  return {
+    title: highlight.title,
+    body: highlight.body,
+    data: { open: `match:${matchId}`, kind: highlight.kind },
+  };
+}
+
+/**
+ * Sends a match's new highlight to the phones following it that want match
+ * updates, leaving out the scorer's own phones.
+ */
+export async function sendHighlight(
+  store: DeviceStore,
+  sender: Sender,
+  matchId: string,
+  ownerUid: string | undefined,
+  highlight: Highlight,
+): Promise<Outcome> {
+  const followers = (await store.devicesFollowing(matchId)).filter(
+    (d) => wants(d.data, "follow") && d.data.ownerUid !== ownerUid,
+  );
+  return sendToDevices(store, sender, followers, highlightNotice(matchId, highlight));
+}
+

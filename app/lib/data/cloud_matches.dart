@@ -14,13 +14,32 @@ class PublishedMatch {
   final String ownerName;
 }
 
+/// The latest moment worth telling a match's followers (a wicket, a
+/// milestone, the result), published with the ball that made it. The Cloud
+/// Function sends it once, when [seq] first appears. Field names are a
+/// storage format the Function reads: never rename them.
+class MatchHighlight {
+  const MatchHighlight({required this.seq, required this.kind, required this.title, required this.body});
+
+  /// The number of events when it happened, so a resent write is not news.
+  final int seq;
+
+  /// [MomentKind.name].
+  final String kind;
+  final String title;
+  final String body;
+
+  Map<String, Object?> toJson() => {'seq': seq, 'kind': kind, 'title': title, 'body': body};
+}
+
 /// Published matches, readable by everyone. Each match is one document, the
 /// same shape as [MatchRecord.toJson], plus its owner. Writes are allowed only
 /// to the owner by the security rules in `firestore.rules`.
 abstract interface class CloudMatches {
-  /// Creates or replaces the match. Completes once the cloud has it; while
-  /// offline, Firestore keeps the write and sends it later.
-  Future<void> publish(MatchRecord record, Scorer owner);
+  /// Creates or replaces the match, with the [highlight] this save made, if
+  /// any. Completes once the cloud has it; while offline, Firestore keeps the
+  /// write and sends it later.
+  Future<void> publish(MatchRecord record, Scorer owner, {MatchHighlight? highlight});
 
   Future<void> unpublish(String matchId);
 
@@ -55,9 +74,11 @@ class FirestoreCloudMatches implements CloudMatches {
   CollectionReference<Map<String, Object?>> get _matches => _db.collection('matches');
 
   @override
-  Future<void> publish(MatchRecord record, Scorer owner) => _matches.doc(record.id).set({
+  Future<void> publish(MatchRecord record, Scorer owner, {MatchHighlight? highlight}) =>
+      _matches.doc(record.id).set({
         ...record.toJson(),
         'playerIds': matchPlayerIds(record.setup),
+        'highlight': ?highlight?.toJson(),
         'ownerUid': owner.uid,
         'ownerName': owner.name,
         'schema': schema,

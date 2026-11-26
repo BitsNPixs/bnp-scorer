@@ -144,6 +144,7 @@ class PushDevice {
     required this.token,
     required this.platform,
     required this.kinds,
+    this.follows = const [],
   });
 
   /// This install's id (not the token, which rotates).
@@ -155,11 +156,16 @@ class PushDevice {
   final String platform;
   final Set<PushKind> kinds;
 
+  /// Ids of published matches this phone follows, for the Function to find
+  /// with `array-contains`.
+  final List<String> follows;
+
   Map<String, Object?> toJson() => {
         'ownerUid': ownerUid,
         'token': token,
         'platform': platform,
         'kinds': {for (final k in PushKind.values) k.name: kinds.contains(k)},
+        'follows': follows,
       };
 }
 

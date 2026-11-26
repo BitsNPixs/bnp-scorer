@@ -11,6 +11,10 @@ export function firestoreDevices(db: Firestore): DeviceStore {
       const snapshot = await devices.where("ownerUid", "in", uids).get();
       return snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as DeviceDoc }));
     },
+    async devicesFollowing(matchId: string): Promise<Device[]> {
+      const snapshot = await devices.where("follows", "array-contains", matchId).get();
+      return snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() as DeviceDoc }));
+    },
     async remove(id: string): Promise<void> {
       await devices.doc(id).delete();
     },

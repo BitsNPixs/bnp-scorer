@@ -1,5 +1,7 @@
 import 'package:cricket_engine/cricket_engine.dart';
 
+import '../data/cloud_matches.dart';
+import '../data/match_record.dart';
 import '../state/upcoming.dart';
 
 const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -207,6 +209,84 @@ String matchStatus(MatchState state) {
       '$batting need ${plural(inn.runsNeeded!, 'run')} from ${plural(inn.ballsRemaining, 'ball')}',
     _ => '$batting ${scoreLine(inn)} (${inn.oversText} ov)',
   };
+}
+
+/// "Lions 87/4 (11.2 ov) v Tigers": the batting side's score and who they play.
+String scoreVersus(MatchSetup setup, InningsState innings) =>
+    '${setup.teamById(innings.battingTeamId).name} ${scoreLine(innings)} (${innings.oversText} ov) '
+    'v ${setup.teamById(innings.bowlingTeamId).name}';
+
+/// What a match's followers are told about [moment], as a push's title and
+/// body. [state] is the match just after it.
+({String title, String body}) momentText(MatchMoment moment, MatchState state) {
+  final setup = state.setup;
+  final inn = state.current;
+  final score = scoreVersus(setup, inn);
+  final name = playerName(setup, moment.playerId);
+  final batter = inn.batters.where((b) => b.playerId == moment.playerId).firstOrNull;
+  final innings = batter == null ? '' : '${batter.runs}${batter.isOut ? '' : '*'} (${batter.balls})';
+  switch (moment.kind) {
+    case MomentKind.started:
+      return (
+        title: '${setup.teamA.name} v ${setup.teamB.name} is underway',
+        body: '${setup.teamById(inn.battingTeamId).name} batting first',
+      );
+    case MomentKind.wicket:
+      return (
+        title: 'WICKET! $name ${batter == null ? '' : dismissalText(setup, batter)} $innings'.trim(),
+        body: score,
+      );
+    case MomentKind.fifty:
+      return (title: 'FIFTY! $name $innings', body: score);
+    case MomentKind.hundred:
+      return (title: 'HUNDRED! $name $innings', body: score);
+    case MomentKind.fiveWickets:
+      final f = inn.bowlers.where((b) => b.playerId == moment.playerId).firstOrNull;
+      return (title: 'FIVE-FOR! $name ${f == null ? '' : '${f.wickets}/${f.runs}'}'.trim(), body: score);
+    case MomentKind.inningsBreak:
+      return (
+        title: 'Innings break: ${setup.teamById(inn.battingTeamId).name} ${scoreLine(inn)} (${inn.oversText} ov)',
+        body: '${setup.teamById(inn.bowlingTeamId).name} need ${inn.runs + 1} to win',
+      );
+    case MomentKind.result:
+      return (
+        title: matchStatus(state),
+        body: [
+          for (final i in state.innings.take(2))
+            '${setup.teamById(i.battingTeamId).name} ${scoreLine(i)} (${i.oversText} ov)',
+        ].join(' · '),
+      );
+  }
+}
+
+/// The longest highlight text firestore.rules accepts; longer would refuse
+/// the whole match write, so it is clipped first.
+const highlightTitleMax = 120;
+const highlightBodyMax = 200;
+
+/// [text] cut to [max] characters, ending in an ellipsis when cut.
+String clip(String text, int max) => text.length <= max ? text : '${text.substring(0, max - 1)}…';
+
+/// The highlight [record]'s last event made, for its followers, or null for
+/// an ordinary ball. A log that cannot be replayed makes none.
+MatchHighlight? matchHighlight(MatchRecord record) {
+  final events = record.events;
+  if (events.isEmpty) return null;
+  try {
+    final before = ScoringEngine.replay(record.setup, events.sublist(0, events.length - 1));
+    final after = ScoringEngine.replay(record.setup, events);
+    final moment = momentOf(before, after);
+    if (moment == null) return null;
+    final text = momentText(moment, after);
+    return MatchHighlight(
+      seq: events.length,
+      kind: moment.kind.name,
+      title: clip(text.title, highlightTitleMax),
+      body: clip(text.body, highlightBodyMax),
+    );
+  } on Object {
+    return null;
+  }
 }
 
 /// The web page that explains a join code to someone without the app.

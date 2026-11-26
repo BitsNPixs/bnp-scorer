@@ -11,6 +11,7 @@ import '../widgets/over_strip.dart';
 import '../widgets/score_header.dart';
 import '../widgets/share_scorecard_sheet.dart';
 import '../widgets/surface_panel.dart';
+import '../widgets/push_settings.dart';
 
 /// Someone else's published match, read-only, updating as each ball is
 /// scored: the same tabs as the scorer sees, without the pad or scoring menu.
@@ -40,6 +41,7 @@ class WatchMatchScreen extends ConsumerWidget {
         return MatchTabsView(
           state: state,
           actions: [
+            FollowMatchButton(matchId: matchId, ownerUid: published.ownerUid, finished: state.isCompleted),
             IconButton(
               tooltip: 'Share',
               onPressed: () => showShareScorecardSheet(context, state),

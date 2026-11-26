@@ -1,3 +1,5 @@
+import 'dart:io' show Platform;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -13,6 +15,7 @@ import 'data/cloud_cups.dart';
 import 'data/cloud_matches.dart';
 import 'data/cloud_teams.dart';
 import 'data/demo_data.dart';
+import 'data/device_notifications.dart';
 import 'data/error_log.dart';
 import 'data/local_match_repository.dart';
 import 'data/local_team_repository.dart';
@@ -38,6 +41,7 @@ Future<void> main() async {
   installErrorHandlers(errors);
   final local = LocalMatchRepository(prefs);
   final accounts = await _startCloud();
+  final notifications = await _startNotifications();
   final hasCloud = accounts is FirebaseAccounts;
   final cloud = hasCloud ? FirestoreCloudMatches(FirebaseFirestore.instance) : null;
   final cups = hasCloud ? FirestoreCloudCups(FirebaseFirestore.instance) : null;
@@ -79,6 +83,7 @@ Future<void> main() async {
         teamRepositoryProvider.overrideWithValue(teams),
         tournamentRepositoryProvider.overrideWithValue(tournaments),
         scheduleRepositoryProvider.overrideWithValue(schedules),
+        deviceNotificationsProvider.overrideWithValue(notifications),
       ],
       child: const BnpScorerApp(),
     ),
@@ -94,5 +99,17 @@ Future<Accounts> _startCloud() async {
   } on Object catch (e) {
     debugPrint('Cloud not available, working on this phone only: $e');
     return const LocalOnlyAccounts();
+  }
+}
+
+/// Match reminders on Android and iOS. If the plugin cannot start, the app
+/// runs without them and offers no reminder switches.
+Future<DeviceNotifications> _startNotifications() async {
+  if (!Platform.isAndroid && !Platform.isIOS) return const NoDeviceNotifications();
+  try {
+    return await PluginDeviceNotifications.start();
+  } on Object catch (e) {
+    debugPrint('Reminders not available: $e');
+    return const NoDeviceNotifications();
   }
 }

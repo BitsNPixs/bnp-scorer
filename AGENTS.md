@@ -20,6 +20,17 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- **Notifications, stage 1 of 5: match reminders (2026-11-26).** Decided
+  with the owner: all four kinds (reminders, following a live match, team
+  activity, cup updates), pushes sent by Firebase Functions, Android first
+  and iOS push once the paid Apple account exists, permission asked at the
+  moment it is needed (docs/ROADMAP.md "Notifications"). Built: reminders
+  made on the phone (`flutter_local_notifications`, `timezone`), an offer
+  above the Upcoming strip, a Remind me switch on each upcoming sheet (one
+  switch for this phone's matches; per match for Everyone's), a bell on
+  reminded cards, Settings > Notifications with how long before, and a tap
+  opening the match. AGP is now 9.1.1 and compileSdk 37 (the plugin needs
+  both). Tests, analyze and both builds pass; not yet seen firing on a phone.
 - **Registered players, all built (2026-11-21), beta 0.9.0-beta.7 (build 8):**
   analyze clean, 192 engine, 477 app and 8 Worker tests passing, built with
   Firebase and upload-signed (`dist/bnp-scorer-0.9.0-beta.7.apk`), installed
@@ -281,6 +292,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
+| Match reminders: plan, settings, switches, the phone's notifications | `planReminders`, `ReminderLead`, `WatchedReminder`, `isReminderPayload` (`state/reminders.dart`), `reminderSettingsProvider`, `reminderSyncProvider`, `deviceNotificationsProvider`; `DeviceNotifications` (`data/device_notifications.dart`); `ReminderOffer`, `ReminderSwitch`, `ReminderSettingsPanel` (`widgets/reminders.dart`); `FakeDeviceNotifications` in tests |
 | Upcoming matches: list, strip, sheet, invite | `upcomingMatches`, `UpcomingMatch` (`state/upcoming.dart`), `upcomingProvider`, `UpcomingStrip`, `showUpcomingSheet` (`widgets/upcoming.dart`), `inviteText`, `upcomingWhen` (`ui/format.dart`) |
 | Start a fixture or scheduled friendly | `startFixtureMatch`, `startScheduledMatch` (`screens/new_match_screen.dart`) |
 | Fake share sheet in tests | `TextShares` (`test/fakes.dart`) |
@@ -348,8 +360,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp_scorer.teamIds`, `bnp_scorer.team.<id>`, `bnp_scorer.tournamentIds`,
   `bnp_scorer.tournament.<id>`, `bnp_scorer.scheduleIds`,
   `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode`,
-  `bnp_scorer.errorLog`, `bnp_scorer.playerIdsBackfill` and
-  `bnp_scorer.sharedTeamIds`. Changing them loses users' data.
+  `bnp_scorer.errorLog`, `bnp_scorer.playerIdsBackfill`,
+  `bnp_scorer.sharedTeamIds`, `bnp_scorer.reminders`,
+  `bnp_scorer.reminderLead` and `bnp_scorer.watchedReminders`. Changing them loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and

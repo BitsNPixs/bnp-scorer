@@ -248,9 +248,41 @@ Still to do, in order:
 6. TestFlight and the App Store: the paid account, privacy labels, and
    account deletion (as for Play).
 
+**Notifications (decided with the owner on 2026-11-26)**
+Goal: tell people what matters without opening the app, on Android and iOS.
+
+Decisions:
+- **All four kinds:** match reminders, following a live match (start,
+  wickets, fifties and hundreds, five-fors, innings break, result), team
+  activity (a join request to the captain, "you're in" to the player, "you
+  were added" to a player added by number), and cup updates (your team's
+  next fixture set or moved, a team through, the champion).
+- **Pushes are sent by Firebase Functions** on Firestore changes (Blaze is
+  already on for SMS), so a scorer's phone sends nothing extra and nobody can
+  fake a notification. The Functions live in `cloud/functions`; the owner
+  logs the Firebase CLI in once.
+- **Android first, iOS push later:** iOS push needs the paid Apple Developer
+  Program ($99 a year) for its APNs key. Until then iOS has reminders only.
+- **Permission asked at the right moment:** when the user turns reminders
+  on, follows a match, or shares a team invite, with the reason shown first;
+  never at launch. Settings > Notifications has a switch per kind.
+
+Order of work (each step tested and committed):
+1. Match reminders, made on the phone. Done 2026-11-26: the offer above
+   Upcoming, Remind me on each sheet, a bell on reminded cards, Settings with
+   how long before (15 min to 1 day), a tap opening the match. Up to 40
+   pending reminders (iOS keeps 64). Not yet seen firing on a phone.
+2. Push setup: `firebase_messaging`, each signed-in phone's token in
+   Firestore, rules, a switch per kind in Settings, `cloud/functions`.
+3. Follow a live match: a bell on a watched match; the scorer's app adds a
+   small "latest highlight" to the published match (derived by the engine
+   on the phone, like the summary fields), and a Function sends it to the
+   match's followers.
+4. Team activity, from `teams/{id}/joins` and team changes.
+5. Cup updates, from tournament changes.
+
 **Phase 3: push**
-- FCM pushes for wickets, milestones and results. Share a match link that opens
-  the live view.
+- See "Notifications" above. Share a match link that opens the live view.
 
 **Phase 4: tournaments and stats**
 - Tournaments, fixtures, points tables, NRR, career stats and leaderboards work
@@ -302,12 +334,13 @@ In priority order:
 9. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
 10. **Two Flutter versions (2026-11-26):** the owner's Mac has Flutter 3.50,
-    newer than the Windows machine's. On 3.50, `flutter build apk` refuses the
-    pinned Android Gradle Plugin 9.1.0 (minimum 9.1.1; it builds with
-    `--android-skip-build-dependency-validation`), and `flutter analyze` shows
-    94 infos asking to import `package:material_ui` instead of
-    `package:flutter/material.dart`. Settle on one Flutter version, then bump
-    AGP and migrate the imports as their own change.
+    newer than the Windows machine's. `flutter analyze` there shows infos
+    asking to import `package:material_ui` instead of
+    `package:flutter/material.dart`, one per file. AGP is now 9.1.1 (the
+    reminders plugin needed it, and so does 3.50). Settle on one Flutter
+    version, then migrate the imports as their own change. Icons rendered on
+    the Mac differ by a few edge pixels from the committed ones, so regenerate
+    icons on one machine only.
 
 ## Out of scope for v0.1
 - DLS, Test / multi-day formats, follow-on.

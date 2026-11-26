@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../ui/motion.dart';
 import '../widgets/logo_mark.dart';
 import '../widgets/match_card.dart';
+import '../widgets/reminders.dart';
 import '../widgets/scoring_sheets.dart';
 import '../widgets/settings_sheet.dart';
 import '../widgets/stadium_effects.dart';
@@ -105,6 +106,7 @@ class _MatchesTabState extends ConsumerState<MatchesTab> {
                   const SliverToBoxAdapter(
                     child: Padding(padding: EdgeInsets.fromLTRB(20, 8, 20, 10), child: SectionTitle('Upcoming')),
                   ),
+                  const SliverToBoxAdapter(child: ReminderOffer()),
                   SliverToBoxAdapter(child: UpcomingStrip(matches: upcoming)),
                   const SliverToBoxAdapter(child: SizedBox(height: 8)),
                 ],
@@ -186,6 +188,10 @@ class _EveryoneUpcoming extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final upcoming = ref.watch(publicUpcomingProvider);
+    // A followed match moved by its organiser moves its reminder too.
+    ref.listen(publicUpcomingProvider, (_, next) {
+      ref.read(reminderSettingsProvider.notifier).refreshWatched(next);
+    });
     if (upcoming.isEmpty) return const SliverToBoxAdapter(child: SizedBox.shrink());
     return SliverToBoxAdapter(
       child: Column(

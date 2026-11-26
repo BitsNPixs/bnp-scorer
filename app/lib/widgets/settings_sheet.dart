@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import 'avatars.dart';
 import 'phone_link_sheet.dart';
+import 'reminders.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
 
@@ -31,6 +32,7 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
         const SectionLabel('Appearance'),
         const SizedBox(height: 10),
         const _ThemePicker(),
+        const _NotificationsSection(),
         const _AccountSection(),
         const SizedBox(height: 24),
         const SectionLabel('Data'),
@@ -91,6 +93,25 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
     ),
   ),
 );
+
+/// Match reminders. Hidden where the phone has no notifications.
+class _NotificationsSection extends ConsumerWidget {
+  const _NotificationsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(deviceNotificationsProvider).available) return const SizedBox.shrink();
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(height: 24),
+        SectionLabel('Notifications'),
+        SizedBox(height: 10),
+        ReminderSettingsPanel(),
+      ],
+    );
+  }
+}
 
 /// Google sign-in, so the matches a scorer starts are published for everyone.
 /// Hidden in a build without the cloud.

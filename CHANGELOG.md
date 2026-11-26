@@ -3,6 +3,20 @@
 ## Unreleased
 
 ### Added
+- Match reminders (Android and iOS, made on the phone, nothing sent): the
+  first time a match is coming up, Matches offers "Get a reminder before
+  each match", and the permission prompt follows only from Turn on. Each
+  upcoming sheet has a Remind me switch (one switch for this phone's
+  fixtures and friendlies; for a match under Everyone, just that match), a
+  bell marks reminded cards, Settings > Notifications sets how long before
+  (15 min, 30 min, 1 hour, 2 hours, 1 day), and tapping a reminder opens the
+  match ready to start, or the cup for a followed fixture. A followed match
+  moved by its organiser moves its reminder. New dependencies:
+  `flutter_local_notifications`, `timezone`; Android Gradle Plugin 9.1.1,
+  compileSdk 37 and core library desugaring, which the plugin needs, and a
+  notification icon drawn from the logo by the icon generator. Privacy
+  policy: the notification and restart permissions. Not yet seen firing on
+  a phone.
 - iOS project (`app/ios`), generated on a Mac with the bundle ID
   `com.bitsnpixs.bnpscorer` (an iOS ID cannot hold the underscore in the
   Android one), the name BNP Scorer, minimum iOS 15, and a photo-library

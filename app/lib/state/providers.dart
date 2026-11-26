@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
@@ -10,6 +12,7 @@ import '../data/cloud_cups.dart';
 import '../data/cloud_matches.dart';
 import '../data/cloud_teams.dart';
 import '../data/device_contacts.dart';
+import '../data/device_notifications.dart';
 import '../data/device_files.dart';
 import '../data/error_log.dart';
 import '../data/match_record.dart';
@@ -20,6 +23,7 @@ import '../data/scheduled_match.dart';
 import '../data/syncing_teams.dart';
 import '../data/team_repository.dart';
 import '../data/tournament_repository.dart';
+import 'reminders.dart';
 import 'upcoming.dart';
 
 /// Overridden in `main()` with the real implementation.
@@ -243,6 +247,112 @@ final appLinksProvider = Provider<AppLinks>((ref) => PlatformAppLinks());
 
 /// The phone's contact picker. Tests override this.
 final deviceContactsProvider = Provider<DeviceContacts>((ref) => const PlatformDeviceContacts());
+
+/// The phone's notifications. `main()` overrides it on Android and iOS;
+/// tests and other platforms get none.
+final deviceNotificationsProvider = Provider<DeviceNotifications>((ref) => const NoDeviceNotifications());
+
+/// What reminders this phone wants: before its own matches ([ownOn], null
+/// until offered), how long before, and other people's matches it follows.
+typedef ReminderSettings = ({bool? ownOn, ReminderLead lead, List<WatchedReminder> watched});
+
+final reminderSettingsProvider = NotifierProvider<ReminderSettingsNotifier, ReminderSettings>(
+  ReminderSettingsNotifier.new,
+);
+
+/// Said when the phone refuses notifications.
+const notificationsOffMessage =
+    "Notifications are off for BNP Scorer. Turn them on in your phone's Settings, then try again.";
+
+class ReminderSettingsNotifier extends Notifier<ReminderSettings> {
+  AppSettings get _settings => ref.read(appSettingsProvider);
+
+  @override
+  ReminderSettings build() {
+    final settings = ref.watch(appSettingsProvider);
+    return (
+      ownOn: settings.remindersOn,
+      lead: settings.reminderLead,
+      watched: liveWatched(settings.watchedReminders, DateTime.now()),
+    );
+  }
+
+  /// Asks the phone first. Null when allowed, else what to tell the user.
+  Future<String?> _permit() async {
+    final device = ref.read(deviceNotificationsProvider);
+    if (!device.available) return 'Reminders are not available on this phone.';
+    if (await device.allowed() || await device.requestPermission()) return null;
+    return notificationsOffMessage;
+  }
+
+  /// Turns reminders before this phone's matches on or off. Turning them on
+  /// asks for permission at that moment; a refusal leaves them off. Returns
+  /// null when done, else the message to show.
+  Future<String?> setOwn(bool on) async {
+    if (on) {
+      final refused = await _permit();
+      if (refused != null) return refused;
+    }
+    state = (ownOn: on, lead: state.lead, watched: state.watched);
+    await _settings.setRemindersOn(on);
+    return null;
+  }
+
+  Future<void> setLead(ReminderLead lead) async {
+    state = (ownOn: state.ownOn, lead: lead, watched: state.watched);
+    await _settings.setReminderLead(lead);
+  }
+
+  bool isWatched(String upcomingId) => state.watched.any((w) => w.id == upcomingId);
+
+  /// Follows or stops following someone else's [match]. Null when done,
+  /// else the message to show.
+  Future<String?> toggleWatched(UpcomingMatch match) async {
+    if (isWatched(match.id)) {
+      await _saveWatched([for (final w in state.watched) if (w.id != match.id) w]);
+      return null;
+    }
+    final refused = await _permit();
+    if (refused != null) return refused;
+    await _saveWatched([...state.watched, WatchedReminder.of(match)]);
+    return null;
+  }
+
+  /// Takes the latest time, ground and names of followed matches from
+  /// [live], so a moved match moves its reminder. Saves only on a change.
+  Future<void> refreshWatched(List<UpcomingMatch> live) async {
+    final byId = {for (final m in live) m.id: m};
+    final updated = [
+      for (final w in state.watched)
+        if (byId[w.id] case final m? when m.startsAt != null) WatchedReminder.of(m) else w,
+    ];
+    String encode(List<WatchedReminder> list) => jsonEncode([for (final w in list) w.toJson()]);
+    if (encode(updated) != encode(state.watched)) await _saveWatched(updated);
+  }
+
+  Future<void> _saveWatched(List<WatchedReminder> watched) async {
+    state = (ownOn: state.ownOn, lead: state.lead, watched: watched);
+    await _settings.setWatchedReminders(watched);
+  }
+}
+
+/// Keeps the phone's pending reminders in line with the upcoming matches and
+/// [reminderSettingsProvider]. Watched by the home screen, so it reruns
+/// whenever either changes.
+final reminderSyncProvider = FutureProvider.autoDispose<List<Reminder>>((ref) async {
+  final settings = ref.watch(reminderSettingsProvider);
+  final device = ref.watch(deviceNotificationsProvider);
+  final own = await ref.watch(upcomingProvider.future);
+  final plan = planReminders(
+    own: own,
+    watched: settings.watched,
+    ownOn: settings.ownOn ?? false,
+    lead: settings.lead,
+    now: DateTime.now(),
+  );
+  if (device.available) await device.replaceReminders(plan);
+  return plan;
+}, retry: _noRetry);
 
 /// Overridden in `main()` with the real implementation.
 final teamRepositoryProvider = Provider<TeamRepository>(

@@ -52,6 +52,19 @@ void main() {
     });
   });
 
+  group('notification icon', () {
+    test('every density has the 24 dp mark', () {
+      for (final MapEntry(key: bucket, value: px) in _densities.entries) {
+        final size = (24 * px).round();
+        expect(_pngSize('drawable-$bucket/ic_stat_bnp.png'), (size, size), reason: bucket);
+      }
+    });
+
+    test('the reminders use that icon', () {
+      expect(_read('lib/data/device_notifications.dart'), contains("AndroidInitializationSettings('ic_stat_bnp')"));
+    });
+  });
+
   group('splash', () {
     test('the splash image is the 288 dp size Android 12 expects', () {
       expect(_pngSize('drawable-xxxhdpi/splash_icon.png'), (288 * 4, 288 * 4));

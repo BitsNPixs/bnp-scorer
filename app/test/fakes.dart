@@ -9,6 +9,7 @@ import 'package:bnp_scorer/data/cloud_matches.dart';
 import 'package:bnp_scorer/data/cloud_teams.dart';
 import 'package:bnp_scorer/data/device_contacts.dart';
 import 'package:bnp_scorer/data/device_files.dart';
+import 'package:bnp_scorer/data/device_notifications.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
@@ -16,6 +17,7 @@ import 'package:bnp_scorer/data/photo_store.dart';
 import 'package:bnp_scorer/data/scheduled_match.dart';
 import 'package:bnp_scorer/data/team_repository.dart';
 import 'package:bnp_scorer/data/tournament_repository.dart';
+import 'package:bnp_scorer/state/reminders.dart';
 
 class InMemoryMatchRepository implements MatchRepository {
   final records = <String, MatchRecord>{};
@@ -650,4 +652,46 @@ class FakeDevicePhotos implements DevicePhotos {
 
   @override
   Future<Uint8List?> pickPhoto() async => next;
+}
+
+/// The phone's notifications as a list of scheduled reminders. [allowedNow]
+/// is the permission; [grant] is what the permission prompt answers.
+class FakeDeviceNotifications implements DeviceNotifications {
+  FakeDeviceNotifications({this.allowedNow = false, this.grant = true, this.launch});
+
+  bool allowedNow;
+  bool grant;
+  String? launch;
+  int prompts = 0;
+  List<Reminder> scheduled = const [];
+  final _taps = StreamController<String>.broadcast();
+
+  /// Acts as if the user tapped a reminder while the app is open.
+  void tap(String payload) => _taps.add(payload);
+
+  @override
+  bool get available => true;
+
+  @override
+  Future<bool> allowed() async => allowedNow;
+
+  @override
+  Future<bool> requestPermission() async {
+    prompts++;
+    allowedNow = grant;
+    return grant;
+  }
+
+  @override
+  Future<void> replaceReminders(List<Reminder> reminders) async => scheduled = reminders;
+
+  @override
+  Stream<String> get taps => _taps.stream;
+
+  @override
+  Future<String?> launchPayload() async {
+    final payload = launch;
+    launch = null;
+    return payload;
+  }
 }

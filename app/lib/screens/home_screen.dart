@@ -5,15 +5,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/app_links.dart';
 import '../state/providers.dart';
+import '../state/reminders.dart';
 import '../ui/feedback.dart';
 import '../ui/motion.dart';
 import '../widgets/app_bottom_bar.dart';
 import '../widgets/join_team_sheet.dart';
+import '../widgets/upcoming.dart';
 import 'matches_tab.dart';
 import 'new_match_screen.dart';
 import 'stats_screen.dart';
 import 'teams_screen.dart';
 import 'tournaments_screen.dart';
+import 'watch_tournament_screen.dart';
 
 const _tabs = <BottomBarItem>[
   (icon: Icons.sports_cricket_outlined, selectedIcon: Icons.sports_cricket_rounded, label: 'Matches'),
@@ -34,6 +37,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
   StreamSubscription<Uri>? _links;
+  StreamSubscription<String>? _reminderTaps;
 
   @override
   void initState() {
@@ -43,12 +47,43 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     links.initialLink().then((link) {
       if (link != null && mounted) _openLink(link);
     });
+    final notifications = ref.read(deviceNotificationsProvider);
+    _reminderTaps = notifications.taps.listen(_openReminder);
+    notifications.launchPayload().then((payload) {
+      if (payload != null && mounted) _openReminder(payload);
+    });
   }
 
   @override
   void dispose() {
     _links?.cancel();
+    _reminderTaps?.cancel();
     super.dispose();
+  }
+
+  /// A tapped reminder opens its match: this phone's own on its sheet, ready
+  /// to start, and a followed cup fixture on the cup.
+  Future<void> _openReminder(String payload) async {
+    _select(0);
+    if (payload.startsWith(ownReminderPrefix)) {
+      final id = payload.substring(ownReminderPrefix.length);
+      final upcoming = await ref.read(upcomingProvider.future);
+      final match = upcoming.where((m) => m.id == id).firstOrNull;
+      if (!mounted) return;
+      if (match == null) {
+        showMessage(context, 'That match has started or was cancelled.');
+      } else {
+        await showUpcomingSheet(context, ref, match);
+      }
+    } else if (payload.startsWith(watchedReminderPrefix)) {
+      final id = payload.substring(watchedReminderPrefix.length);
+      final watched = ref.read(reminderSettingsProvider).watched.where((w) => w.id == id).firstOrNull;
+      if (watched?.tournamentId case final tournamentId?) {
+        await Navigator.of(context).push(
+          MaterialPageRoute<void>(builder: (_) => WatchTournamentScreen(tournamentId: tournamentId)),
+        );
+      }
+    }
   }
 
   /// A team invite opens the Teams tab with the join sheet, code filled in.
@@ -78,6 +113,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keeps the phone's reminders in line with what is coming up.
+    ref.watch(reminderSyncProvider);
     final pages = [
       MatchesTab(onNewMatch: _newMatch),
       const TournamentsScreen(),

@@ -9,6 +9,7 @@ import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import '../ui/format.dart';
 import '../ui/pickers.dart';
+import 'reminders.dart';
 import 'surface_panel.dart';
 
 /// Upcoming matches as a row of cards, soonest first. Tapping one opens what
@@ -23,6 +24,7 @@ class UpcomingStrip extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final now = DateTime.now();
+    final reminders = ref.watch(reminderSettingsProvider);
     return SizedBox(
       height: 128,
       child: ListView.separated(
@@ -33,6 +35,7 @@ class UpcomingStrip extends ConsumerWidget {
         itemBuilder: (context, i) => _UpcomingCard(
           match: matches[i],
           now: now,
+          reminded: isReminded(reminders, matches[i], watching: watching),
           onTap: () => showUpcomingSheet(context, ref, matches[i], watching: watching),
         ),
       ),
@@ -41,10 +44,13 @@ class UpcomingStrip extends ConsumerWidget {
 }
 
 class _UpcomingCard extends StatelessWidget {
-  const _UpcomingCard({required this.match, required this.now, required this.onTap});
+  const _UpcomingCard({required this.match, required this.now, required this.reminded, required this.onTap});
 
   final UpcomingMatch match;
   final DateTime now;
+
+  /// Shows a bell when a reminder is set for it.
+  final bool reminded;
   final VoidCallback onTap;
 
   @override
@@ -85,6 +91,14 @@ class _UpcomingCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (reminded && !due)
+                        const Icon(
+                          Icons.notifications_active_rounded,
+                          key: Key('reminder-bell'),
+                          size: 16,
+                          color: AppColors.neon,
+                          semanticLabel: 'Reminder set',
+                        ),
                     ],
                   ),
                   const Spacer(),
@@ -219,6 +233,11 @@ class _UpcomingSheet extends StatelessWidget {
                 },
               ),
             ),
+            const SizedBox(height: 8),
+            SurfacePanel(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: ReminderSwitch(match: match, watching: true),
+            ),
           ] else ...[
             FilledButton.icon(
               onPressed: () async {
@@ -238,6 +257,7 @@ class _UpcomingSheet extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: Column(
                 children: [
+                  ReminderSwitch(match: match, watching: false),
                   ListTile(
                     leading: const Icon(Icons.event_rounded),
                     title: Text(when == null ? 'Set a time' : 'Change time'),

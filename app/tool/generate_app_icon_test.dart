@@ -1,5 +1,5 @@
-// Draws the BNP Scorer logo as the app icon, the splash mark and the
-// website's icons, and writes them into the Android project and site/img.
+// Draws the BNP Scorer logo as the app icon, the notification icon, the
+// splash mark and the website's icons, and writes them into the Android project and site/img.
 // Not part of the test suite (it lives outside test/). Regenerate after
 // changing the art with:
 //
@@ -53,6 +53,14 @@ void main() {
         ]) {
           await _write('mipmap-$bucket/$name.png', layerSize, (c) => paintLogo(c, px, layer));
         }
+        // Notification icon (match reminders): 24 dp, the white ball with
+        // its letters cut out, which Android tints with the brand green.
+        final status = (24 * px).round();
+        await _write(
+          'drawable-$bucket/ic_stat_bnp.png',
+          status,
+          (c) => paintLogo(c, status / 72, LogoLayer.monochrome, crop: logoSafeZone),
+        );
         // Older launchers: 48 dp, the safe zone only, with rounded corners.
         final legacy = (48 * px).round();
         await _write(

@@ -28,8 +28,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   and shows pushes that arrive while open. Rules for `pushDevices` are in
   `firestore.rules`. **Deployed 2026-11-26:** the project is on Blaze
   (upgraded that day), the rules are in the console, `pushTest` is live in
-  asia-south1 with a 1-day build-image cleanup policy. The test button is
-  not yet tried on a phone (needs an Android phone or emulator). The
+  asia-south1 with a 1-day build-image cleanup policy. **Tried on the
+  owner's phone (2026-11-26):** a debug build from the Mac (its debug key
+  now registered in Firebase), signed in, Team activity on, and the test
+  push arrived (Function log: sent 1, failed 0). The phone had a backup made
+  first, then beta.7 was uninstalled for the differently signed build. The
   three kinds' switches send nothing until stages 3 to 5, so don't release
   between stages.
 - **Notifications, stage 1 of 5: match reminders (2026-11-26).** Decided

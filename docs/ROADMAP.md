@@ -279,8 +279,8 @@ Order of work (each step tested and committed):
    pushes shown while the app is open, the registration removed before
    sign-out and a new one made if the last account's was left behind.
    `cloud/functions` with `pushTest`, deployed 2026-11-26 after the owner
-   logged in, upgraded to Blaze and published the rules. Still to try: the
-   test button on an Android phone.
+   logged in, upgraded to Blaze and published the rules. The test push
+   reached the owner's Android phone the same day.
 3. Follow a live match: a bell on a watched match; the scorer's app adds a
    small "latest highlight" to the published match (derived by the engine
    on the phone, like the summary fields), and a Function sends it to the

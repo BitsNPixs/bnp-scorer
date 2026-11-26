@@ -38,6 +38,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
   StreamSubscription<Uri>? _links;
   StreamSubscription<String>? _reminderTaps;
+  StreamSubscription<Object>? _foregroundPushes;
 
   @override
   void initState() {
@@ -52,12 +53,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     notifications.launchPayload().then((payload) {
       if (payload != null && mounted) _openReminder(payload);
     });
+    // The phone shows no push while the app is open; show it the same way.
+    _foregroundPushes = ref.read(pushMessagesProvider).foreground.listen(notifications.show);
   }
 
   @override
   void dispose() {
     _links?.cancel();
     _reminderTaps?.cancel();
+    _foregroundPushes?.cancel();
     super.dispose();
   }
 
@@ -115,6 +119,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Widget build(BuildContext context) {
     // Keeps the phone's reminders in line with what is coming up.
     ref.watch(reminderSyncProvider);
+    // And this phone's push registration with who is signed in.
+    ref.watch(pushSyncProvider);
     final pages = [
       MatchesTab(onNewMatch: _newMatch),
       const TournamentsScreen(),

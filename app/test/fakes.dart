@@ -12,6 +12,7 @@ import 'package:bnp_scorer/data/device_files.dart';
 import 'package:bnp_scorer/data/device_notifications.dart';
 import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/data/player_directory.dart';
+import 'package:bnp_scorer/data/push_messages.dart';
 import 'package:bnp_scorer/data/match_repository.dart';
 import 'package:bnp_scorer/data/photo_store.dart';
 import 'package:bnp_scorer/data/scheduled_match.dart';
@@ -685,6 +686,11 @@ class FakeDeviceNotifications implements DeviceNotifications {
   @override
   Future<void> replaceReminders(List<Reminder> reminders) async => scheduled = reminders;
 
+  final shown = <PushNotice>[];
+
+  @override
+  Future<void> show(PushNotice notice) async => shown.add(notice);
+
   @override
   Stream<String> get taps => _taps.stream;
 
@@ -694,4 +700,71 @@ class FakeDeviceNotifications implements DeviceNotifications {
     launch = null;
     return payload;
   }
+}
+
+/// Cloud Messaging with a fixed [token] (null: none to be had).
+class FakePushMessages implements PushMessages {
+  FakePushMessages({this.token = 'token-1'});
+
+  String? token;
+  bool enabled = false;
+  final _refreshes = StreamController<String>.broadcast();
+  final _foreground = StreamController<PushNotice>.broadcast();
+
+  void refresh(String next) {
+    token = next;
+    _refreshes.add(next);
+  }
+
+  void arrive(PushNotice notice) => _foreground.add(notice);
+
+  @override
+  bool get available => true;
+
+  @override
+  Future<String?> enable() async {
+    enabled = true;
+    return token;
+  }
+
+  @override
+  Future<void> disable() async => enabled = false;
+
+  @override
+  Stream<String> get tokenRefreshes => _refreshes.stream;
+
+  @override
+  Stream<PushNotice> get foreground => _foreground.stream;
+
+  @override
+  Stream<PushNotice> get opened => const Stream.empty();
+
+  @override
+  Future<PushNotice?> launchNotice() async => null;
+}
+
+/// pushDevices as a map. Like the rules, a device id already saved under
+/// another owner cannot be changed.
+class FakePushDevices implements PushDevices {
+  final saved = <String, PushDevice>{};
+  final tests = <String>[];
+  bool failDelete = false;
+
+  @override
+  Future<void> save(PushDevice device) async {
+    final existing = saved[device.id];
+    if (existing != null && existing.ownerUid != device.ownerUid) {
+      throw StateError('permission-denied');
+    }
+    saved[device.id] = device;
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    if (failDelete) throw StateError('offline');
+    saved.remove(id);
+  }
+
+  @override
+  Future<void> requestTest(String id) async => tests.add(id);
 }

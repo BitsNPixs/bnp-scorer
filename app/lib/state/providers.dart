@@ -18,6 +18,8 @@ import '../data/error_log.dart';
 import '../data/match_record.dart';
 import '../data/match_repository.dart';
 import '../data/photo_store.dart';
+import '../data/push_messages.dart';
+import '../data/push_registration.dart';
 import '../data/player_directory.dart';
 import '../data/scheduled_match.dart';
 import '../data/syncing_teams.dart';
@@ -264,6 +266,14 @@ final reminderSettingsProvider = NotifierProvider<ReminderSettingsNotifier, Remi
 const notificationsOffMessage =
     "Notifications are off for BNP Scorer. Turn them on in your phone's Settings, then try again.";
 
+/// Asks the phone, at the moment the user turns something on, whether the
+/// app may notify. Null when allowed, else what to tell the user.
+Future<String?> permitNotifications(DeviceNotifications device) async {
+  if (!device.available) return 'Notifications are not available on this phone.';
+  if (await device.allowed() || await device.requestPermission()) return null;
+  return notificationsOffMessage;
+}
+
 class ReminderSettingsNotifier extends Notifier<ReminderSettings> {
   AppSettings get _settings => ref.read(appSettingsProvider);
 
@@ -277,13 +287,7 @@ class ReminderSettingsNotifier extends Notifier<ReminderSettings> {
     );
   }
 
-  /// Asks the phone first. Null when allowed, else what to tell the user.
-  Future<String?> _permit() async {
-    final device = ref.read(deviceNotificationsProvider);
-    if (!device.available) return 'Reminders are not available on this phone.';
-    if (await device.allowed() || await device.requestPermission()) return null;
-    return notificationsOffMessage;
-  }
+  Future<String?> _permit() => permitNotifications(ref.read(deviceNotificationsProvider));
 
   /// Turns reminders before this phone's matches on or off. Turning them on
   /// asks for permission at that moment; a refusal leaves them off. Returns
@@ -455,3 +459,55 @@ final matchListProvider = FutureProvider.autoDispose<List<MatchSummary>>((ref) a
   }
   return summaries;
 });
+
+/// Firebase Cloud Messaging. `main()` overrides it in cloud builds on
+/// Android; tests, iOS (until it has an APNs key) and builds without the
+/// cloud get none.
+final pushMessagesProvider = Provider<PushMessages>((ref) => const NoPushMessages());
+
+/// Where push registrations are kept. Null without the cloud.
+final pushDevicesProvider = Provider<PushDevices?>((ref) => null);
+
+final pushRegistrationProvider = Provider<PushRegistration>(
+  (ref) => PushRegistration(
+    push: ref.watch(pushMessagesProvider),
+    devices: ref.watch(pushDevicesProvider),
+    settings: ref.watch(appSettingsProvider),
+  ),
+);
+
+/// The pushes this phone asked for.
+final pushKindsProvider = NotifierProvider<PushKindsNotifier, Set<PushKind>>(PushKindsNotifier.new);
+
+class PushKindsNotifier extends Notifier<Set<PushKind>> {
+  @override
+  Set<PushKind> build() => ref.watch(appSettingsProvider).pushKinds;
+
+  /// Turns one kind on or off. Turning one on needs a signed-in scorer, since
+  /// pushes go to people, and asks for permission at that moment. Null when
+  /// done, else the message to show.
+  Future<String?> set(PushKind kind, bool on) async {
+    if (on) {
+      if (!ref.read(pushRegistrationProvider).available) return 'Updates are not available on this phone yet.';
+      if (ref.read(accountsProvider).current == null) return 'Sign in first, so updates know who they are for.';
+      final refused = await permitNotifications(ref.read(deviceNotificationsProvider));
+      if (refused != null) return refused;
+    }
+    state = on ? {...state, kind} : ({...state}..remove(kind));
+    await ref.read(appSettingsProvider).setPushKinds(state);
+    return null;
+  }
+}
+
+/// Keeps this phone's push registration in step with the scorer and the
+/// kinds chosen, and with token changes. Watched by the home screen.
+final pushSyncProvider = FutureProvider.autoDispose<void>((ref) async {
+  final registration = ref.watch(pushRegistrationProvider);
+  if (!registration.available) return;
+  final scorer = ref.watch(scorerProvider).value;
+  final kinds = ref.watch(pushKindsProvider);
+  final refreshes = registration.push.tokenRefreshes.listen((_) => registration.sync(scorer, kinds));
+  ref.onDispose(refreshes.cancel);
+  await registration.sync(scorer, kinds);
+}, retry: _noRetry);
+

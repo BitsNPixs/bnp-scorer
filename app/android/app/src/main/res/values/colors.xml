@@ -2,4 +2,6 @@
 <resources>
     <!-- AppColors.night: the splash and launch background in both themes. -->
     <color name="splash_background">#081008</color>
+    <!-- Tints the notification icon: AppColors.brandGreen. -->
+    <color name="notification_color">#6FAE29</color>
 </resources>

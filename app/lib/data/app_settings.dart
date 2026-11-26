@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../state/reminders.dart';
+import 'ids.dart';
+import 'push_messages.dart';
 
 /// Small per-device preferences. Values are stored by name, so reordering an
 /// enum never changes what a saved setting means.
@@ -17,6 +19,9 @@ class AppSettings {
   static const remindersKey = 'bnp_scorer.reminders';
   static const reminderLeadKey = 'bnp_scorer.reminderLead';
   static const watchedRemindersKey = 'bnp_scorer.watchedReminders';
+  static const pushKindsKey = 'bnp_scorer.pushKinds';
+  static const deviceIdKey = 'bnp_scorer.deviceId';
+  static const pushRegisteredKey = 'bnp_scorer.pushRegistered';
 
   /// Follows the phone until the scorer picks light or dark.
   ThemeMode get themeMode {
@@ -51,6 +56,39 @@ class AppSettings {
 
   Future<void> setWatchedReminders(List<WatchedReminder> watched) =>
       _prefs.setStringList(watchedRemindersKey, [for (final w in watched) jsonEncode(w.toJson())]);
+
+  /// The pushes this phone asked for. Empty until the user turns one on.
+  Set<PushKind> get pushKinds {
+    final names = _prefs.getStringList(pushKindsKey) ?? const [];
+    return {for (final k in PushKind.values) if (names.contains(k.name)) k};
+  }
+
+  Future<void> setPushKinds(Set<PushKind> kinds) =>
+      _prefs.setStringList(pushKindsKey, [for (final k in kinds) k.name]);
+
+  /// This install's id, made on first use: names its push registration, so a
+  /// new token replaces the old one instead of piling up.
+  String get deviceId {
+    final stored = _prefs.getString(deviceIdKey);
+    if (stored != null) return stored;
+    final id = newId();
+    _prefs.setString(deviceIdKey, id);
+    return id;
+  }
+
+  /// A fresh [deviceId], for when the old registration belongs to someone
+  /// else and cannot be taken over.
+  Future<String> renewDeviceId() async {
+    final id = newId();
+    await _prefs.setString(deviceIdKey, id);
+    return id;
+  }
+
+  /// Whether this phone's push registration is in Firestore, so signing out
+  /// or turning every kind off knows to remove it.
+  bool get pushRegistered => _prefs.getBool(pushRegisteredKey) ?? false;
+
+  Future<void> setPushRegistered(bool registered) => _prefs.setBool(pushRegisteredKey, registered);
 
   static WatchedReminder? _readWatched(String text) {
     try {

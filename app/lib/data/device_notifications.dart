@@ -6,6 +6,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../state/reminders.dart';
+import 'push_messages.dart';
 
 /// The phone's notifications, behind a boundary so screens can be tested
 /// without them. Reminders are made on the phone: nothing is sent anywhere.
@@ -22,6 +23,10 @@ abstract interface class DeviceNotifications {
 
   /// Makes [reminders] the phone's pending reminders, cancelling any others.
   Future<void> replaceReminders(List<Reminder> reminders);
+
+  /// Shows a push that arrived while the app is open, which the phone does
+  /// not show by itself then.
+  Future<void> show(PushNotice notice);
 
   /// The payload of a notification the user tapped while the app was open.
   Stream<String> get taps;
@@ -45,6 +50,9 @@ class NoDeviceNotifications implements DeviceNotifications {
 
   @override
   Future<void> replaceReminders(List<Reminder> reminders) async {}
+
+  @override
+  Future<void> show(PushNotice notice) async {}
 
   @override
   Stream<String> get taps => const Stream.empty();
@@ -74,6 +82,20 @@ class PluginDeviceNotifications implements DeviceNotifications {
     iOS: DarwinNotificationDetails(),
   );
 
+  /// Pushes: live matches, teams and cups. Its id is also the default
+  /// channel in AndroidManifest.xml, so pushes the phone shows by itself land
+  /// in the same place.
+  static const updatesChannelId = 'updates';
+
+  static const _updates = AndroidNotificationDetails(
+    updatesChannelId,
+    'Match and team updates',
+    channelDescription: 'Matches you follow, your teams and your cups',
+    importance: Importance.high,
+    priority: Priority.high,
+    color: Color(0xFF6FAE29),
+  );
+
   /// Starts the plugin without asking for permission: that waits for the
   /// moment the user turns reminders on.
   static Future<PluginDeviceNotifications> start() async {
@@ -92,6 +114,14 @@ class PluginDeviceNotifications implements DeviceNotifications {
         if (response.payload case final payload?) notifications._taps.add(payload);
       },
     );
+    // Made now so a push that arrives before the app ever showed one still
+    // has its channel.
+    await notifications._android?.createNotificationChannel(const AndroidNotificationChannel(
+      updatesChannelId,
+      'Match and team updates',
+      description: 'Matches you follow, your teams and your cups',
+      importance: Importance.high,
+    ));
     return notifications;
   }
 
@@ -148,6 +178,19 @@ class PluginDeviceNotifications implements DeviceNotifications {
       );
     }
   }
+
+  /// Shown pushes take ids from a base of their own, so one never replaces
+  /// a reminder; cycling through 1000 keeps the tray from filling forever.
+  int _shown = 0;
+
+  @override
+  Future<void> show(PushNotice notice) => _plugin.show(
+        id: 0x40000000 + (_shown++ % 1000),
+        title: notice.title,
+        body: notice.body,
+        notificationDetails: const NotificationDetails(android: _updates, iOS: DarwinNotificationDetails()),
+        payload: notice.data['open'],
+      );
 
   @override
   Stream<String> get taps => _taps.stream;

@@ -22,7 +22,7 @@
     <p>BNP Scorer, by BitsNPixs Technologies Private Limited. Effective 17 November 2026. Updated the same day for sign-in, live matches,
     tournaments and scheduled matches, on 18 November 2026 for pasting and importing teams, and on
     21 November 2026 for mobile numbers (including signing in with one), player profiles, profile
-    photos, picking a contact and team invites, and on 26 November 2026 for match reminders.</p>
+    photos, picking a contact and team invites, and on 26 November 2026 for match reminders and live updates.</p>
   </header>
 
   <section>
@@ -121,6 +121,18 @@
   </section>
 
   <section>
+    <h2>Live updates (optional)</h2>
+    <p>If you are signed in and turn on an update in <em>Settings ›
+    Notifications</em> (matches you follow, team activity or cup updates), the
+    app registers your phone with Google's Firebase Cloud Messaging and stores
+    in our database: a push token for this phone, your account id, whether it
+    is Android or iOS, and which updates you chose. Only your account can read
+    it. We use it only to send you those updates. Turning every update off, or
+    signing out, deletes it and the token. No token is made until you turn one
+    on.</p>
+  </section>
+
+  <section>
     <h2>Removing what you published</h2>
     <ul>
       <li><strong>One match or tournament:</strong> delete it in the app (hold it
@@ -129,6 +141,8 @@
       <li><strong>A scheduled match:</strong> cancel it, or start it; either
         removes it.</li>
       <li><strong>A shared team:</strong> delete it on the Teams tab.</li>
+      <li><strong>Stop updates:</strong> turn them off in <em>Settings ›
+        Notifications</em>, or sign out; this phone's registration is deleted.</li>
       <li><strong>Stop publishing:</strong> sign out in <em>Settings ›
         Account</em>. What you already published stays public until you delete
         it.</li>
@@ -143,7 +157,7 @@
 
   <section>
     <h2>Who else handles your data</h2>
-    <p>Cloudflare stores and serves profile photos and team logos for us (R2 and Workers). Google runs our sign-in, the SMS codes and our database (Firebase), and
+    <p>Cloudflare stores and serves profile photos and team logos for us (R2 and Workers). Google runs our sign-in, the SMS codes, push notifications and our database (Firebase), and
     handles that data for us under the
     <a href="https://firebase.google.com/support/privacy">Firebase privacy and security terms</a>.
     Like any web service, it sees the network address of the phone connecting to

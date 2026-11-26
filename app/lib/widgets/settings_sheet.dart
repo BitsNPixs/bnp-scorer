@@ -14,6 +14,7 @@ import '../theme/app_theme.dart';
 import '../ui/feedback.dart';
 import 'avatars.dart';
 import 'phone_link_sheet.dart';
+import 'push_settings.dart';
 import 'reminders.dart';
 import 'scoring_sheets.dart';
 import 'surface_panel.dart';
@@ -94,7 +95,8 @@ Future<void> showSettingsSheet(BuildContext context) => showModalBottomSheet<voi
   ),
 );
 
-/// Match reminders. Hidden where the phone has no notifications.
+/// Match reminders and live updates. Hidden where the phone has no
+/// notifications.
 class _NotificationsSection extends ConsumerWidget {
   const _NotificationsSection();
 
@@ -108,6 +110,7 @@ class _NotificationsSection extends ConsumerWidget {
         SectionLabel('Notifications'),
         SizedBox(height: 10),
         ReminderSettingsPanel(),
+        PushSettingsPanel(),
       ],
     );
   }
@@ -171,7 +174,7 @@ class _AccountSection extends ConsumerWidget {
                       title: Text(scorer.name, maxLines: 1, overflow: TextOverflow.ellipsis),
                       subtitle: const Text('New matches and tournaments you create are public'),
                       trailing: TextButton(
-                        onPressed: () => _signOut(context, accounts),
+                        onPressed: () => _signOut(context, ref, accounts),
                         child: const Text('Sign out'),
                       ),
                     ),
@@ -219,8 +222,11 @@ class _AccountSection extends ConsumerWidget {
     return agreed ?? false;
   }
 
-  Future<void> _signOut(BuildContext context, Accounts accounts) async {
+  Future<void> _signOut(BuildContext context, WidgetRef ref, Accounts accounts) async {
     try {
+      // First, while Firestore still knows whose it is: this phone stops
+      // getting the account's notifications.
+      await ref.read(pushRegistrationProvider).forget();
       await accounts.signOut();
       if (context.mounted) showMessage(context, 'Signed out. New matches stay on this phone.');
     } on Object catch (e) {

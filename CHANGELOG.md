@@ -3,6 +3,16 @@
 ## Unreleased
 
 ### Added
+- Push setup (Android, cloud builds): Settings > Notifications gains a switch
+  for each kind of live update (matches you follow, team activity, cup
+  updates) while signed in, and "Send me a test notification". Turning one
+  on asks for permission then and registers the phone in
+  `pushDevices/{installId}`; no push token exists before that, turning all
+  off or signing out removes it, and pushes that arrive while the app is open
+  are shown like reminders. Firebase Functions in `cloud/functions` send
+  them (`pushTest` for now); the kinds start sending in the next stages. New
+  dependency: `firebase_messaging`. Privacy policy: the push token. Not yet
+  deployed or tried on a phone.
 - Match reminders (Android and iOS, made on the phone, nothing sent): the
   first time a match is coming up, Matches offers "Get a reminder before
   each match", and the permission prompt follows only from Turn on. Each

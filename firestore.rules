@@ -208,6 +208,24 @@ service cloud.firestore {
       }
     }
 
+    // A phone registered for push: its token and the kinds of update it
+    // wants. Private to its owner; the Functions read it with admin rights.
+    // The app sets testRequestedAt to ask for a test notification.
+    match /pushDevices/{deviceId} {
+      function deviceOk() {
+        let d = request.resource.data;
+        return d.token is string && d.token.size() < 4096
+          && d.platform in ['android', 'ios']
+          && d.kinds is map
+          && d.keys().hasOnly(['ownerUid', 'token', 'platform', 'kinds', 'updatedAt', 'testRequestedAt']);
+      }
+
+      allow read: if request.auth != null && resource.data.ownerUid == request.auth.uid;
+      allow create: if createsOwn() && deviceOk();
+      allow update: if changesOwn() && deviceOk();
+      allow delete: if deletesOwn();
+    }
+
     // Everything else is closed until a later step opens it on purpose.
     match /{document=**} {
       allow read, write: if false;

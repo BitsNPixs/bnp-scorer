@@ -285,6 +285,33 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
   or diagnostics (problem reports are sent by the user through the share sheet),
   device ids. Not shared with third parties; Firebase is a processor. No ads.
 
+## Push (Firebase Functions)
+
+Live updates (docs/ROADMAP.md "Notifications") are sent by Cloud Functions in
+`cloud/functions` (TypeScript, Node 22, region `asia-south1`) when Firestore
+changes. The app registers a signed-in phone in `pushDevices/{installId}`
+(token, owner, platform, the kinds chosen in Settings > Notifications); no
+token is made until a kind is turned on, and signing out deletes it first.
+Android only until iOS has an APNs key (the paid Apple developer account,
+uploaded under Firebase > Project settings > Cloud Messaging).
+
+```sh
+brew install firebase-cli && firebase login     # once, as the project owner
+cd cloud/functions && npm ci && npx tsc --noEmit && npx vitest run
+cd ../.. && firebase deploy --only functions     # needs the Blaze plan
+```
+
+- `pushTest` answers Settings > Send me a test notification: the app sets
+  `testRequestedAt` on its device document and the Function pushes back.
+- `push.ts` holds the sending rules (who wants which kind, batches of 500,
+  removing devices whose token is gone), tested with fakes; `adapters.ts`
+  connects them to Firestore and Cloud Messaging.
+- The rules for `pushDevices` are in `firestore.rules`: paste them into the
+  console as before (`firebase deploy --only firestore:rules` does the same,
+  but replaces whatever is in the console).
+- Play Data safety: Device or other IDs (the push token), collected for app
+  functionality, optional, deleted when updates are turned off.
+
 ## Photos (Cloudflare R2)
 
 Player photos (and, next, team logos) live in the R2 bucket `bnp-photos`

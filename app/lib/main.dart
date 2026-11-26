@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,7 @@ import 'data/local_team_repository.dart';
 import 'data/match_repository.dart';
 import 'data/photo_store.dart';
 import 'data/player_directory.dart';
+import 'data/push_messages.dart';
 import 'data/scheduled_match.dart';
 import 'data/syncing_cups.dart';
 import 'data/syncing_match_repository.dart';
@@ -48,6 +50,11 @@ Future<void> main() async {
   final players = hasCloud ? FirestorePlayerDirectory(FirebaseFirestore.instance) : null;
   final cloudTeams = hasCloud ? FirestoreCloudTeams(FirebaseFirestore.instance) : null;
   final photos = hasCloud && photosBaseUrl.isNotEmpty ? HttpPhotoStore(accounts) : null;
+  // Push on Android only for now: iOS needs an APNs key (the paid Apple
+  // developer account) before Firebase can reach it.
+  final PushMessages push =
+      hasCloud && Platform.isAndroid ? FirebasePushMessages(FirebaseMessaging.instance) : const NoPushMessages();
+  final pushDevices = hasCloud ? FirestorePushDevices(FirebaseFirestore.instance) : null;
   final MatchRepository repository = cloud == null ? local : SyncingMatchRepository(local, cloud, accounts);
   final localTeams = LocalTeamRepository(prefs);
   final syncingTeams = cloudTeams == null ? null : SyncingTeamRepository(localTeams, cloudTeams, accounts, prefs);
@@ -84,6 +91,8 @@ Future<void> main() async {
         tournamentRepositoryProvider.overrideWithValue(tournaments),
         scheduleRepositoryProvider.overrideWithValue(schedules),
         deviceNotificationsProvider.overrideWithValue(notifications),
+        pushMessagesProvider.overrideWithValue(push),
+        pushDevicesProvider.overrideWithValue(pushDevices),
       ],
       child: const BnpScorerApp(),
     ),

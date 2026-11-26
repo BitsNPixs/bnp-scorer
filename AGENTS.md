@@ -20,6 +20,16 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- **Notifications, stage 2 of 5: push setup (2026-11-26).** The Firebase
+  CLI (Homebrew) and `cloud/functions` (TypeScript, Node 22, `asia-south1`,
+  9 Vitest tests) with `pushTest`; the app (`firebase_messaging`, Android
+  only until an APNs key) registers a signed-in phone in `pushDevices`
+  once a kind is on in Settings > Notifications, removes it before sign-out,
+  and shows pushes that arrive while open. Rules for `pushDevices` are in
+  `firestore.rules`. **Not deployed yet:** waits for the owner's `firebase
+  login`, the rules paste, and a try of the test button on a phone. The
+  three kinds' switches send nothing until stages 3 to 5, so don't release
+  between stages.
 - **Notifications, stage 1 of 5: match reminders (2026-11-26).** Decided
   with the owner: all four kinds (reminders, following a live match, team
   activity, cup updates), pushes sent by Firebase Functions, Android first
@@ -293,6 +303,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
 | Match reminders: plan, settings, switches, the phone's notifications | `planReminders`, `ReminderLead`, `WatchedReminder`, `isReminderPayload` (`state/reminders.dart`), `reminderSettingsProvider`, `reminderSyncProvider`, `deviceNotificationsProvider`; `DeviceNotifications` (`data/device_notifications.dart`); `ReminderOffer`, `ReminderSwitch`, `ReminderSettingsPanel` (`widgets/reminders.dart`); `FakeDeviceNotifications` in tests |
+| Push: kinds, registration, sending | `PushKind`, `PushMessages`, `PushDevices`, `PushDevice` (`data/push_messages.dart`), `PushRegistration` (`data/push_registration.dart`), `pushKindsProvider`, `pushSyncProvider`, `pushRegistrationProvider`, `permitNotifications`; `PushSettingsPanel` (`widgets/push_settings.dart`); Functions: `sendToUsers`, `sendToDevices` (`cloud/functions/src/push.ts`); `FakePushMessages`, `FakePushDevices` in tests |
 | Upcoming matches: list, strip, sheet, invite | `upcomingMatches`, `UpcomingMatch` (`state/upcoming.dart`), `upcomingProvider`, `UpcomingStrip`, `showUpcomingSheet` (`widgets/upcoming.dart`), `inviteText`, `upcomingWhen` (`ui/format.dart`) |
 | Start a fixture or scheduled friendly | `startFixtureMatch`, `startScheduledMatch` (`screens/new_match_screen.dart`) |
 | Fake share sheet in tests | `TextShares` (`test/fakes.dart`) |
@@ -362,7 +373,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp_scorer.schedule.<id>`, `bnp_scorer.themeMode`,
   `bnp_scorer.errorLog`, `bnp_scorer.playerIdsBackfill`,
   `bnp_scorer.sharedTeamIds`, `bnp_scorer.reminders`,
-  `bnp_scorer.reminderLead` and `bnp_scorer.watchedReminders`. Changing them loses users' data.
+  `bnp_scorer.reminderLead`, `bnp_scorer.watchedReminders`,
+  `bnp_scorer.pushKinds`, `bnp_scorer.deviceId` and
+  `bnp_scorer.pushRegistered`. Changing them loses users' data.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and
@@ -390,6 +403,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 
 ## Commands
 ```sh
+# Functions (push)
+cd cloud/functions && npm ci && npx tsc --noEmit && npx vitest run
 # photos Worker (run from an uppercase D: path on Windows, or Vitest loads twice)
 cd cloud/photos-worker && npm ci && npx tsc --noEmit && npx vitest run && npx wrangler deploy --dry-run
 # engine

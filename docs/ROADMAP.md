@@ -272,8 +272,14 @@ Order of work (each step tested and committed):
    Upcoming, Remind me on each sheet, a bell on reminded cards, Settings with
    how long before (15 min to 1 day), a tap opening the match. Up to 40
    pending reminders (iOS keeps 64). Not yet seen firing on a phone.
-2. Push setup: `firebase_messaging`, each signed-in phone's token in
-   Firestore, rules, a switch per kind in Settings, `cloud/functions`.
+2. Push setup: done in code 2026-11-26. `firebase_messaging` (Android
+   only until iOS has an APNs key), `pushDevices/{installId}` with token,
+   owner, platform and kinds (rules in `firestore.rules`), a switch per
+   kind and "Send me a test notification" in Settings > Notifications,
+   pushes shown while the app is open, the registration removed before
+   sign-out and a new one made if the last account's was left behind.
+   `cloud/functions` with `pushTest`. Owner: `firebase login`, paste the
+   rules, then deploy and try the test button.
 3. Follow a live match: a bell on a watched match; the scorer's app adds a
    small "latest highlight" to the published match (derived by the engine
    on the phone, like the summary fields), and a Function sends it to the

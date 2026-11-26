@@ -26,8 +26,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   only until an APNs key) registers a signed-in phone in `pushDevices`
   once a kind is on in Settings > Notifications, removes it before sign-out,
   and shows pushes that arrive while open. Rules for `pushDevices` are in
-  `firestore.rules`. **Not deployed yet:** waits for the owner's `firebase
-  login`, the rules paste, and a try of the test button on a phone. The
+  `firestore.rules`. **Deployed 2026-11-26:** the project is on Blaze
+  (upgraded that day), the rules are in the console, `pushTest` is live in
+  asia-south1 with a 1-day build-image cleanup policy. The test button is
+  not yet tried on a phone (needs an Android phone or emulator). The
   three kinds' switches send nothing until stages 3 to 5, so don't release
   between stages.
 - **Notifications, stage 1 of 5: match reminders (2026-11-26).** Decided

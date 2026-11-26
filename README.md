@@ -301,6 +301,13 @@ cd cloud/functions && npm ci && npx tsc --noEmit && npx vitest run
 cd ../.. && firebase deploy --only functions     # needs the Blaze plan
 ```
 
+The first deploy (2026-11-26) turned on the Google Cloud services Functions
+need; the Eventarc permission takes a few minutes, so a first deploy can fail
+once and pass on a retry. Old build images are deleted after a day
+(`firebase functions:artifacts:setpolicy --location asia-south1`), so they
+never build up a storage bill. `firebase login` stores the sign-in for the
+Mac user; run it in Terminal, not through an agent.
+
 - `pushTest` answers Settings > Send me a test notification: the app sets
   `testRequestedAt` on its device document and the Function pushes back.
 - `push.ts` holds the sending rules (who wants which kind, batches of 500,

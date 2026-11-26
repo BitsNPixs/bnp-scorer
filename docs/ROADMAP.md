@@ -82,8 +82,8 @@ Still to do:
    and ball icon (owner, 2026-11-18).
 5. ~~A release build~~ Done on 2026-11-10: it builds, installs over the debug
    build keeping data, and runs, with no internet permission. It is still
-   signed with the debug key; the Play Store needs a real upload key. Then iOS
-   on a Mac.
+   signed with the debug key; the Play Store needs a real upload key. iOS
+   was started on a Mac on 2026-11-26 (see "iOS" below).
 
 **Beta readiness (before testers outside the owner's circle)**
 Done on 2026-11-17: release signing setup, byes and leg byes on run outs and
@@ -220,6 +220,31 @@ Order of work (each step tested and committed):
    GitHub Release `v0.9.0-beta.3`, served by the website's download button.
    Not yet tried on two phones against the real Firestore (see "Next").
 
+**iOS (started 2026-11-26 on the owner's Mac)**
+Done: `app/ios` generated (bundle ID `com.bitsnpixs.bnpscorer`, minimum iOS
+15, Swift Package Manager), a debug build seen running in the iPhone 17e
+Simulator to the Matches home, phone-only.
+
+Still to do, in order:
+1. App icon and launch screen from `paintLogo`: extend
+   `tool/generate_app_icon_test.dart` to write
+   `ios/Runner/Assets.xcassets` (1024 px, no transparency) and check it in
+   `test/app_icon_test.dart`.
+2. Score a match in the Simulator; check the share sheet (iPad needs a
+   share origin, or the app may crash there; or limit the app to iPhone),
+   the file picker and the photo picker.
+3. Run on an iPhone: an Apple ID in Xcode signs a debug build for 7 days.
+4. Firebase: the owner adds an iOS app with `com.bitsnpixs.bnpscorer` and
+   gives `GoogleService-Info.plist` (gitignored); add its `REVERSED_CLIENT_ID`
+   URL scheme for Google sign-in. Mobile-number sign-in needs APNs, so the
+   paid Apple developer account ($99 a year), or falls back to a reCAPTCHA
+   page.
+5. Swift sides of the two channels in `MainActivity.kt`: the contact picker
+   (`CNContactPickerViewController`, no permission) and the
+   `bnpscorer://join` link (URL scheme in `Info.plist`).
+6. TestFlight and the App Store: the paid account, privacy labels, and
+   account deletion (as for Play).
+
 **Phase 3: push**
 - FCM pushes for wickets, milestones and results. Share a match link that opens
   the live view.
@@ -273,6 +298,13 @@ In priority order:
    reads one document per played match.
 9. **Minor:** `LiveMatchNotifier.build` uses `ref.read` for the repository
     (`ref.watch` is more idiomatic); `useMaterial3: true` is redundant.
+10. **Two Flutter versions (2026-11-26):** the owner's Mac has Flutter 3.50,
+    newer than the Windows machine's. On 3.50, `flutter build apk` refuses the
+    pinned Android Gradle Plugin 9.1.0 (minimum 9.1.1; it builds with
+    `--android-skip-build-dependency-validation`), and `flutter analyze` shows
+    94 infos asking to import `package:material_ui` instead of
+    `package:flutter/material.dart`. Settle on one Flutter version, then bump
+    AGP and migrate the imports as their own change.
 
 ## Out of scope for v0.1
 - DLS, Test / multi-day formats, follow-on.

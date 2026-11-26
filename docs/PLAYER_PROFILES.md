@@ -90,4 +90,4 @@ Owner tasks in the Firebase console before step 8 is tried on a phone:
 - A recycled number inherits the old profile (the number is the identity).
 - "This year" and ordering use `MatchRecord.createdAt`, the phone's clock.
 - Matches published by scorers who never update to beta.7 have no `playerIds` and stay off profiles, including when opened from a watched cup.
-- iOS: phone auth needs APNs; the contacts picker needs Swift. Both wait for the iOS folder.
+- iOS: phone auth needs APNs; the contacts picker needs Swift. The iOS folder exists (2026-11-26); both are in docs/ROADMAP.md "iOS".

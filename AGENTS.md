@@ -113,7 +113,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - A release build (`flutter build apk --release`) was installed and ran on the
   phone on 2026-11-10. Until `key.properties` exists it is signed with the debug
   key, so it installs over a debug build. Once a real key is used, phones must
-  uninstall the debug-signed app first, which deletes their data. iOS is untried.
+  uninstall the debug-signed app first, which deletes their data. iOS runs in the Simulator only (below).
 - Since 2026-11-17 work happens on `main`, which the owner pushed to
   `github.com/BitsNPixs/bnp-scorer` (a **public** repo); there is no `dev` branch.
   Commit each finished, verified piece of work; the owner pushes.
@@ -144,8 +144,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   the demo data, and `app/tool/build_site_assets.py` makes `site/img/` and
   `site/fonts/` (README "Website and privacy policy"). Rerun both after a visible
   change; never edit the images by hand.
-- `app/android` is generated. `app/ios` is **not generated yet** and iOS is
-  unverified (needs a Mac). See README "Setup".
+- `app/android` and `app/ios` are generated. **iOS (2026-11-26):** generated
+  on the owner's Mac (bundle ID `com.bitsnpixs.bnpscorer`, minimum iOS 15,
+  plugins through Swift Package Manager, no Podfile); a debug build ran in
+  the iPhone 17e Simulator (iOS 27.2) to the Matches home. Phone-only for
+  now: no `GoogleService-Info.plist` (no iOS app in Firebase yet), and the
+  contact picker and invite links have no Swift side (both fall back
+  quietly). The iOS app icon is still Flutter's default: the icon generator
+  writes Android only. Not tried on an iPhone. See README "Setup" and
+  docs/ROADMAP.md "iOS".
 - Saved teams work offline and are edited on the Teams tab.
 - **Squad import (2026-11-18):** "Paste a list" on New match and the team page
   reads a WhatsApp-style list (marks like (c) and (wk) apply on the team page);

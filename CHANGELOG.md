@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+### Added
+- iOS project (`app/ios`), generated on a Mac with the bundle ID
+  `com.bitsnpixs.bnpscorer` (an iOS ID cannot hold the underscore in the
+  Android one), the name BNP Scorer, minimum iOS 15, and a photo-library
+  reason for picking a profile photo or team logo. Plugins come through Swift
+  Package Manager. A debug build runs in the iPhone Simulator, phone-only.
+  Still to do: the app icon (Flutter's default for now), Firebase for iOS,
+  the contact picker and invite links on iOS, and a real iPhone.
+- `pubspec.lock` moves `meta`, `test_api` and `vector_math` to the versions
+  Flutter 3.50 pins.
+
 ## 0.9.0-beta.7 — 2026-11-21
 
 Registered players, the CricHeroes way: sign in with Google or a mobile

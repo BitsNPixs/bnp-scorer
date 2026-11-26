@@ -147,13 +147,14 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - `app/android` and `app/ios` are generated. **iOS (2026-11-26):** generated
   on the owner's Mac (bundle ID `com.bitsnpixs.bnpscorer`, minimum iOS 15,
   plugins through Swift Package Manager, no Podfile); a debug build ran in
-  the iPhone 17e Simulator (iOS 27.2) to the Matches home. Phone-only for
-  now: no `GoogleService-Info.plist` (no iOS app in Firebase yet), and the
-  contact picker and invite links have no Swift side (both fall back
-  quietly). The iOS app icon is still Flutter's default: the icon generator
+  the iPhone 17e Simulator (iOS 27.2) to the Matches home. The contact
+  picker and invite links have no Swift side yet (both fall back quietly). Cloud: the iOS app is in Firebase and its gitignored
+  `GoogleService-Info.plist` is copied in, with the sign-in URL schemes, by
+  the Runner build step "Copy Firebase Config" (README "Cloud"); installed
+  on the iPhone, sign-in not yet tried there. The iOS app icon is still Flutter's default: the icon generator
   writes Android only. A release, signed by the owner's free Personal
   Team through the gitignored `ios/Flutter/Signing.xcconfig`, was installed
-  on an iPhone 16 Pro Max the same day; not yet tried there. See README "Setup" and
+  on an iPhone 16 Pro Max the same day and opens there. See README "Setup" and
   docs/ROADMAP.md "iOS".
 - Saved teams work offline and are edited on the Teams tab.
 - **Squad import (2026-11-18):** "Paste a list" on New match and the team page

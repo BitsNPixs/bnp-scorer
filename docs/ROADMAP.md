@@ -236,11 +236,12 @@ Still to do, in order:
 3. ~~Run on an iPhone~~ Installed on an iPhone 16 Pro Max (iOS 27.2.1) on
    2026-11-26, a release signed by the owner's free Personal Team (lasts 7
    days; README "Setup"). Not yet tried there.
-4. Firebase: the owner adds an iOS app with `com.bitsnpixs.bnpscorer` and
-   gives `GoogleService-Info.plist` (gitignored); add its `REVERSED_CLIENT_ID`
-   URL scheme for Google sign-in. Mobile-number sign-in needs APNs, so the
-   paid Apple developer account ($99 a year), or falls back to a reCAPTCHA
-   page.
+4. ~~Firebase~~ Done in code on 2026-11-26: the iOS app is registered, its
+   `GoogleService-Info.plist` is gitignored, and a build step copies it and
+   adds the sign-in URL schemes (README "Cloud"). Installed on the iPhone;
+   Google sign-in, number sign-in (reCAPTCHA page, no APNs on the free
+   account) and publishing not yet tried there. APNs needs the paid Apple
+   developer account ($99 a year).
 5. Swift sides of the two channels in `MainActivity.kt`: the contact picker
    (`CNContactPickerViewController`, no permission) and the
    `bnpscorer://join` link (URL scheme in `Info.plist`).

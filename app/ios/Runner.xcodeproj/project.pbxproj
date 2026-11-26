@@ -156,6 +156,7 @@
 				97C146EA1CF9000F007C117D /* Sources */,
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
+				B0F1A5E2C0FFEE0000000001 /* Copy Firebase Config */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
@@ -235,6 +236,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		B0F1A5E2C0FFEE0000000001 /* Copy Firebase Config */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Firebase Config";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# GoogleService-Info.plist is gitignored (README \"Cloud\"). Builds that have it\n# get sign-in and the cloud; builds without it run on the phone only.\nplist=\"${SRCROOT}/Runner/GoogleService-Info.plist\"\n[ -f \"$plist\" ] || exit 0\ncp \"$plist\" \"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}/\"\n# URL schemes from the same file, added to the built Info.plist next to any\n# others: Google sign-in returns through the reversed client id, and phone\n# sign-in's reCAPTCHA through the encoded app id.\ninfo=\"${TARGET_BUILD_DIR}/${INFOPLIST_PATH}\"\nreversed=$(/usr/libexec/PlistBuddy -c \"Print :REVERSED_CLIENT_ID\" \"$plist\")\napp_id=$(/usr/libexec/PlistBuddy -c \"Print :GOOGLE_APP_ID\" \"$plist\" | sed -e 's/:/-/g' -e 's/^/app-/')\nplutil -p \"$info\" | grep -q \"$reversed\" && exit 0\nplutil -extract CFBundleURLTypes raw \"$info\" >/dev/null 2>&1 || plutil -insert CFBundleURLTypes -array \"$info\"\nplutil -insert CFBundleURLTypes -xml \"<dict><key>CFBundleURLName</key><string>firebase</string><key>CFBundleURLSchemes</key><array><string>$reversed</string><string>$app_id</string></array></dict>\" -append \"$info\"\n";
+		};
 		3B06AD1E1E4923F5004D2608 /* Thin Binary */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;

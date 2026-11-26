@@ -110,9 +110,9 @@ docs/                      Architecture and roadmap
    (`xcodebuild -downloadPlatform iOS`) and CocoaPods (`brew install
    cocoapods`). Plugins come in through Swift Package Manager (there is no
    Podfile); the first build fetches the Firebase and Google Sign-In
-   packages. Minimum iOS is 15. iOS builds have no `GoogleService-Info.plist`
-   yet, so they run phone-only, like Android builds without
-   `google-services.json`.
+   packages. Minimum iOS is 15. Sign-in and the cloud need
+   `GoogleService-Info.plist` (see "Cloud"); without it iOS builds run
+   phone-only, like Android builds without `google-services.json`.
 
    ```sh
    cd app
@@ -231,6 +231,14 @@ matches"; registered players: docs/PLAYER_PROFILES.md.
 - **Config:** `app/android/app/google-services.json`, downloaded from the Firebase
   console (Project settings > Your apps > BNP Scorer). It is gitignored. Without
   it the app still builds and runs on the phone only, with no sign-in.
+- **iOS config:** `app/ios/Runner/GoogleService-Info.plist`, from the iOS app
+  `com.bitsnpixs.bnpscorer` on the same console page (registered 2026-11-26).
+  Also gitignored. The Runner build step "Copy Firebase Config" copies it into
+  the app when present and adds the two URL schemes it implies (the reversed
+  client id for Google sign-in, the encoded app id for phone sign-in's
+  reCAPTCHA) to the built Info.plist, so no Firebase ids are committed. Without
+  APNs (it needs the paid Apple account) phone sign-in shows a reCAPTCHA page
+  before the SMS.
 - **Sign-in fingerprints:** Google sign-in only works in builds signed with a key
   whose SHA-1 and SHA-256 are listed on that console page: the debug key, the
   upload key, and later the Play app-signing key. Read them with

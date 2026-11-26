@@ -32,3 +32,6 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# The Apple team that signs builds on this Mac (README "Setup").
+Flutter/Signing.xcconfig

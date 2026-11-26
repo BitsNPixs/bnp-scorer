@@ -117,8 +117,35 @@ docs/                      Architecture and roadmap
    ```sh
    cd app
    flutter build ios --simulator --debug
-   open -a Simulator && flutter run      # or pick an iPhone with -d
    ```
+
+   (In Xcode 27 the simulator window is in DeviceHub, inside Xcode.app.)
+
+   **iOS on a phone:** add an Apple ID in Xcode > Settings > Accounts (a
+   free Personal Team works: the app stops opening after 7 days), connect
+   the iPhone, tap Trust, and turn on Settings > Privacy & Security >
+   Developer Mode. Put the team in `app/ios/Flutter/Signing.xcconfig`
+   (gitignored, so a personal team never reaches this public repo; the
+   Debug and Release configs include it when it exists):
+
+   ```
+   DEVELOPMENT_TEAM = <team id>
+   CODE_SIGN_STYLE = Automatic
+   ```
+
+   The first time, let Xcode make the certificate and profile, then build
+   and install a release (a debug build opens only from the Mac):
+
+   ```sh
+   cd app/ios && xcodebuild -workspace Runner.xcworkspace -scheme Runner \
+     -configuration Release -destination id=<iPhone UDID> \
+     -allowProvisioningUpdates -allowProvisioningDeviceRegistration build
+   cd .. && flutter build ios --release
+   xcrun devicectl device install app --device <iPhone UDID> build/ios/iphoneos/Runner.app
+   ```
+
+   On the phone, allow the developer once under Settings > General > VPN &
+   Device Management. `xcrun devicectl list devices` shows the UDID.
 3. Run on a device or emulator: `flutter run`.
 
 ## Demo data

@@ -1,1 +1,3 @@
 #include "Generated.xcconfig"
+// Your Apple team, kept out of git (README "Setup", iOS on a phone).
+#include? "Signing.xcconfig"

@@ -151,7 +151,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   now: no `GoogleService-Info.plist` (no iOS app in Firebase yet), and the
   contact picker and invite links have no Swift side (both fall back
   quietly). The iOS app icon is still Flutter's default: the icon generator
-  writes Android only. Not tried on an iPhone. See README "Setup" and
+  writes Android only. A release, signed by the owner's free Personal
+  Team through the gitignored `ios/Flutter/Signing.xcconfig`, was installed
+  on an iPhone 16 Pro Max the same day; not yet tried there. See README "Setup" and
   docs/ROADMAP.md "iOS".
 - Saved teams work offline and are edited on the Teams tab.
 - **Squad import (2026-11-18):** "Paste a list" on New match and the team page

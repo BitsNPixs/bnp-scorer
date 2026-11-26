@@ -233,7 +233,9 @@ Still to do, in order:
 2. Score a match in the Simulator; check the share sheet (iPad needs a
    share origin, or the app may crash there; or limit the app to iPhone),
    the file picker and the photo picker.
-3. Run on an iPhone: an Apple ID in Xcode signs a debug build for 7 days.
+3. ~~Run on an iPhone~~ Installed on an iPhone 16 Pro Max (iOS 27.2.1) on
+   2026-11-26, a release signed by the owner's free Personal Team (lasts 7
+   days; README "Setup"). Not yet tried there.
 4. Firebase: the owner adds an iOS app with `com.bitsnpixs.bnpscorer` and
    gives `GoogleService-Info.plist` (gitignored); add its `REVERSED_CLIENT_ID`
    URL scheme for Google sign-in. Mobile-number sign-in needs APNs, so the

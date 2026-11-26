@@ -9,7 +9,10 @@
   reason for picking a profile photo or team logo. Plugins come through Swift
   Package Manager. A debug build runs in the iPhone Simulator, phone-only.
   Still to do: the app icon (Flutter's default for now), Firebase for iOS,
-  the contact picker and invite links on iOS, and a real iPhone.
+  and the contact picker and invite links on iOS.
+- iOS signing reads the Apple team from `app/ios/Flutter/Signing.xcconfig`,
+  gitignored, so a personal team stays out of the public repo. A release
+  was installed on an iPhone this way (README "Setup").
 - `pubspec.lock` moves `meta`, `test_api` and `vector_math` to the versions
   Flutter 3.50 pins.
 

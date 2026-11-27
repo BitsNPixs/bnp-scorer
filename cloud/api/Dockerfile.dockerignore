@@ -1,0 +1,5 @@
+*
+!packages/cricket_engine
+!cloud/api
+**/.dart_tool
+**/build

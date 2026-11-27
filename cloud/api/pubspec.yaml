@@ -1,0 +1,21 @@
+name: bnp_api
+description: >-
+  BNP Scorer's server: replays published matches with the cricket engine and
+  stores a ready-to-read copy for the website and the API.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  cricket_engine:
+    path: ../../packages/cricket_engine
+  googleapis: ^15.0.0
+  googleapis_auth: ^2.0.0
+  http: ^1.2.0
+  shelf: ^1.4.0
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

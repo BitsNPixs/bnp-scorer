@@ -60,6 +60,51 @@
    (docs/PLAYER_PROFILES.md, release 4); handing a match to another scorer is
    still to do.
 
+## Website and API (planned 2026-11-27)
+The owner wants match details on the website as they look in the app, and
+maybe an admin page later, as a lasting design rather than a patch.
+
+**The problem:** a published match is its setup and its balls; the score
+exists only after `cricket_engine` replays them, and the rules must not be
+written a second time in another language.
+
+**The design (stored read copies):**
+1. The scorer's app keeps writing `matches/{id}` as now. It stays the source
+   of truth, and offline scoring is untouched.
+2. A Dart service on Cloud Run (`cloud/api`, asia-south1) is called by a
+   Firestore trigger on every match write. It imports `cricket_engine`,
+   replays the match and stores a small card for lists and the full
+   scorecard view. Only the server writes these. Triggers can arrive twice
+   or out of order, so it re-reads the match and never replaces a copy made
+   from more balls.
+3. The same service serves them as a versioned, cached API
+   (`/v1/matches`, `/v1/matches/{id}`, later tournaments and players).
+4. The website reads the API; the admin page later uses it with sign-in.
+5. Later the app's Everyone list and player careers read the stored copies
+   and stop downloading every ball.
+
+Why not Dart in Firebase Functions: experimental, and its Firestore
+triggers cannot be deployed (checked 2026-11-27). Why not a copy of the
+engine in JavaScript on the site: no API for the admin page or anyone else.
+Fallback if the trigger cannot reach Dart directly: the TypeScript
+Functions take the trigger and call the service over HTTP.
+
+**Stages:** 0. the trial below; 1. the match view JSON as pure Dart with
+tests (the wording helpers the app keeps in `ui/format.dart` move where
+both can use them); 2. the service, trigger, rules for the new collections
+and a rebuild of existing matches; 3. the API; 4. the website's match page
+and list, and "share a match link" in the app; 5. the app reads the stored
+copies; 6. the admin page. The privacy policy and the site's feature list
+change with stage 4.
+
+**Stage 0, the trial (2026-11-27):** `cloud/api` is a throwaway service that
+stores only a score line in `trialViews/{id}`. Proven on the Mac: it reads
+real published matches over Firestore's REST API (`googleapis`), replays
+them with the engine, and runs as a 17 MB container. **Not yet proven:**
+the deploy to Cloud Run, the Firestore trigger reaching it, writing with
+the service's own account, and the real delay and cost. Those need the
+Google Cloud CLI signed in by the owner.
+
 ## Phases
 **Phase 0: make v0.1 real (next)**
 Done: Android folder, compile, analyzer and tests green, install on a phone, git.

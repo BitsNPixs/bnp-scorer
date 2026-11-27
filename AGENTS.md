@@ -20,6 +20,13 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
+- **Website and API, stage 0: a trial (2026-11-27).** Planned with the
+  owner (docs/ROADMAP.md "Website and API"): a Dart service on Cloud Run
+  replays each saved match with `cricket_engine` and stores a ready-to-read
+  copy that an API, the website and later an admin page read. `cloud/api`
+  is the trial: it reads real matches and replays them on the Mac and in a
+  container (1 test). **Not deployed**; the trigger, server writes, delay
+  and cost are unproven until the owner signs the Google Cloud CLI in.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -423,6 +430,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 ```sh
 # Functions (push)
 cd cloud/functions && npm ci && npx tsc --noEmit && npx vitest run
+# API service (trial); the image builds from the repo root
+cd cloud/api && dart pub get && dart analyze && dart test
+docker build -f cloud/api/Dockerfile -t bnp-api .
 # photos Worker (run from an uppercase D: path on Windows, or Vitest loads twice)
 cd cloud/photos-worker && npm ci && npx tsc --noEmit && npx vitest run && npx wrangler deploy --dry-run
 # engine

@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Website and API, stage 0 (a trial, nothing users can see): `cloud/api`, a
+  Dart service that reads a published match from Firestore, replays it with
+  `cricket_engine` and can store its score line, for Cloud Run. Run on the
+  Mac against real matches and as a container; not deployed. The plan is in
+  docs/ROADMAP.md "Website and API".
 - Follow a live match (Android, cloud builds, signed in): a bell on a match
   under Everyone follows it, turning on "Matches you follow" (and asking for
   permission) the first time. Followers get a notification for the start,

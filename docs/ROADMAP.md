@@ -97,13 +97,22 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
-**Stage 0, the trial (2026-11-27):** `cloud/api` is a throwaway service that
-stores only a score line in `trialViews/{id}`. Proven on the Mac: it reads
-real published matches over Firestore's REST API (`googleapis`), replays
-them with the engine, and runs as a 17 MB container. **Not yet proven:**
-the deploy to Cloud Run, the Firestore trigger reaching it, writing with
-the service's own account, and the real delay and cost. Those need the
-Google Cloud CLI signed in by the owner.
+**Stage 0, the trial (2026-11-27): passed.** `cloud/api` is a throwaway
+service that stores only a score line in `trialViews/{id}`. Deployed as the
+private Cloud Run service `bnp-api-trial` (asia-south1, at most 2
+instances, running as the service account `bnp-api`, which holds only
+Firestore access), with the Eventarc trigger `bnp-api-trial-matches` on
+`matches/{matchId}`. The owner scored 13 balls of a published match on
+their phone: all 14 saves reached the service in order, each was replayed
+(8 to 37 ms; 89 ms on a cold start) and stored, and the stored score
+matched the phone (25/2 after 1.2 overs). From the phone saving a ball to
+the stored copy took 1.0 to 2.4 seconds, the slowest being the cold start.
+The trigger's CloudEvent names the document in its `ce-document` header,
+so the protobuf body is never parsed. Cost is not measured yet (too little
+use to show on a bill). Build the image with `cloud/api/cloudbuild.yaml`
+from a copy holding only `packages/cricket_engine` and `cloud/api`.
+Remove the trial service, its trigger and `trialViews` when stage 2's
+real service replaces them.
 
 ## Phases
 **Phase 0: make v0.1 real (next)**

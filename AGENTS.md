@@ -24,9 +24,11 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   owner (docs/ROADMAP.md "Website and API"): a Dart service on Cloud Run
   replays each saved match with `cricket_engine` and stores a ready-to-read
   copy that an API, the website and later an admin page read. `cloud/api`
-  is the trial: it reads real matches and replays them on the Mac and in a
-  container (1 test). **Not deployed**; the trigger, server writes, delay
-  and cost are unproven until the owner signs the Google Cloud CLI in.
+  is the trial, **deployed and passed**: the private Cloud Run service
+  `bnp-api-trial` and the trigger `bnp-api-trial-matches` replayed and
+  stored each of 13 balls scored on the owner's phone within 1.0 to 2.4
+  seconds (1 test). Both are throwaway, to be removed when stage 2's real
+  service replaces them. Next: stage 1, the match view JSON.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state

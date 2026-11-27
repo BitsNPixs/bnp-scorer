@@ -1,0 +1,9 @@
+# Builds the API image from the repo root (the engine package is outside
+# cloud/api): gcloud builds submit . --config cloud/api/cloudbuild.yaml
+#   --ignore-file cloud/api/.gcloudignore --region asia-south1
+steps:
+  - name: gcr.io/cloud-builders/docker
+    args: [build, -f, cloud/api/Dockerfile, -t, $_IMAGE, .]
+images: [$_IMAGE]
+substitutions:
+  _IMAGE: asia-south1-docker.pkg.dev/$PROJECT_ID/bnp-api/server:latest

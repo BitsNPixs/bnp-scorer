@@ -97,6 +97,20 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
+**Stage 3 (2026-11-27): built, not deployed.** The public API is in
+`cloud/api` (README "API server", docs/ARCHITECTURE.md "Public API"):
+`GET /v1/matches` and `GET /v1/matches/{id}` from the stored copies, a
+second service `bnp-api` from the same image with the read-only account
+`bnp-api-reader`. 36 tests in `cloud/api` now. `deploy.sh` deploys both
+services, the account and the index (`firestore.indexes.json`), and now
+sets `ROLE`, which the image requires. **Not deployed:** the assistant's
+permission check refused the deploy of a public service, so the owner runs
+`sh cloud/api/deploy.sh` in a terminal. Unverified until then: the
+Firestore query behind the list (`FirestoreMatchReads.cards`), its index,
+and the read-only account. Known limits: a match its scorer never finishes
+stays "live" for ever (the website should show how long ago it changed);
+the API's address is Cloud Run's own until a BNP domain is put in front.
+
 **Stage 2 (2026-11-27): deployed.** `cloud/api` is the real service
 (README "API server", docs/ARCHITECTURE.md "Stored copies"): it stores
 `matchCards/{id}` and `matchViews/{id}` for every save, keeps the newest

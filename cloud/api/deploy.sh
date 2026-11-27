@@ -1,14 +1,17 @@
 #!/bin/sh
 # Builds and deploys the server to Cloud Run (README "API server").
-# Needs the Google Cloud CLI signed in with access to the project.
+# Needs the Google Cloud CLI and the Firebase CLI, both signed in with
+# access to the project.
 #   sh cloud/api/deploy.sh            build, deploy, and make sure the trigger exists
 set -eu
 
 PROJECT=bnp-scorer
 REGION=asia-south1
 SERVICE=bnp-api-projector
+API=bnp-api
 IMAGE=$REGION-docker.pkg.dev/$PROJECT/bnp-api/server:latest
 ACCOUNT=bnp-api@$PROJECT.iam.gserviceaccount.com
+READER=bnp-api-reader@$PROJECT.iam.gserviceaccount.com
 ROOT=$(cd "$(dirname "$0")/../.." && pwd)
 
 # Upload only what the image needs: the repo root holds far more.
@@ -26,7 +29,23 @@ gcloud builds submit "$STAGE" --project "$PROJECT" --region "$REGION" \
 # it. Capped so a runaway can never cost much.
 gcloud run deploy "$SERVICE" --project "$PROJECT" --region "$REGION" --image "$IMAGE" \
   --service-account "$ACCOUNT" --no-allow-unauthenticated \
-  --max-instances 3 --memory 256Mi --set-env-vars "PROJECT_ID=$PROJECT"
+  --max-instances 3 --memory 256Mi --set-env-vars "PROJECT_ID=$PROJECT,ROLE=projector"
+
+# The public API: the same image, told to serve only, as an account that can
+# read Firestore and nothing more. Anyone may call it.
+if ! gcloud iam service-accounts describe "$READER" --project "$PROJECT" >/dev/null 2>&1; then
+  gcloud iam service-accounts create bnp-api-reader --project "$PROJECT" \
+    --display-name "BNP Scorer public API (reads match copies)"
+  sleep 10
+  gcloud projects add-iam-policy-binding "$PROJECT" --member "serviceAccount:$READER" \
+    --role roles/datastore.viewer --condition None --format none
+fi
+gcloud run deploy "$API" --project "$PROJECT" --region "$REGION" --image "$IMAGE" \
+  --service-account "$READER" --allow-unauthenticated \
+  --max-instances 3 --memory 256Mi --set-env-vars "PROJECT_ID=$PROJECT,ROLE=api"
+
+# The list's "live" and "finished" filters need this index.
+(cd "$ROOT" && firebase deploy --only firestore:indexes --project "$PROJECT")
 
 NUMBER=$(gcloud projects describe "$PROJECT" --format 'value(projectNumber)')
 CALLER=$NUMBER-compute@developer.gserviceaccount.com

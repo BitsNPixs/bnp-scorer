@@ -24,6 +24,8 @@ cloud/api/                      Dart server for Cloud Run: stores each match's c
   lib/store.dart                MatchStore, FirestoreMatchStore (REST, googleapis)
   lib/projector.dart            Projector: newest save wins, rivals retried
   lib/server.dart               projectorHandler: the trigger and /rebuild
+  lib/reads.dart                MatchReads, FirestoreMatchReads: the copies, read-only
+  lib/api.dart                  apiHandler: the public /v1 API, kept answers, CORS
 app/                            Flutter app (package name bnp_scorer)
   lib/main.dart                 Loads SharedPreferences, installs the error handlers,
                                 overrides the repositories, seeds demo data in demo builds
@@ -86,6 +88,17 @@ otherwise the match is done again. A deleted match loses its copies; one
 that cannot be read (a newer `schema`, damaged data) keeps its last good
 copies and logs an error. `POST /rebuild` stores every match again after a
 change to the view.
+
+### Public API (`cloud/api`, `ROLE=api`)
+
+The same image runs a second, public Cloud Run service with an account that
+can only read. `apiHandler` serves `GET /v1/matches` (cards, newest save
+first by `sourceUpdateTime`, with `state`, `limit` and a `before` cursor)
+and `GET /v1/matches/{id}` (the view), leaving out `ownerUid`. It keeps each
+answer for a few seconds, keyed only by what changes the answer, so traffic
+does not turn into Firestore reads; bad input and impossible ids are
+refused before any read. `bin/server.dart` exits unless `ROLE` is set, so
+a misconfigured deploy can never put the writer on the internet.
 
 ## 1. Engine (`packages/cricket_engine`)
 

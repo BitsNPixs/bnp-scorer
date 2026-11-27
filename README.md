@@ -347,10 +347,28 @@ sh cloud/api/rebuild.sh    # store every match again: after the first deploy,
 ```
 
 Deploying needs the Google Cloud CLI (`brew install --cask gcloud-cli`,
-then `gcloud auth login`). The service `bnp-api-projector` is private: only
-the trigger `bnp-api-projector-matches` and the owner may call it. It runs
-as the service account `bnp-api`, which holds Firestore access and nothing
-else. The rules for the two collections (public read, no client writes) are
+then `gcloud auth login`) and the Firebase CLI. One image runs as two
+services, chosen by `ROLE`:
+
+- `bnp-api-projector` (`ROLE=projector`) is private: only the trigger
+  `bnp-api-projector-matches` and the owner may call it. It runs as the
+  service account `bnp-api`, which holds Firestore access and nothing else.
+- `bnp-api` (`ROLE=api`) is the public, read-only API. It runs as
+  `bnp-api-reader`, which can read Firestore and cannot write, so the
+  internet never reaches anything that writes.
+
+```
+GET /v1/matches?state=live|finished&limit=20&before=<next>
+    {"matches": [card, …], "next": cursor or null}   newest save first
+GET /v1/matches/{id}
+    the match's full view, or 404
+```
+
+Any site may call it (CORS `*`). An answer is reused for 5 seconds (5
+minutes for a finished match), in the server and by `Cache-Control`, so a
+crowd on one match costs one Firestore read per 5 seconds. The `state`
+filter needs the index in `firestore.indexes.json`, which `deploy.sh`
+deploys. Paths and field names are a contract: add, never rename. The rules for the two collections (public read, no client writes) are
 in `firestore.rules`; paste them before the website reads the copies.
 Logs: `gcloud run services logs read bnp-api-projector --region asia-south1`.
 

@@ -3,6 +3,12 @@
 ## Unreleased
 
 ### Added
+- Website and API, stage 3 (built, not deployed): a public, read-only API
+  in `cloud/api`, `GET /v1/matches` (cards, newest first, `state=live` or
+  `finished`, pages) and `GET /v1/matches/{id}` (the full view), served
+  from the stored copies by a second Cloud Run service whose account
+  cannot write. Answers are reused for 5 seconds (5 minutes once a match
+  is finished). New: `firestore.indexes.json`.
 - Website and API, stage 2 (nothing users can see; deployed 2026-11-27 as
   the private Cloud Run service `bnp-api-projector`, the trial removed):
   the server in `cloud/api` stores a card (`matchCards/{id}`) and a full

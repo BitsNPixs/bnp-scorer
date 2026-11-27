@@ -20,19 +20,23 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Website and API, stage 2 of 6: stored copies (2026-11-27), deployed.**
-  Planned with the owner (docs/ROADMAP.md "Website and API"): a Dart
-  service on Cloud Run replays each saved match with `cricket_engine` and
-  stores ready-to-read copies that an API, the website and later an admin
-  page read. Built: `packages/match_view` (pure Dart, 10 tests: the wording
-  moved from `ui/format.dart`, re-exported there, and `matchCard` /
-  `matchView`); and `cloud/api` (23 tests), live as the private service
-  `bnp-api-projector` with the trigger `bnp-api-projector-matches`, storing
-  `matchCards/{id}` and `matchViews/{id}` on every save (README "API
-  server"). The rebuild stored all 5 published matches, the rules are in
-  the console, and the owner tried it from the phone: balls, undos and a
-  deleted match were each followed by the copies. Next: stage 3, the
-  public API.
+- **Website and API, stage 3 of 6: the public API (2026-11-27), built,
+  not deployed.** Planned with the owner (docs/ROADMAP.md "Website and
+  API"): a Dart service on Cloud Run replays each saved match with
+  `cricket_engine` and stores ready-to-read copies that an API, the website
+  and later an admin page read. Done and live: `packages/match_view` (pure
+  Dart, 10 tests: the wording moved from `ui/format.dart`, re-exported
+  there, and `matchCard` / `matchView`), and the private service
+  `bnp-api-projector` with its trigger, storing `matchCards/{id}` and
+  `matchViews/{id}` on every save; the owner tried balls, undos and a
+  deleted match from the phone and the copies followed, and the rules are
+  in the console. Built in `cloud/api` (36 tests): the public read-only API
+  (`/v1/matches`, `/v1/matches/{id}`) as a second service `bnp-api` with a
+  read-only account (README "API server"). **Open:** the owner runs
+  `sh cloud/api/deploy.sh` in a terminal (the assistant's permission check
+  refuses to deploy a public service); until then the image running as
+  `bnp-api-projector` is the older one, and the list query, its index and
+  the read-only account are unverified. Next: stage 4, the website pages.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -335,6 +339,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
+| The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |

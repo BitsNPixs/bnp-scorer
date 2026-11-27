@@ -12,7 +12,8 @@
   `packages/match_view`, shared with the API, which sends it as `state`.
 
 ### Added
-- Website and API, stage 3 (built, not deployed): a public, read-only API
+- Website and API, stage 3 (deployed 2026-11-27 at
+  `https://bnp-api-482745302753.asia-south1.run.app`): a public, read-only API
   in `cloud/api`, `GET /v1/matches` (cards, newest first, `state=live` or
   `finished`, pages) and `GET /v1/matches/{id}` (the full view), served
   from the stored copies by a second Cloud Run service whose account

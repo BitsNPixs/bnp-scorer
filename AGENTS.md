@@ -20,28 +20,25 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Website and API, stage 3 of 6: the public API (2026-11-27), built,
-  not deployed.** Planned with the owner (docs/ROADMAP.md "Website and
-  API"): a Dart service on Cloud Run replays each saved match with
-  `cricket_engine` and stores ready-to-read copies that an API, the website
-  and later an admin page read. Done and live: `packages/match_view` (pure
-  Dart, 10 tests: the wording moved from `ui/format.dart`, re-exported
-  there, and `matchCard` / `matchView`), and the private service
-  `bnp-api-projector` with its trigger, storing `matchCards/{id}` and
-  `matchViews/{id}` on every save; the owner tried balls, undos and a
-  deleted match from the phone and the copies followed, and the rules are
-  in the console. Built in `cloud/api`: the public read-only API
-  (`/v1/matches`, `/v1/matches/{id}`) as a second service `bnp-api` with a
-  read-only account (README "API server"). **Open:** the owner runs
-  `sh cloud/api/deploy.sh` in a terminal (the assistant's permission check
-  refuses to deploy a public service); until then the image running as
-  `bnp-api-projector` is the older one, and the list query, its index and
-  the read-only account are unverified. A match not finished and not saved
-  for six hours is `stopped`, never live for ever: the API sends it as
-  `state`, and the app shows STOPPED on match cards and the watch screen
-  and leaves it out of the Live tile (41 tests in `cloud/api`, 15 in
-  `match_view`, 541 in the app; seen in a real-font render, not on a
-  phone). Next: stage 4, the website pages.
+- **Website and API, stage 3 of 6: the public API (2026-11-27), deployed.**
+  Planned with the owner (docs/ROADMAP.md "Website and API"): a Dart
+  service on Cloud Run replays each saved match with `cricket_engine` and
+  stores ready-to-read copies that an API, the website and later an admin
+  page read. Live: `packages/match_view` (pure Dart, 15 tests: the wording
+  moved from `ui/format.dart`, re-exported there, `matchCard` / `matchView`
+  and `matchNow`); the private service `bnp-api-projector` with its
+  trigger, storing `matchCards/{id}` and `matchViews/{id}` on every save
+  (tried from the owner's phone: balls, undos and a deleted match); and
+  the public read-only API `bnp-api`
+  (`https://bnp-api-482745302753.asia-south1.run.app`, `/v1/matches` and
+  `/v1/matches/{id}`, 41 tests in `cloud/api`), checked against the live
+  service (README "API server"). The owner runs `sh cloud/api/deploy.sh`:
+  the assistant's permission check refuses to deploy a public service. A
+  match not finished and not saved for six hours is `stopped`, never live
+  for ever: the API sends it as `state`, and the app shows STOPPED on
+  match cards and the watch screen and leaves it out of the Live tile
+  (541 app tests; seen in a real-font render, not on a phone). Next:
+  stage 4, the website's match page and list.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state

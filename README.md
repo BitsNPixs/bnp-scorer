@@ -353,7 +353,8 @@ services, chosen by `ROLE`:
 - `bnp-api-projector` (`ROLE=projector`) is private: only the trigger
   `bnp-api-projector-matches` and the owner may call it. It runs as the
   service account `bnp-api`, which holds Firestore access and nothing else.
-- `bnp-api` (`ROLE=api`) is the public, read-only API. It runs as
+- `bnp-api` (`ROLE=api`) is the public, read-only API, at
+  `https://bnp-api-482745302753.asia-south1.run.app`. It runs as
   `bnp-api-reader`, which can read Firestore and cannot write, so the
   internet never reaches anything that writes.
 

@@ -97,24 +97,29 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
-**Stage 3 (2026-11-27): built, not deployed.** The public API is in
-`cloud/api` (README "API server", docs/ARCHITECTURE.md "Public API"):
-`GET /v1/matches` and `GET /v1/matches/{id}` from the stored copies, a
-second service `bnp-api` from the same image with the read-only account
-`bnp-api-reader`. 36 tests in `cloud/api` now. `deploy.sh` deploys both
-services, the account and the index (`firestore.indexes.json`), and now
-sets `ROLE`, which the image requires. **Not deployed:** the assistant's
-permission check refused the deploy of a public service, so the owner runs
-`sh cloud/api/deploy.sh` in a terminal. Unverified until then: the
-Firestore query behind the list (`FirestoreMatchReads.cards`), its index,
-and the read-only account. A match its scorer never finishes no longer
+**Stage 3 (2026-11-27): deployed.** The public API is live at
+`https://bnp-api-482745302753.asia-south1.run.app` (README "API server",
+docs/ARCHITECTURE.md "Public API"): `GET /v1/matches` and
+`GET /v1/matches/{id}` from the stored copies, the service `bnp-api` from
+the same image with the read-only account `bnp-api-reader`
+(`roles/datastore.viewer`). The owner ran `sh cloud/api/deploy.sh` (the
+assistant's permission check refuses to deploy a public service). Checked
+against the live service: the list, its `state` filters (so the index
+works), paging, one match's view matching its stored copy, no `ownerUid`
+sent, `Cache-Control` and CORS headers, 404/400 for bad requests, 405 for
+every write, and 403 from the private writer without a token. About 0.15
+to 0.27 s a call from the Mac. A match its scorer never finishes no longer
 stays live for ever: the API calls it `stopped` after six hours without a
 save (owner's ask, the same day), and the app follows the same rule from
 `packages/match_view` (`matchNow`): STOPPED on match cards and the watch
 screen, and out of the Live tile. The app judges by the match's
 `updatedAt` (the scorer's phone clock), the API by Firestore's save time.
-The first tab of a stopped match is still titled "Live". Known limit: the
-API's address is Cloud Run's own until a BNP domain is put in front.
+The first tab of a stopped match is still titled "Live". All four
+published matches are test matches left unfinished, so `state=live` and
+`state=finished` have only been seen empty on the live service. Known
+limit: the API's address is Cloud Run's own until a BNP domain is put in
+front. Next: stage 4, the website's match page and list, and "share a
+match link" in the app.
 
 **Stage 2 (2026-11-27): deployed.** `cloud/api` is the real service
 (README "API server", docs/ARCHITECTURE.md "Stored copies"): it stores

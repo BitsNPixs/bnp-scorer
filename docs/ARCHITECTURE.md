@@ -15,6 +15,11 @@ packages/cricket_engine/        Pure Dart scoring engine (no Flutter)
   lib/src/stats.dart            computeStats, MVP points, Player of the Match
   lib/src/tournament.dart       Tournament, Fixture, fixture generation, progressOf
   test/                         Rules, stats, tournament and no-result suites
+packages/match_view/            Pure Dart: how a match reads to people
+  lib/src/wording.dart          matchStatus, dismissalText, scoreLine, … (the app
+                                re-exports them from ui/format.dart)
+  lib/src/view.dart             matchCard, matchView: the JSON the API and website use
+cloud/api/                      Dart server for Cloud Run (a trial so far)
 app/                            Flutter app (package name bnp_scorer)
   lib/main.dart                 Loads SharedPreferences, installs the error handlers,
                                 overrides the repositories, seeds demo data in demo builds
@@ -42,6 +47,21 @@ app/                            Flutter app (package name bnp_scorer)
                                 site/img/ (run by hand)
 docs/                           This file and ROADMAP.md
 ```
+
+## 0. Match views (`packages/match_view`)
+
+The app, the server and the website must say the same thing about a match,
+so the words and the JSON shape live in one pure Dart package built on the
+engine. `matchCard(state)` is a match in a few lines for a list (teams,
+`stage`, `status`, each innings' score, `result`); `matchView(state)` adds
+the toss, the player of the match and, for each innings, `batters`,
+`yetToBat`, `extras`, `bowlers`, `fallOfWickets`, `overByOver` and, while it
+is being played, `atCrease`. Every key of the card is in the view.
+
+Both carry `v` (`matchViewVersion`). The JSON is a storage and API format:
+add fields freely, never rename one, and bump `v` only for a change an old
+reader cannot handle. Neither holds who scored the match or when it was
+saved; the server adds those from the match document.
 
 ## 1. Engine (`packages/cricket_engine`)
 

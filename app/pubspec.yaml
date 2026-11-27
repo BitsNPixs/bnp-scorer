@@ -12,6 +12,8 @@ dependencies:
     sdk: flutter
   cricket_engine:
     path: ../packages/cricket_engine
+  match_view:
+    path: ../packages/match_view
   flutter_riverpod: ^3.0.0
   google_fonts: ^6.2.1
   shared_preferences: ^2.3.0

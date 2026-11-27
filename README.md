@@ -88,6 +88,8 @@ Offline-first: scoring works with no network and every match is stored on the de
 
 ```
 packages/cricket_engine/   Pure Dart scoring engine (no Flutter) + rules test suite
+packages/match_view/       Pure Dart wording and the match JSON the API and website use
+cloud/api/                 Dart server for Cloud Run (a trial so far)
 app/                       Flutter app (package bnp_scorer)
 docs/                      Architecture and roadmap
 ```
@@ -179,6 +181,11 @@ Run these in order and fix anything that fails before committing:
 
 ```sh
 cd packages/cricket_engine
+dart pub get
+dart analyze
+dart test
+
+cd ../match_view
 dart pub get
 dart analyze
 dart test

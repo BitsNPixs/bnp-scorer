@@ -20,15 +20,17 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Website and API, stage 0: a trial (2026-11-27).** Planned with the
-  owner (docs/ROADMAP.md "Website and API"): a Dart service on Cloud Run
-  replays each saved match with `cricket_engine` and stores a ready-to-read
-  copy that an API, the website and later an admin page read. `cloud/api`
-  is the trial, **deployed and passed**: the private Cloud Run service
-  `bnp-api-trial` and the trigger `bnp-api-trial-matches` replayed and
-  stored each of 13 balls scored on the owner's phone within 1.0 to 2.4
-  seconds (1 test). Both are throwaway, to be removed when stage 2's real
-  service replaces them. Next: stage 1, the match view JSON.
+- **Website and API, stage 1 of 6: the match view (2026-11-27).** Planned
+  with the owner (docs/ROADMAP.md "Website and API"): a Dart service on
+  Cloud Run replays each saved match with `cricket_engine` and stores a
+  ready-to-read copy that an API, the website and later an admin page read.
+  Built: `packages/match_view` (pure Dart, 10 tests) with the wording moved
+  from `ui/format.dart` (re-exported there) and `matchCard` / `matchView`,
+  the versioned JSON. The stage 0 trial **passed on Cloud Run**: the private
+  service `bnp-api-trial` and trigger `bnp-api-trial-matches` (`cloud/api`,
+  1 test) replayed and stored each of 13 balls scored on the owner's phone
+  within 1.0 to 2.4 seconds. Both are throwaway, to be removed when stage
+  2's real service replaces them. Next: stage 2.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -275,6 +277,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
     output before accepting it.
 
 ## Architecture rules
+- **How a match reads lives in `packages/match_view`** (pure Dart): the words
+  for scores, dismissals and results, and the JSON of a match (`matchCard`,
+  `matchView`). Its field names are a storage and API format: add, never
+  rename. The app re-exports the wording from `ui/format.dart`.
 - **Cricket rules live only in `packages/cricket_engine`** (pure Dart, no
   Flutter). Widgets ask the engine (`MatchPhase`, `allowedDismissals`,
   `InningsState.eligibleBowlerIds`, `availableBatterIds`) and never re-implement
@@ -324,7 +330,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Live indicator | `LivePill` (`widgets/score_header.dart`) |
 | Coloured notice strip (failed save, free hit, eased rule) | `NoticeBanner` (`widgets/surface_panel.dart`) |
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
-| Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` |
+| Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
+| A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
@@ -439,6 +446,8 @@ docker build -f cloud/api/Dockerfile -t bnp-api .
 cd cloud/photos-worker && npm ci && npx tsc --noEmit && npx vitest run && npx wrangler deploy --dry-run
 # engine
 cd packages/cricket_engine && dart pub get && dart analyze && dart test
+# match view (wording and the API's JSON)
+cd packages/match_view && dart pub get && dart analyze && dart test
 # app
 cd app && flutter pub get && flutter analyze && flutter test && flutter build apk --debug
 ```

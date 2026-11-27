@@ -3,6 +3,11 @@
 ## Unreleased
 
 ### Added
+- Website and API, stage 1 (nothing users can see): `packages/match_view`,
+  pure Dart shared by the app and the server. It holds the words for scores,
+  dismissals and results, moved from the app's `ui/format.dart` (which
+  re-exports them), and `matchCard` and `matchView`, the versioned JSON of a
+  match for lists and for a match page. 10 tests.
 - Website and API, stage 0 (a trial, nothing users can see): `cloud/api`, a
   Dart service that reads a published match from Firestore, replays it with
   `cricket_engine` and can store its score line, for Cloud Run. Run on the

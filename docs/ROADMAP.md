@@ -97,6 +97,14 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
+**Stage 1 (2026-11-27): done.** `packages/match_view` holds the wording
+moved out of the app's `ui/format.dart` (which re-exports it, so screens
+are unchanged) and `matchCard` / `matchView`, version 1 (docs/ARCHITECTURE.md
+"Match views"). Not in the view yet: the result tab's top batter and best
+bowler (private to the app's widget), and chart series beyond what
+`overByOver` gives. Next is stage 2; `cloud/api`'s Dockerfile must copy
+`packages/match_view` too.
+
 **Stage 0, the trial (2026-11-27): passed.** `cloud/api` is a throwaway
 service that stores only a score line in `trialViews/{id}`. Deployed as the
 private Cloud Run service `bnp-api-trial` (asia-south1, at most 2

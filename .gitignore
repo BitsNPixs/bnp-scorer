@@ -3,6 +3,7 @@
 .packages
 build/
 packages/cricket_engine/pubspec.lock
+packages/match_view/pubspec.lock
 .flutter-plugins
 .flutter-plugins-dependencies
 coverage/

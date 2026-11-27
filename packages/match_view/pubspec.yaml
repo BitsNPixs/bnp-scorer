@@ -1,0 +1,17 @@
+name: match_view
+description: >-
+  What a match looks like to a reader: the wording of scores and dismissals,
+  and the JSON view the API and website show. Pure Dart, no Flutter.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  cricket_engine:
+    path: ../cricket_engine
+
+dev_dependencies:
+  lints: ^6.0.0
+  test: ^1.25.0

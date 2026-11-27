@@ -83,6 +83,8 @@ void main() {
       teamRepositoryProvider.overrideWithValue(teams),
       tournamentRepositoryProvider.overrideWithValue(tournaments),
       scheduleRepositoryProvider.overrideWithValue(InMemoryScheduleRepository()),
+      // The demo's match in progress is live on the day the demo is set on.
+      clockProvider.overrideWithValue(() => _now),
     ];
     await tester.pumpWidget(ProviderScope(
       overrides: overrides,

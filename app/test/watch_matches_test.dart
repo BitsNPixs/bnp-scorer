@@ -6,6 +6,8 @@ import 'package:bnp_scorer/data/match_record.dart';
 import 'package:bnp_scorer/screens/watch_match_screen.dart';
 import 'package:bnp_scorer/state/providers.dart';
 import 'package:bnp_scorer/theme/app_theme.dart';
+import 'package:bnp_scorer/widgets/match_card.dart';
+import 'package:bnp_scorer/widgets/score_header.dart';
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -18,8 +20,9 @@ const _settle = Duration(milliseconds: 400);
 const _asha = Scorer(uid: 'u1', name: 'Asha Scorer');
 final _at = DateTime.utc(2026, 11, 17, 10);
 
-/// A published match: openers, a bowler, then [balls] off the bat.
-MatchRecord _match(List<int> balls, {String id = 'pub1'}) {
+/// A published match: openers, a bowler, then [balls] off the bat, last
+/// saved just now unless [savedAgo] says how long ago.
+MatchRecord _match(List<int> balls, {String id = 'pub1', Duration savedAgo = Duration.zero}) {
   final record = sampleRecord(id: id, events: [
     OpenersSelected(id: 'o', at: _at, strikerId: 'a1', nonStrikerId: 'a2'),
     BowlerChanged(id: 'b', at: _at, bowlerId: 'b1'),
@@ -30,7 +33,7 @@ MatchRecord _match(List<int> balls, {String id = 'pub1'}) {
     setup: record.setup,
     events: record.events,
     createdAt: _at,
-    updatedAt: _at.add(Duration(minutes: balls.length)),
+    updatedAt: DateTime.now().subtract(savedAgo),
     publishedBy: 'u1',
   );
 }
@@ -136,6 +139,41 @@ void main() {
     await cloud.publish(_match([4, 6]), _asha);
     await settle(tester);
     expect(find.text('4s 1 · 6s 1 · SR 500.0'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a match nobody has scored for hours says STOPPED, not LIVE', (tester) async {
+    final cloud = FakeCloudMatches();
+    await cloud.publish(_match([4], id: 'old', savedAgo: const Duration(hours: 7)), _asha);
+    await cloud.publish(_match([6], id: 'new', savedAgo: const Duration(hours: 5)), const Scorer(uid: 'u2', name: 'Bala'));
+    await pumpApp(tester, cloud: cloud);
+    await showEveryone(tester);
+
+    final oldCard = find.ancestor(of: find.text('Scored by Asha Scorer'), matching: find.byType(MatchCard));
+    final newCard = find.ancestor(of: find.text('Scored by Bala'), matching: find.byType(MatchCard));
+    expect(find.descendant(of: oldCard, matching: find.text('STOPPED')), findsOneWidget);
+    expect(find.descendant(of: oldCard, matching: find.text('LIVE')), findsNothing);
+    expect(find.descendant(of: newCard, matching: find.text('LIVE')), findsOneWidget);
+    expect(find.descendant(of: newCard, matching: find.text('STOPPED')), findsNothing);
+    final tag = tester.getSize(find.byType(StatusTag));
+    expect(tag.width, lessThan(120), reason: 'a small tag, not a bar across the card');
+    expect(tag.height, lessThan(32));
+
+    // Watching it says so too, and why.
+    await tester.tap(find.text('Scored by Asha Scorer'));
+    await settle(tester);
+    expect(find.byType(WatchMatchScreen), findsOneWidget);
+    final header = find.byType(ScoreHeader);
+    expect(find.descendant(of: header, matching: find.text('STOPPED')), findsOneWidget);
+    expect(find.descendant(of: header, matching: find.text('LIVE')), findsNothing);
+    expect(find.textContaining('No ball for some hours'), findsOneWidget);
+
+    // The scorer comes back and bowls: live again.
+    await cloud.publish(_match([4, 1], id: 'old'), _asha);
+    await settle(tester);
+    expect(find.descendant(of: header, matching: find.text('LIVE')), findsOneWidget);
+    expect(find.descendant(of: header, matching: find.text('STOPPED')), findsNothing);
+    expect(find.textContaining('Updates as each ball'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

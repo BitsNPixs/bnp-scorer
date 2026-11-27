@@ -109,8 +109,12 @@ permission check refused the deploy of a public service, so the owner runs
 Firestore query behind the list (`FirestoreMatchReads.cards`), its index,
 and the read-only account. A match its scorer never finishes no longer
 stays live for ever: the API calls it `stopped` after six hours without a
-save (owner's ask, the same day). The app's own Everyone list still shows
-such a match as live. Known limit: the API's address is Cloud Run's own until a BNP domain is put in front.
+save (owner's ask, the same day), and the app follows the same rule from
+`packages/match_view` (`matchNow`): STOPPED on match cards and the watch
+screen, and out of the Live tile. The app judges by the match's
+`updatedAt` (the scorer's phone clock), the API by Firestore's save time.
+The first tab of a stopped match is still titled "Live". Known limit: the
+API's address is Cloud Run's own until a BNP domain is put in front.
 
 **Stage 2 (2026-11-27): deployed.** `cloud/api` is the real service
 (README "API server", docs/ARCHITECTURE.md "Stored copies"): it stores

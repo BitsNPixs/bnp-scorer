@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Changed
+- A match that is not finished and has not been saved for six hours is no
+  longer called live. Its card says STOPPED where it said LIVE (My matches,
+  Everyone and a player's matches), the Live tile on Matches leaves it out,
+  and watching it says STOPPED with "No ball for some hours; it updates if
+  play goes on." One more ball makes it live again. The scorer's own
+  scoring screen is unchanged. The rule (`matchNow`, `stoppedAfter`) is in
+  `packages/match_view`, shared with the API, which sends it as `state`.
+
 ### Added
 - Website and API, stage 3 (built, not deployed): a public, read-only API
   in `cloud/api`, `GET /v1/matches` (cards, newest first, `state=live` or

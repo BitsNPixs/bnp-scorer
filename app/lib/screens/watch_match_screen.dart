@@ -1,6 +1,7 @@
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:match_view/match_view.dart' show MatchNow;
 
 import '../data/cloud_matches.dart';
 import '../state/providers.dart';
@@ -56,19 +57,20 @@ class WatchMatchScreen extends ConsumerWidget {
 }
 
 /// The score, this over and who is at the crease, for watching.
-class _WatchLiveTab extends StatelessWidget {
+class _WatchLiveTab extends ConsumerWidget {
   const _WatchLiveTab({required this.state, required this.published});
 
   final MatchState state;
   final PublishedMatch published;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final scheme = Theme.of(context).colorScheme;
+    final stopped = nowOf((record: published.record, state: state), ref.watch(clockProvider)()) == MatchNow.stopped;
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
-        ScoreHeader(state: state),
+        ScoreHeader(state: state, stopped: stopped),
         if (state.current.isFreeHit) ...[
           const SizedBox(height: 12),
           const NoticeBanner(
@@ -89,7 +91,9 @@ class _WatchLiveTab extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Scored by ${published.ownerName}. Updates as each ball is bowled.',
+                stopped
+                    ? 'Scored by ${published.ownerName}. No ball for some hours; it updates if play goes on.'
+                    : 'Scored by ${published.ownerName}. Updates as each ball is bowled.',
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
               ),
             ),

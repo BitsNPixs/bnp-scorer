@@ -1,6 +1,7 @@
 import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:match_view/match_view.dart' show MatchNow;
 
 import '../screens/scoring_screen.dart';
 import '../state/providers.dart';
@@ -75,6 +76,9 @@ class MatchCard extends ConsumerWidget {
     final date = summary.record.createdAt.toLocal();
     final winner = state.result?.winnerTeamId;
     final live = !state.isCompleted;
+    // Left unfinished hours ago: still laid out as a match in play, but not
+    // called live.
+    final stopped = nowOf(summary, ref.watch(clockProvider)()) == MatchNow.stopped;
     final current = state.current;
 
     InningsState? inningsOf(String teamId) {
@@ -144,7 +148,12 @@ class MatchCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
-                  if (live) const LivePill(onDark: false) else _Tag(label: 'RESULT', color: scheme.primary),
+                  if (stopped)
+                    StatusTag(label: 'STOPPED', color: scheme.onSurfaceVariant)
+                  else if (live)
+                    const LivePill(onDark: false)
+                  else
+                    StatusTag(label: 'RESULT', color: scheme.primary),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -206,23 +215,6 @@ class MatchCard extends ConsumerWidget {
 }
 
 /// A small outlined label, e.g. "RESULT".
-class _Tag extends StatelessWidget {
-  const _Tag({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(99)),
-    child: Text(
-      label,
-      style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 1.2),
-    ),
-  );
-}
-
 /// How much of the current innings is gone, filling as it loads.
 class _OversProgress extends StatelessWidget {
   const _OversProgress({required this.value});

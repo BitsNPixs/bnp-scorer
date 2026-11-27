@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:match_view/match_view.dart' show MatchNow;
 
 import '../state/providers.dart';
 import '../theme/app_theme.dart';
@@ -6,18 +8,21 @@ import '../ui/motion.dart';
 import 'surface_panel.dart';
 
 /// Three glassy number tiles: played, live and tournaments.
-class SummaryTiles extends StatelessWidget {
+class SummaryTiles extends ConsumerWidget {
   const SummaryTiles({super.key, required this.matches, required this.tournamentCount});
 
   final List<MatchSummary> matches;
   final int tournamentCount;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final now = ref.watch(clockProvider)();
     final finished = matches.where((m) => m.state.isCompleted).length;
+    // A match left unfinished hours ago counts as neither.
+    final live = matches.where((m) => nowOf(m, now) == MatchNow.live).length;
     final tiles = [
       (Icons.check_circle_rounded, '$finished', 'Played', AppColors.neonDeep),
-      (Icons.sensors_rounded, '${matches.length - finished}', 'Live', AppColors.live),
+      (Icons.sensors_rounded, '$live', 'Live', AppColors.live),
       (Icons.emoji_events_rounded, '$tournamentCount', 'Tournaments', AppColors.four),
     ];
     return Row(

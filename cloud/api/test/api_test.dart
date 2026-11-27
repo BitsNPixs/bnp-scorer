@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:bnp_api/api.dart';
 import 'package:bnp_api/reads.dart';
 import 'package:cricket_engine/cricket_engine.dart' show Json;
+import 'package:match_view/match_view.dart' show MatchNow;
 import 'package:shelf/shelf.dart';
 import 'package:test/test.dart';
 
@@ -186,7 +187,7 @@ void main() {
 
     test('goes from live to stopped as the hours pass, and back with a ball', () async {
       reads.views['m1'] = card(1, saved: '2026-11-27T11:00:00Z');
-      expect(matchNow(reads.views['m1']!, now), MatchNow.live);
+      expect(copyNow(reads.views['m1']!, now), MatchNow.live);
       now = now.add(const Duration(hours: 4, minutes: 59));
       expect((await body(await get('/v1/matches/m1')))['state'], 'live');
       now = now.add(const Duration(minutes: 1));
@@ -197,7 +198,7 @@ void main() {
     });
 
     test('a copy with no save time is taken as live, not hidden', () {
-      expect(matchNow({'stage': 'live'}, now), MatchNow.live);
+      expect(copyNow({'stage': 'live'}, now), MatchNow.live);
     });
   });
 

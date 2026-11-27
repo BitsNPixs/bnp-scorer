@@ -4,6 +4,7 @@ import 'package:cricket_engine/cricket_engine.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:match_view/match_view.dart' show MatchNow, matchNow;
 
 import '../data/accounts.dart';
 import '../data/app_links.dart';
@@ -398,6 +399,20 @@ final upcomingProvider = FutureProvider.autoDispose<List<UpcomingMatch>>((ref) a
 
 /// A stored match with its replayed state, for lists.
 typedef MatchSummary = ({MatchRecord record, MatchState state});
+
+/// Whether [summary]'s match is being played now, by the rule the website
+/// uses too: one not finished and not saved for six hours is stopped, not
+/// live (its scorer left without ending it).
+/// [now] is the time to judge by: `ref.watch(clockProvider)()` in a widget.
+MatchNow nowOf(MatchSummary summary, DateTime now) => matchNow(
+      finished: summary.state.isCompleted,
+      lastSaved: summary.record.updatedAt,
+      now: now,
+    );
+
+/// The time, for what depends on how long ago something happened. Tests and
+/// the website's screenshots (drawn for a fixed day) set their own.
+final clockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
 /// A match in a player's career. One [onPhone] opens for scoring; any other
 /// was published by someone else and opens read-only.

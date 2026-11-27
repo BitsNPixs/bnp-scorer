@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:cricket_engine/cricket_engine.dart' show Json;
-import 'package:match_view/match_view.dart' show MatchStage;
+import 'package:match_view/match_view.dart' show MatchNow, MatchStage, matchNow, stoppedAfter;
 import 'package:shelf/shelf.dart';
 
 import 'reads.dart';
@@ -11,21 +11,13 @@ import 'reads.dart';
 const liveSeconds = 5;
 const finishedSeconds = 300;
 
-/// A match that is not finished and has not been saved for this long is
-/// "stopped", not "live": its scorer went home without ending it. One more
-/// ball makes it live again.
-const stoppedAfter = Duration(hours: 6);
-
-/// What a match is doing now, which its stored `stage` alone cannot say,
-/// because a copy does not change as time passes. Sent as `state`.
-enum MatchNow { live, stopped, finished }
-
-MatchNow matchNow(Json copy, DateTime now) {
-  if (copy['stage'] == MatchStage.finished.name) return MatchNow.finished;
-  final saved = DateTime.tryParse(copy['sourceUpdateTime'] as String? ?? '');
-  if (saved != null && now.difference(saved) >= stoppedAfter) return MatchNow.stopped;
-  return MatchNow.live;
-}
+/// What a stored copy's match is doing now (the app's rule, [matchNow]),
+/// by Firestore's save time of the match. Sent as `state`.
+MatchNow copyNow(Json copy, DateTime now) => matchNow(
+      finished: copy['stage'] == MatchStage.finished.name,
+      lastSaved: DateTime.tryParse(copy['sourceUpdateTime'] as String? ?? ''),
+      now: now,
+    );
 
 /// The most cards one request may ask for.
 const maxLimit = 50;
@@ -46,7 +38,7 @@ const _cors = {
 Json _public(Json copy, DateTime now) => {
       for (final MapEntry(:key, :value) in copy.entries)
         if (!_private.contains(key)) key: value,
-      'state': matchNow(copy, now).name,
+      'state': copyNow(copy, now).name,
     };
 
 /// The stages a match that is not finished can be at.

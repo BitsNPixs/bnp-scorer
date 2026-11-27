@@ -11,9 +11,14 @@ import 'avatars.dart';
 /// The hero card: big score on a floodlit pitch, an overs ring that fills as
 /// the innings goes, and a burst of colour for every four, six and wicket.
 class ScoreHeader extends StatefulWidget {
-  const ScoreHeader({super.key, required this.state});
+  const ScoreHeader({super.key, required this.state, this.stopped = false});
 
   final MatchState state;
+
+  /// Nobody has scored this match for hours (`MatchNow.stopped`): it says
+  /// STOPPED where a match in play says LIVE. Only a watcher is told so; the
+  /// scorer's own screen is about to change that.
+  final bool stopped;
 
   /// How long a FOUR!, SIX! or WICKET! burst stays on screen.
   static const burstDuration = Duration(milliseconds: 1100);
@@ -116,7 +121,10 @@ class _ScoreHeaderState extends State<ScoreHeader> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    if (!state.isCompleted) const LivePill(),
+                    if (widget.stopped)
+                      const StatusTag(label: 'STOPPED', color: muted)
+                    else if (!state.isCompleted)
+                      const LivePill(),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -449,6 +457,24 @@ class _ChasePill extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// A small rounded status word: RESULT, STOPPED.
+class StatusTag extends StatelessWidget {
+  const StatusTag({super.key, required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+    decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(99)),
+    child: Text(
+      label,
+      style: TextStyle(color: color, fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 1.2),
     ),
   );
 }

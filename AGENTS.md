@@ -36,9 +36,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `sh cloud/api/deploy.sh` in a terminal (the assistant's permission check
   refuses to deploy a public service); until then the image running as
   `bnp-api-projector` is the older one, and the list query, its index and
-  the read-only account are unverified. The API sends `state`: a match not
-  finished and not saved for six hours is `stopped`, never live for ever
-  (41 tests in `cloud/api` now). Next: stage 4, the website pages.
+  the read-only account are unverified. A match not finished and not saved
+  for six hours is `stopped`, never live for ever: the API sends it as
+  `state`, and the app shows STOPPED on match cards and the watch screen
+  and leaves it out of the Live tile (41 tests in `cloud/api`, 15 in
+  `match_view`, 541 in the app; seen in a real-font render, not on a
+  phone). Next: stage 4, the website pages.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -335,11 +338,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Bottom sheets | `SheetBody`, `RoundOption`, `OptionChips` (one choice as wrapping chips) (`widgets/scoring_sheets.dart`) |
 | Avatars / team badges | `PlayerAvatar`, `TeamBadge`, `colorForName` (`widgets/avatars.dart`) |
 | Ball chips (dot/4/6/W/extras) | `BallChip` (`widgets/over_strip.dart`) |
-| Live indicator | `LivePill` (`widgets/score_header.dart`) |
+| Live indicator, status word (RESULT, STOPPED) | `LivePill`, `StatusTag` (`widgets/score_header.dart`) |
 | Coloured notice strip (failed save, free hit, eased rule) | `NoticeBanner` (`widgets/surface_panel.dart`) |
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
+| Is a match live, stopped or finished right now; the time in a widget | `matchNow`, `MatchNow`, `stoppedAfter` (`packages/match_view`); `nowOf`, `clockProvider` (`state/providers.dart`; override the clock in tests) |
 | The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
 | The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `matchNow`, `MatchNow`, `stoppedAfter`, `saveTimeText`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |

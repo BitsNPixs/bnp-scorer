@@ -30,13 +30,15 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `bnp-api-projector` with its trigger, storing `matchCards/{id}` and
   `matchViews/{id}` on every save; the owner tried balls, undos and a
   deleted match from the phone and the copies followed, and the rules are
-  in the console. Built in `cloud/api` (36 tests): the public read-only API
+  in the console. Built in `cloud/api`: the public read-only API
   (`/v1/matches`, `/v1/matches/{id}`) as a second service `bnp-api` with a
   read-only account (README "API server"). **Open:** the owner runs
   `sh cloud/api/deploy.sh` in a terminal (the assistant's permission check
   refuses to deploy a public service); until then the image running as
   `bnp-api-projector` is the older one, and the list query, its index and
-  the read-only account are unverified. Next: stage 4, the website pages.
+  the read-only account are unverified. The API sends `state`: a match not
+  finished and not saved for six hours is `stopped`, never live for ever
+  (41 tests in `cloud/api` now). Next: stage 4, the website pages.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -339,7 +341,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
-| The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
+| The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `matchNow`, `MatchNow`, `stoppedAfter`, `saveTimeText`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |

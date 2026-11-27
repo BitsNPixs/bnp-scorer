@@ -11,6 +11,22 @@ import 'reads.dart';
 const liveSeconds = 5;
 const finishedSeconds = 300;
 
+/// A match that is not finished and has not been saved for this long is
+/// "stopped", not "live": its scorer went home without ending it. One more
+/// ball makes it live again.
+const stoppedAfter = Duration(hours: 6);
+
+/// What a match is doing now, which its stored `stage` alone cannot say,
+/// because a copy does not change as time passes. Sent as `state`.
+enum MatchNow { live, stopped, finished }
+
+MatchNow matchNow(Json copy, DateTime now) {
+  if (copy['stage'] == MatchStage.finished.name) return MatchNow.finished;
+  final saved = DateTime.tryParse(copy['sourceUpdateTime'] as String? ?? '');
+  if (saved != null && now.difference(saved) >= stoppedAfter) return MatchNow.stopped;
+  return MatchNow.live;
+}
+
 /// The most cards one request may ask for.
 const maxLimit = 50;
 const defaultLimit = 20;
@@ -27,13 +43,14 @@ const _cors = {
   'access-control-max-age': '86400',
 };
 
-Json _public(Json copy) => {
+Json _public(Json copy, DateTime now) => {
       for (final MapEntry(:key, :value) in copy.entries)
         if (!_private.contains(key)) key: value,
+      'state': matchNow(copy, now).name,
     };
 
-/// The stages `state=live` means: everything not finished.
-final _liveStages = [
+/// The stages a match that is not finished can be at.
+final _openStages = [
   for (final stage in MatchStage.values)
     if (stage != MatchStage.finished) stage.name,
 ];
@@ -58,9 +75,12 @@ class _Answer {
 
 /// The public API (version 1), read-only, served from the stored copies.
 ///
-/// - `GET /v1/matches?state=live|finished&limit=20&before=<cursor>`:
+/// - `GET /v1/matches?state=live|stopped|finished&limit=20&before=<cursor>`:
 ///   `{"matches": [card…], "next": cursor or null}`, newest save first.
 /// - `GET /v1/matches/{id}`: the match's full view, or 404.
+///
+/// Every card and view carries `state` ([MatchNow]), worked out as it is
+/// sent: a match nobody has scored for [stoppedAfter] is "stopped".
 ///
 /// Shapes are `matchCard` and `matchView` (packages/match_view) plus what
 /// the server adds. Paths and field names are a contract with the website
@@ -83,18 +103,26 @@ Handler apiHandler(MatchReads reads, {DateTime Function()? now, void Function(Ma
       final query = url.queryParameters;
       final limit = int.tryParse(query['limit'] ?? '$defaultLimit');
       if (limit == null || limit < 1 || limit > maxLimit) return refuse(400, 'limit must be 1 to $maxLimit');
-      final stages = switch (query['state']) {
-        null => null,
-        'live' => _liveStages,
-        'finished' => [MatchStage.finished.name],
-        _ => const <String>[],
-      };
-      if (stages != null && stages.isEmpty) return refuse(400, 'state must be live or finished');
+      final state = query['state'];
+      if (state != null && !MatchNow.values.any((s) => s.name == state)) {
+        return refuse(400, 'state must be live, stopped or finished');
+      }
       final before = query['before'];
       if (before != null && (before.isEmpty || before.length > 40)) return refuse(400, 'before is not a cursor');
-      final cards = await reads.cards(limit: limit, stages: stages, before: before);
+      final cutoff = made.subtract(stoppedAfter);
+      final cards = await reads.cards(
+        limit: limit,
+        stages: switch (state) {
+          null => null,
+          'finished' => [MatchStage.finished.name],
+          _ => _openStages,
+        },
+        savedSince: state == 'live' ? cutoff : null,
+        savedBefore: state == 'stopped' ? cutoff : null,
+        before: before,
+      );
       return json({
-        'matches': [for (final card in cards) _public(card)],
+        'matches': [for (final card in cards) _public(card, made)],
         // A full page may have more behind it.
         'next': cards.length < limit ? null : cards.last['sourceUpdateTime'],
       }, liveSeconds);
@@ -102,7 +130,7 @@ Handler apiHandler(MatchReads reads, {DateTime Function()? now, void Function(Ma
     if (path.length == 3 && path[0] == 'v1' && path[1] == 'matches' && _matchId.hasMatch(path[2])) {
       final view = await reads.view(path[2]);
       if (view == null) return refuse(404, 'no such match');
-      return json(_public(view), view['stage'] == MatchStage.finished.name ? finishedSeconds : liveSeconds);
+      return json(_public(view, made), view['stage'] == MatchStage.finished.name ? finishedSeconds : liveSeconds);
     }
     return refuse(404, 'not found');
   }

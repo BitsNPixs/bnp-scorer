@@ -107,9 +107,10 @@ sets `ROLE`, which the image requires. **Not deployed:** the assistant's
 permission check refused the deploy of a public service, so the owner runs
 `sh cloud/api/deploy.sh` in a terminal. Unverified until then: the
 Firestore query behind the list (`FirestoreMatchReads.cards`), its index,
-and the read-only account. Known limits: a match its scorer never finishes
-stays "live" for ever (the website should show how long ago it changed);
-the API's address is Cloud Run's own until a BNP domain is put in front.
+and the read-only account. A match its scorer never finishes no longer
+stays live for ever: the API calls it `stopped` after six hours without a
+save (owner's ask, the same day). The app's own Everyone list still shows
+such a match as live. Known limit: the API's address is Cloud Run's own until a BNP domain is put in front.
 
 **Stage 2 (2026-11-27): deployed.** `cloud/api` is the real service
 (README "API server", docs/ARCHITECTURE.md "Stored copies"): it stores

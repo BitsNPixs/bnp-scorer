@@ -358,11 +358,16 @@ services, chosen by `ROLE`:
   internet never reaches anything that writes.
 
 ```
-GET /v1/matches?state=live|finished&limit=20&before=<next>
+GET /v1/matches?state=live|stopped|finished&limit=20&before=<next>
     {"matches": [card, …], "next": cursor or null}   newest save first
 GET /v1/matches/{id}
     the match's full view, or 404
 ```
+
+Every card and view carries `state`, worked out as it is sent: `live`,
+`finished`, or `stopped` for a match that is not finished and has not been
+saved for six hours (its scorer left without ending it; one more ball makes
+it live again). `stage` still says where the scorer left it.
 
 Any site may call it (CORS `*`). An answer is reused for 5 seconds (5
 minutes for a finished match), in the server and by `Cache-Control`, so a

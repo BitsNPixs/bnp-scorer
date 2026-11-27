@@ -94,7 +94,10 @@ change to the view.
 The same image runs a second, public Cloud Run service with an account that
 can only read. `apiHandler` serves `GET /v1/matches` (cards, newest save
 first by `sourceUpdateTime`, with `state`, `limit` and a `before` cursor)
-and `GET /v1/matches/{id}` (the view), leaving out `ownerUid`. It keeps each
+and `GET /v1/matches/{id}` (the view), leaving out `ownerUid`. A stored
+copy cannot change as time passes, so the API adds `state` (`matchNow`) as
+it sends each one: a match not finished and not saved for `stoppedAfter`
+(six hours) is `stopped`, and `state=live` leaves those out. It keeps each
 answer for a few seconds, keyed only by what changes the answer, so traffic
 does not turn into Firestore reads; bad input and impossible ids are
 refused before any read. `bin/server.dart` exits unless `ROLE` is set, so

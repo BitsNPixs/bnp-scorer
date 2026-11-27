@@ -11,10 +11,25 @@ abstract interface class MatchReads {
   Future<Json?> view(String id);
 
   /// Cards, the most recently saved match first. [stages] narrows them to
-  /// those stage names; [before] continues after the card with that
-  /// `sourceUpdateTime`.
-  Future<List<Json>> cards({required int limit, List<String>? stages, String? before});
+  /// those stage names, [savedSince] to matches saved at or after that time
+  /// and [savedBefore] to ones saved earlier; [before] continues after the
+  /// card with that `sourceUpdateTime`.
+  Future<List<Json>> cards({
+    required int limit,
+    List<String>? stages,
+    DateTime? savedSince,
+    DateTime? savedBefore,
+    String? before,
+  });
 }
+
+/// [time] to the second, as the start of how Firestore writes a save time
+/// ("2026-11-27T10:05:01"), to compare as text with a card's
+/// `sourceUpdateTime`. It has no fraction and no closing "Z" on purpose:
+/// every save in or after that second ("…:01Z", "…:01.5Z") then sorts at or
+/// after it, and every earlier save before it. With the "Z", a save at
+/// "…:01.5Z" would sort before "…:01Z".
+String saveTimeText(DateTime time) => time.toUtc().toIso8601String().substring(0, 19);
 
 class FirestoreMatchReads implements MatchReads {
   FirestoreMatchReads(FirestoreApi api, String project)
@@ -37,18 +52,39 @@ class FirestoreMatchReads implements MatchReads {
   /// Ordered by Firestore's save time of the match, which no phone's clock
   /// can upset. With [stages] it needs the index in `firestore.indexes.json`.
   @override
-  Future<List<Json>> cards({required int limit, List<String>? stages, String? before}) async {
+  Future<List<Json>> cards({
+    required int limit,
+    List<String>? stages,
+    DateTime? savedSince,
+    DateTime? savedBefore,
+    String? before,
+  }) async {
+    Filter saved(String op, DateTime time) => Filter(
+          fieldFilter: FieldFilter(
+            field: FieldReference(fieldPath: 'sourceUpdateTime'),
+            op: op,
+            value: Value(stringValue: saveTimeText(time)),
+          ),
+        );
+    final filters = [
+      if (stages != null)
+        Filter(
+          fieldFilter: FieldFilter(
+            field: FieldReference(fieldPath: 'stage'),
+            op: 'IN',
+            value: Value(arrayValue: ArrayValue(values: [for (final s in stages) Value(stringValue: s)])),
+          ),
+        ),
+      if (savedSince != null) saved('GREATER_THAN_OR_EQUAL', savedSince),
+      if (savedBefore != null) saved('LESS_THAN', savedBefore),
+    ];
     final query = StructuredQuery(
       from: [CollectionSelector(collectionId: cardsCollection)],
-      where: stages == null
-          ? null
-          : Filter(
-              fieldFilter: FieldFilter(
-                field: FieldReference(fieldPath: 'stage'),
-                op: 'IN',
-                value: Value(arrayValue: ArrayValue(values: [for (final s in stages) Value(stringValue: s)])),
-              ),
-            ),
+      where: switch (filters) {
+        [] => null,
+        [final only] => only,
+        _ => Filter(compositeFilter: CompositeFilter(op: 'AND', filters: filters)),
+      },
       orderBy: [Order(field: FieldReference(fieldPath: 'sourceUpdateTime'), direction: 'DESCENDING')],
       startAt: before == null ? null : Cursor(values: [Value(stringValue: before)], before: false),
       limit: limit,

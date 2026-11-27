@@ -44,7 +44,8 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   policy link and cover them; and a published match's share sheet has
   "Share a link to the match" (545 app tests). The match page also
   listens to Firestore (`watchMatch`, library in `site/vendor/firebase`),
-  so a ball shows as soon as the server has stored it (22 site tests). Not seen in a phone's
+  so a ball shows as soon as the server has stored it (22 site tests);
+  live since 2026-11-27, tried by the owner scoring a match. Not seen in a phone's
   browser, and the link not shared from a phone, yet. Next: stage 5, the app reads the
   stored copies.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The

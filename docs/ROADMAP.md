@@ -145,8 +145,10 @@ version), which the privacy policy says. Cost: one Firestore read per
 ball per viewer on the match page, no longer shared through the API's
 cache. Next.js for the site and read API was discussed and put off until
 the admin page or link previews call for it; the Dart service that scores
-would stay either way. **Not tried:** a ball scored on a phone showing on
-the open page.
+would stay either way. Pushed and live the same day; the owner then
+scored a new match ("Testing", 37/1 after an over) with the pages open and
+said they look fine, and the API showed that match as `live`, the first
+real one seen in that state.
 
 **Stage 3 (2026-11-27): deployed.** The public API is live at
 `https://bnp-api-482745302753.asia-south1.run.app` (README "API server",

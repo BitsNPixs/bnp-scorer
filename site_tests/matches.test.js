@@ -48,6 +48,9 @@ test('how long ago reads the way people say it', () => {
   assert.equal(h.ago(at(3 * 3600 * 1000), now), '3 h ago');
   assert.equal(h.ago(at(26 * 3600 * 1000), now), '1 day ago');
   assert.equal(h.ago(at(9 * 24 * 3600 * 1000), now), '9 days ago');
+  assert.equal(h.ago(at(59 * 1000), now), 'just now');
+  assert.equal(h.ago(at(119 * 1000), now), '1 min ago', 'never rounded up');
+  assert.equal(h.ago(at(5.5 * 24 * 3600 * 1000), now), '5 days ago');
   assert.equal(h.ago(new Date(now + 60000).toISOString(), now), 'just now', 'a clock a little ahead');
   assert.equal(h.ago('not a time', now), '');
   assert.equal(h.ago(undefined, now), '');
@@ -154,6 +157,58 @@ test('tabs are one per innings, then Overs; none before an innings', () => {
   assert.deepEqual(h.tabsOf(chase()).map((t) => t.label), ['Lions', 'Tigers', 'Overs']);
   assert.deepEqual(h.tabsOf(chase()).map((t) => t.key), ['innings-0', 'innings-1', 'overs']);
   assert.deepEqual(h.tabsOf({ innings: [] }), []);
+});
+
+// ---- the live connection ---------------------------------------------------
+
+test('a stored match says live, stopped or finished by the same six hours as the app', () => {
+  const saved = (ms) => new Date(now - ms).toISOString();
+  assert.equal(h.stateOf({ stage: 'live', sourceUpdateTime: saved(60 * 1000) }, now), 'live');
+  assert.equal(h.stateOf({ stage: 'inningsBreak', sourceUpdateTime: saved(6 * 3600 * 1000 - 1000) }, now), 'live');
+  assert.equal(h.stateOf({ stage: 'live', sourceUpdateTime: saved(6 * 3600 * 1000) }, now), 'stopped');
+  assert.equal(h.stateOf({ stage: 'starting', sourceUpdateTime: saved(9 * 24 * 3600 * 1000) }, now), 'stopped');
+  assert.equal(h.stateOf({ stage: 'finished', sourceUpdateTime: saved(9 * 24 * 3600 * 1000) }, now), 'finished');
+  assert.equal(h.stateOf({ stage: 'finished', sourceUpdateTime: saved(1000) }, now), 'finished');
+  assert.equal(h.stateOf({ stage: 'live' }, now), 'live', 'no save time: live, not hidden');
+});
+
+test('the six hours here are the six hours in the shared Dart rule', () => {
+  const dart = fs.readFileSync(path.join(__dirname, '..', 'packages', 'match_view', 'lib', 'src', 'now.dart'), 'utf8');
+  assert.match(dart, /const stoppedAfter = Duration\(hours: 6\);/);
+  assert.match(source, /STOPPED_AFTER_MS = 6 \* 60 \* 60 \* 1000;/);
+});
+
+test('a stored match is shown as the API would send it', () => {
+  const copy = { id: 'm1', stage: 'live', status: 'Lions 4/0', ownerUid: 'secret', ownerName: 'Aswin',
+    sourceUpdateTime: new Date(now - 5000).toISOString(), innings: [] };
+  const view = h.viewFromCopy(copy, now);
+  assert.equal(view.state, 'live');
+  assert.equal(view.status, 'Lions 4/0');
+  assert.equal(view.ownerName, 'Aswin');
+  assert.equal('ownerUid' in view, false);
+  assert.equal(copy.ownerUid, 'secret', 'the copy itself is left alone');
+});
+
+test('an older save never replaces a newer one on the page', () => {
+  const at = (s) => ({ sourceUpdateTime: '2026-11-27T10:00:' + s + 'Z' });
+  assert.equal(h.mayReplace(at('05'), null), true, 'nothing shown yet');
+  assert.equal(h.mayReplace(at('09'), at('05')), true);
+  assert.equal(h.mayReplace(at('05.250000'), at('05.250000')), true, 'the same save again');
+  assert.equal(h.mayReplace(at('05'), at('09')), false, 'a kept answer arriving late');
+  assert.equal(h.mayReplace({}, at('09')), true, 'with no time to compare, show it');
+});
+
+test('the Firestore library is this site\'s own copy and names no other server to load from', () => {
+  const dir = path.join(site, 'vendor', 'firebase');
+  for (const file of ['firebase-app.js', 'firebase-firestore.js']) {
+    const code = fs.readFileSync(path.join(dir, file), 'utf8');
+    assert.equal(/\bfrom\s*["']https?:/.test(code), false, file + ' imports from another server');
+    assert.equal(/\bimport\s*\(\s*["']https?:/.test(code), false, file + ' loads from another server');
+  }
+  assert.match(fs.readFileSync(path.join(dir, 'firebase-firestore.js'), 'utf8'), /from"\.\/firebase-app\.js"/);
+  const loads = source.match(/import\('[^']+'\)/g);
+  assert.deepEqual(loads, ["import('./vendor/firebase/firebase-app.js')", "import('./vendor/firebase/firebase-firestore.js')"]);
+  assert.ok(fs.existsSync(path.join(dir, 'README.txt')));
 });
 
 // ---- safety, checked on the source itself ---------------------------------

@@ -12,6 +12,12 @@
   `packages/match_view`, shared with the API, which sends it as `state`.
 
 ### Added
+- The website's match page is as live as the app: while a match can still
+  change, the page listens to its stored view in Firestore and shows each
+  ball about as soon as the server has scored it, where it used to ask
+  every 10 seconds. Google's Firebase web library is served from the site
+  itself (`site/vendor/firebase`). Privacy policy: the connection and the
+  library's small record in the browser.
 - Share a link to a match: the share sheet of a published match, while
   scoring it or watching it, has "Share a link to the match", which sends
   the teams, the state of play and the address of the match's page on the

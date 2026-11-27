@@ -42,7 +42,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   (`site/matches.js`, `site/matches.css`, 17 Node tests in `site_tests/`),
   approved by the owner from renders at 360 dp; the home page and privacy
   policy link and cover them; and a published match's share sheet has
-  "Share a link to the match" (545 app tests). Not seen in a phone's
+  "Share a link to the match" (545 app tests). The match page also
+  listens to Firestore (`watchMatch`, library in `site/vendor/firebase`),
+  so a ball shows as soon as the server has stored it (22 site tests). Not seen in a phone's
   browser, and the link not shared from a phone, yet. Next: stage 5, the app reads the
   stored copies.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
@@ -349,7 +351,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | Is a match live, stopped or finished right now; the time in a widget | `matchNow`, `MatchNow`, `stoppedAfter` (`packages/match_view`); `nowOf`, `clockProvider` (`state/providers.dart`; override the clock in tests) |
 | The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
-| The website's match pages | `site/matches.js` (helpers `sides`, `tabsOf`, `groupMatches`, `ago`, `trustedLogo`, `refreshMs`; `BnpMatches.initList`, `initMatch`), `site/matches.css`; sample API answers for previews: `dart run tool/sample_views.dart <folder>` in `packages/match_view` |
+| The website's match pages | `site/matches.js` (helpers `sides`, `tabsOf`, `groupMatches`, `ago`, `trustedLogo`, `refreshMs`, `stateOf`, `viewFromCopy`, `mayReplace`; live updates `watchMatch`; `BnpMatches.initList`, `initMatch`), `site/matches.css`, `site/vendor/firebase` (never edit by hand beyond its README); sample API answers for previews: `dart run tool/sample_views.dart <folder>` in `packages/match_view` |
 | The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `matchNow`, `MatchNow`, `stoppedAfter`, `saveTimeText`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |

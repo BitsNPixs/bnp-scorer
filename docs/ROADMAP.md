@@ -126,6 +126,28 @@ pages need JavaScript; the link opens the website, not the app (no match
 deep link yet). Next: stage 5, the app's Everyone list and player careers
 read the stored copies.
 
+**Stage 4b (2026-11-27): the match page updates as the app does.** The
+owner asked why a web page could not be as live as the app (it asked the
+API every 10 seconds, so a ball could take up to about 17 seconds). The
+match page now also listens to `matchViews/{id}` in Firestore, as the app
+listens to a match: `watchMatch` in `site/matches.js`, with Google's
+Firebase web library 13.4.0 served from `site/vendor/firebase` (about
+210 KB compressed, loaded only for a match that can still change). The API
+still gives the first paint, the list and the fallback; while the
+connection is open the page asks the API once a minute as a check, closes
+the connection when the tab is hidden or the match finishes, and never
+lets an older save replace a newer one. Tried in headless Chrome against
+the real Firestore: the stored match arrived in 0.4 s, and a re-stored
+copy was pushed to the open page. The six-hour "stopped" rule has a copy
+in the page (a test holds it to the Dart rule). The library keeps a
+`firebase-heartbeat-database` record in the browser (a date and its
+version), which the privacy policy says. Cost: one Firestore read per
+ball per viewer on the match page, no longer shared through the API's
+cache. Next.js for the site and read API was discussed and put off until
+the admin page or link previews call for it; the Dart service that scores
+would stay either way. **Not tried:** a ball scored on a phone showing on
+the open page.
+
 **Stage 3 (2026-11-27): deployed.** The public API is live at
 `https://bnp-api-482745302753.asia-south1.run.app` (README "API server",
 docs/ARCHITECTURE.md "Public API"): `GET /v1/matches` and

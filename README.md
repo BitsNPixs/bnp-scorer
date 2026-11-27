@@ -493,7 +493,10 @@ from another server.
 
 `site/matches.html` and `site/match.html?id=<match id>` show published
 matches from the public API (README "API server"), laid out by
-`site/matches.js` and `site/matches.css`. They need no build step. Test
+`site/matches.js` and `site/matches.css`. They need no build step. While a
+match can still change, its page also listens to `matchViews/{id}` in
+Firestore for instant updates, with Google's Firebase web library served
+from `site/vendor/firebase` (its README says how to update it). Test
 their logic with `node --test site_tests`. To look at them with live,
 finished and stopped matches, write sample answers with
 `dart run tool/sample_views.dart <folder>` in `packages/match_view` and

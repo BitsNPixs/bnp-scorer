@@ -171,9 +171,15 @@
     it. Data travels encrypted. We share it with no one else.</p>
     <p>The match pages of this website get their scores from our server on
     Google Cloud (in Mumbai, India). Opening one sends that server your
-    network address, as any web page does, and nothing else about you: the
-    pages set no cookies, keep nothing in your browser and load nothing from
-    other companies.</p>
+    network address, as any web page does, and nothing else about you. While
+    a match is still being played, its page also keeps a connection open to
+    our database (Google Cloud Firestore), so each ball shows the moment it is
+    scored; that connection also sees only your network address. The pages
+    set no cookies and load nothing from other companies: the code for that
+    connection (Google's Firebase library) is served from this site. That
+    library keeps one small technical record in your browser, the date and
+    its own version, which it sends to Google with the connection; it holds
+    nothing about you or the matches you open.</p>
   </section>
 
   <section>

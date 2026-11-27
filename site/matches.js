@@ -11,9 +11,21 @@
   var API = 'https://bnp-api-482745302753.asia-south1.run.app';
   var PHOTOS = 'https://bnp-photos.quikfly-api.workers.dev/';
 
+  var PROJECT = 'bnp-scorer';
+
   /* How often a page asks again, by what its match is doing. A stopped match
      may start again; a finished one will not change. */
   var REFRESH_MS = { live: 10000, stopped: 60000 };
+
+  /* While the live connection is open the page still asks now and then, in
+     case the connection has gone quiet without saying so. */
+  var LIVE_CHECK_MS = 60000;
+
+  /* A match not finished and not saved for this long is "stopped". The same
+     six hours as the app and the API (stoppedAfter in packages/match_view);
+     the page needs its own copy because the live connection brings the
+     stored match, which cannot know how much time has passed. */
+  var STOPPED_AFTER_MS = 6 * 60 * 60 * 1000;
 
   // ---- helpers (no page needed) -----------------------------------------
 
@@ -27,13 +39,14 @@
   function ago(iso, now) {
     var then = Date.parse(iso);
     if (isNaN(then)) return '';
-    var seconds = Math.max(0, Math.round((now - then) / 1000));
-    if (seconds < 45) return 'just now';
-    var minutes = Math.round(seconds / 60);
+    // Whole units gone by, never rounded up: five and a half days is "5 days".
+    var seconds = Math.max(0, Math.floor((now - then) / 1000));
+    if (seconds < 60) return 'just now';
+    var minutes = Math.floor(seconds / 60);
     if (minutes < 60) return minutes + ' min ago';
-    var hours = Math.round(minutes / 60);
+    var hours = Math.floor(minutes / 60);
     if (hours < 24) return hours + ' h ago';
-    var days = Math.round(hours / 24);
+    var days = Math.floor(hours / 24);
     return days + (days === 1 ? ' day ago' : ' days ago');
   }
 
@@ -139,11 +152,39 @@
     return tabs;
   }
 
+  /** What a stored match is doing now: "live", "stopped" or "finished". */
+  function stateOf(copy, now) {
+    if (copy.stage === 'finished') return 'finished';
+    var saved = Date.parse(copy.sourceUpdateTime);
+    return !isNaN(saved) && now - saved >= STOPPED_AFTER_MS ? 'stopped' : 'live';
+  }
+
+  /** A stored match as the API would send it: its state added, and what is
+      kept for the server's own use left out. */
+  function viewFromCopy(copy, now) {
+    var view = {};
+    Object.keys(copy).forEach(function (key) {
+      if (key !== 'ownerUid') view[key] = copy[key];
+    });
+    view.state = stateOf(copy, now);
+    return view;
+  }
+
+  /** Whether [view] may replace [shown]: never an older save over a newer
+      one, as when a kept API answer arrives after a live update. */
+  function mayReplace(view, shown) {
+    if (!shown) return true;
+    var next = Date.parse(view.sourceUpdateTime);
+    var current = Date.parse(shown.sourceUpdateTime);
+    return isNaN(next) || isNaN(current) || next >= current;
+  }
+
   var helpers = {
     matchIdFrom: matchIdFrom, ago: ago, stateLabel: stateLabel, trustedLogo: trustedLogo,
     initials: initials, plural: plural, whereLine: whereLine, sides: sides, thisOver: thisOver,
     rowOf: rowOf, extrasText: extrasText, rate: rate, groupMatches: groupMatches,
-    refreshMs: refreshMs, tabsOf: tabsOf,
+    refreshMs: refreshMs, tabsOf: tabsOf, stateOf: stateOf, viewFromCopy: viewFromCopy,
+    mayReplace: mayReplace,
   };
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = helpers;
@@ -219,6 +260,22 @@
     }
     doc.addEventListener('visibilitychange', function () { if (!doc.hidden) run(); });
     run();
+    return { now: run };
+  }
+
+  /** Opens a live connection to a match's stored view, as the app keeps one
+      to a match: Firestore sends every save the moment it is stored.
+      [onCopy] gets the stored match, or null once it is gone. The library is
+      this site's own copy (vendor/firebase) and is loaded only here, when a
+      match is in play. Resolves to a function that closes the connection. */
+  function watchMatch(id, onCopy, onError) {
+    return import('./vendor/firebase/firebase-app.js').then(function (app) {
+      return import('./vendor/firebase/firebase-firestore.js').then(function (firestore) {
+        var firebase = app.getApps().length ? app.getApp() : app.initializeApp({ projectId: PROJECT });
+        return firestore.onSnapshot(firestore.doc(firestore.getFirestore(firebase), 'matchViews', id),
+          function (snapshot) { onCopy(snapshot.exists() ? snapshot.data() : null); }, onError);
+      });
+    });
   }
 
   function notice(page, title, text) {
@@ -413,6 +470,49 @@
     var id = matchIdFrom(root.location.search);
     if (!id) return notice(page, 'No match chosen', 'This link does not name a match.');
     var chosen = null;
+    var shown = null;     // the match on the page
+    var close = null;     // closes the live connection, while one is open
+    var opening = false;
+    var fresh;
+
+    function gone() {
+      shown = null;
+      notice(page, 'Match not found', 'This match is no longer published, or the link is wrong.');
+    }
+
+    function show(match) {
+      if (!mayReplace(match, shown)) return;
+      shown = match;
+      draw(match);
+      if (match.state === 'finished') hangUp();
+    }
+
+    function hangUp() {
+      if (close) close();
+      close = null;
+    }
+
+    /* The live connection, for a match that can still change and a tab that
+       is showing. If it cannot be opened or breaks, the page goes on asking
+       the API as before. */
+    function goLive() {
+      if (close || opening || doc.hidden) return;
+      opening = true;
+      watchMatch(id, function (copy) {
+        if (copy) show(viewFromCopy(copy, Date.now())); else gone();
+      }, function () {
+        hangUp();
+        fresh.now();
+      }).then(function (hang) {
+        opening = false;
+        close = hang;
+        if (doc.hidden || (shown && shown.state === 'finished')) hangUp();
+      }, function () {
+        opening = false;
+      });
+    }
+
+    doc.addEventListener('visibilitychange', function () { if (doc.hidden) hangUp(); });
 
     function draw(match) {
       var tabs = tabsOf(match);
@@ -444,14 +544,17 @@
       doc.title = names + ' · ' + match.status + ' · BNP Scorer';
     }
 
-    keepFresh(function () {
+    fresh = keepFresh(function () {
       return fetchJson('/v1/matches/' + encodeURIComponent(id)).then(function (match) {
         if (!match) {
-          notice(page, 'Match not found', 'This match is no longer published, or the link is wrong.');
+          hangUp();
+          gone();
           return null;
         }
-        draw(match);
-        return refreshMs(match.state);
+        show(match);
+        if (match.state === 'finished') return null;
+        goLive();
+        return close || opening ? LIVE_CHECK_MS : refreshMs(match.state);
       }, function (error) {
         if (!page.querySelector('.hero-card')) {
           notice(page, 'Could not load the match', 'Check your connection. This page tries again by itself.');

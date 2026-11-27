@@ -37,13 +37,13 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match not finished and not saved for six hours is `stopped`, never live
   for ever: the API sends it as `state`, and the app shows STOPPED on
   match cards and the watch screen and leaves it out of the Live tile
-  (seen in a real-font render, not on a phone). **Stage 4 is done, not
-  pushed:** `site/matches.html` and `site/match.html?id=…` read the API
+  (seen in a real-font render, not on a phone). **Stage 4 is done and
+  live** (pushed 2026-11-27, pages checked on GitHub Pages): `site/matches.html` and `site/match.html?id=…` read the API
   (`site/matches.js`, `site/matches.css`, 17 Node tests in `site_tests/`),
   approved by the owner from renders at 360 dp; the home page and privacy
   policy link and cover them; and a published match's share sheet has
   "Share a link to the match" (545 app tests). Not seen in a phone's
-  browser or shared from a phone yet. Next: stage 5, the app reads the
+  browser, and the link not shared from a phone, yet. Next: stage 5, the app reads the
   stored copies.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or

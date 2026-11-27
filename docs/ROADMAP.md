@@ -97,7 +97,11 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
-**Stage 4 (2026-11-27): done, not pushed.** The owner saw the pages and
+**Stage 4 (2026-11-27): done and live.** Pushed on the owner's word the
+same day; `https://bitsnpixs.github.io/bnp-scorer/matches.html` and
+`match.html?id=…` were then loaded from GitHub Pages in headless Chrome and
+showed the real matches from the live API, and "Match not found" for a
+wrong id. The owner saw the pages and
 said go. `site/matches.html` (Live now, Results, Stopped) and
 `site/match.html?id=…` (the score card with who is in the middle and this
 over, a tab per innings with batting, extras, total, yet to bat, bowling
@@ -115,9 +119,8 @@ feature list, a new question, the footer) and the privacy policy covers
 the website showing published matches. In the app, the share sheet of a
 published match (scoring it or watching it) has "Share a link to the
 match", and the picture's caption ends with the link (`matchPageLink`,
-`matchLinkText`). **Not checked:** the pages in a real phone browser, the
-link shared from a phone, and the pages on GitHub Pages (they go live when
-the owner pushes). Known limits: a link preview in WhatsApp shows the
+`matchLinkText`). **Not checked:** the pages in a real phone browser, and
+the link shared from a phone. Known limits: a link preview in WhatsApp shows the
 site's general card, not the match (static pages cannot change it); the
 pages need JavaScript; the link opens the website, not the app (no match
 deep link yet). Next: stage 5, the app's Everyone list and player careers

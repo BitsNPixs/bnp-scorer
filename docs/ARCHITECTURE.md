@@ -19,7 +19,11 @@ packages/match_view/            Pure Dart: how a match reads to people
   lib/src/wording.dart          matchStatus, dismissalText, scoreLine, … (the app
                                 re-exports them from ui/format.dart)
   lib/src/view.dart             matchCard, matchView: the JSON the API and website use
-cloud/api/                      Dart server for Cloud Run (a trial so far)
+cloud/api/                      Dart server for Cloud Run: stores each match's copies
+  lib/projection.dart           copiesOf: a match document into its card and view
+  lib/store.dart                MatchStore, FirestoreMatchStore (REST, googleapis)
+  lib/projector.dart            Projector: newest save wins, rivals retried
+  lib/server.dart               projectorHandler: the trigger and /rebuild
 app/                            Flutter app (package name bnp_scorer)
   lib/main.dart                 Loads SharedPreferences, installs the error handlers,
                                 overrides the repositories, seeds demo data in demo builds
@@ -62,6 +66,26 @@ Both carry `v` (`matchViewVersion`). The JSON is a storage and API format:
 add fields freely, never rename one, and bump `v` only for a change an old
 reader cannot handle. Neither holds who scored the match or when it was
 saved; the server adds those from the match document.
+
+### Stored copies (`cloud/api`)
+
+A match document holds balls, not a score, so a reader would have to run the
+engine. Instead a Firestore trigger (Eventarc, `matches/{matchId}` written)
+calls the private Cloud Run service on every save. `Projector.project`
+reads the match as it is now (the event only names it), replays it and
+writes `matchCards/{id}` and `matchViews/{id}` in one commit. Each copy
+carries `seq` (events it was made from), `ownerUid`, `ownerName`,
+`createdAt`, `updatedAt`, `sourceUpdateTime` (Firestore's save time of the
+match) and `projectedAt`; the card also has `playerIds`.
+
+Events can arrive twice or out of order, and two instances can work on one
+match at once. So a copy is replaced only by one from a save that is not
+older (`sourceUpdateTime`; `seq` cannot decide, because an undo lowers it),
+and the write holds only if the copy is still the one that was read;
+otherwise the match is done again. A deleted match loses its copies; one
+that cannot be read (a newer `schema`, damaged data) keeps its last good
+copies and logs an error. `POST /rebuild` stores every match again after a
+change to the view.
 
 ## 1. Engine (`packages/cricket_engine`)
 

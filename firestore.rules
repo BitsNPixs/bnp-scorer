@@ -239,6 +239,21 @@ service cloud.firestore {
       allow delete: if deletesOwn();
     }
 
+    // Ready-to-read copies of each match (a card for lists, the full view
+    // for a match page), made by the server replaying the match with the
+    // scoring engine (cloud/api). Anyone may read them, as they may the
+    // match itself; only the server writes them, with its own account,
+    // which these rules do not apply to.
+    match /matchCards/{matchId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /matchViews/{matchId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Everything else is closed until a later step opens it on purpose.
     match /{document=**} {
       allow read, write: if false;

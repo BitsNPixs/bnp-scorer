@@ -3,6 +3,13 @@
 ## Unreleased
 
 ### Added
+- Website and API, stage 2 (nothing users can see; built, not deployed):
+  the server in `cloud/api` stores a card (`matchCards/{id}`) and a full
+  view (`matchViews/{id}`) of every published match each time it is saved,
+  replayed by the same engine as the app. The newest save always wins, a
+  deleted match loses its copies, and a match it cannot read keeps its last
+  good ones. `deploy.sh` and `rebuild.sh` beside it. Firestore rules: the
+  two collections, readable by everyone and written only by the server.
 - Website and API, stage 1 (nothing users can see): `packages/match_view`,
   pure Dart shared by the app and the server. It holds the words for scores,
   dismissals and results, moved from the app's `ui/format.dart` (which

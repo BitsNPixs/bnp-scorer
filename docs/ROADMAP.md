@@ -97,6 +97,22 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
+**Stage 2 (2026-11-27): built, not deployed.** `cloud/api` is now the real
+service (README "API server", docs/ARCHITECTURE.md "Stored copies"): it
+stores `matchCards/{id}` and `matchViews/{id}` for every save, keeps the
+newest save when events arrive out of order or twice, removes the copies
+of a deleted match and keeps the last good ones of a match it cannot read.
+23 tests with an in-memory store; the image builds. `firestore.rules` opens
+the two collections to read. **Unverified until deployed:** the Firestore
+commit with its "copy unchanged" condition and how its refusals are told
+apart (`FirestoreMatchStore`), which no test here reaches. To do with the
+owner's yes: `sh cloud/api/deploy.sh`, `sh cloud/api/rebuild.sh`, remove
+the trial (service `bnp-api-trial`, trigger `bnp-api-trial-matches`,
+collection `trialViews`), paste the rules, then score a few balls and an
+undo and read the copies. Decided for stage 3: the public API will be a
+second service from the same image with a read-only account, so the
+internet never reaches the one that writes.
+
 **Stage 1 (2026-11-27): done.** `packages/match_view` holds the wording
 moved out of the app's `ui/format.dart` (which re-exports it, so screens
 are unchanged) and `matchCard` / `matchView`, version 1 (docs/ARCHITECTURE.md

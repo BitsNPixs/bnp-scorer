@@ -331,6 +331,29 @@ Mac user; run it in Terminal, not through an agent.
 - Play Data safety: Device or other IDs (the push token), collected for app
   functionality, optional, deleted when updates are turned off.
 
+## API server (Cloud Run)
+
+`cloud/api` is a Dart server on Cloud Run (asia-south1). Firestore calls it
+whenever a match is saved; it replays the match with `cricket_engine` and
+stores two ready-to-read copies, `matchCards/{id}` for lists and
+`matchViews/{id}` for a match page (shapes: docs/ARCHITECTURE.md "Match
+views"). The website and the API read those, never the balls.
+
+```sh
+cd cloud/api && dart pub get && dart analyze && dart test
+sh cloud/api/deploy.sh     # build in Cloud Build, deploy, make sure the trigger exists
+sh cloud/api/rebuild.sh    # store every match again: after the first deploy,
+                           # and after a change to what a view holds
+```
+
+Deploying needs the Google Cloud CLI (`brew install --cask gcloud-cli`,
+then `gcloud auth login`). The service `bnp-api-projector` is private: only
+the trigger `bnp-api-projector-matches` and the owner may call it. It runs
+as the service account `bnp-api`, which holds Firestore access and nothing
+else. The rules for the two collections (public read, no client writes) are
+in `firestore.rules`; paste them before the website reads the copies.
+Logs: `gcloud run services logs read bnp-api-projector --region asia-south1`.
+
 ## Photos (Cloudflare R2)
 
 Player photos (and, next, team logos) live in the R2 bucket `bnp-photos`

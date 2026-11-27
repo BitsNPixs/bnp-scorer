@@ -20,17 +20,20 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Website and API, stage 1 of 6: the match view (2026-11-27).** Planned
-  with the owner (docs/ROADMAP.md "Website and API"): a Dart service on
-  Cloud Run replays each saved match with `cricket_engine` and stores a
-  ready-to-read copy that an API, the website and later an admin page read.
-  Built: `packages/match_view` (pure Dart, 10 tests) with the wording moved
-  from `ui/format.dart` (re-exported there) and `matchCard` / `matchView`,
-  the versioned JSON. The stage 0 trial **passed on Cloud Run**: the private
-  service `bnp-api-trial` and trigger `bnp-api-trial-matches` (`cloud/api`,
-  1 test) replayed and stored each of 13 balls scored on the owner's phone
-  within 1.0 to 2.4 seconds. Both are throwaway, to be removed when stage
-  2's real service replaces them. Next: stage 2.
+- **Website and API, stage 2 of 6: stored copies (2026-11-27), built, not
+  deployed.** Planned with the owner (docs/ROADMAP.md "Website and API"): a
+  Dart service on Cloud Run replays each saved match with `cricket_engine`
+  and stores ready-to-read copies that an API, the website and later an
+  admin page read. Built: `packages/match_view` (pure Dart, 10 tests: the
+  wording moved from `ui/format.dart`, re-exported there, and `matchCard` /
+  `matchView`); and `cloud/api` (23 tests), which stores `matchCards/{id}`
+  and `matchViews/{id}` on every save (README "API server"). **Next, with
+  the owner's yes:** `sh cloud/api/deploy.sh` and `rebuild.sh`, remove the
+  stage 0 trial (service `bnp-api-trial`, trigger `bnp-api-trial-matches`,
+  collection `trialViews`, still running in the project), paste
+  `firestore.rules`, and try it from a phone; the real Firestore commit is
+  unverified until then. The trial itself passed on 2026-11-27: 13 balls
+  from the owner's phone were each stored within 1.0 to 2.4 seconds.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -332,6 +335,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
+| The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
 | Pick a day and time, ask for a ground | `pickDateTime`, `askGround` (`ui/pickers.dart`) |
@@ -413,7 +417,9 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 - **Cloud config:** `app/android/app/google-services.json` is gitignored. Builds
   without it have no sign-in. Firestore field names on `matches/{id}` are a
   storage format: never rename them. Rule changes go in `firestore.rules` and
-  are pasted into the console by the owner.
+  are pasted into the console by the owner. `matchCards/{id}` and
+  `matchViews/{id}` are written only by the server (`cloud/api`); their
+  field names are a storage and API format too.
 - **Version:** bump `version:` in `app/pubspec.yaml` and `data/app_info.dart`
   together (`test/app_info_test.dart` fails otherwise). The build number must
   rise with every Play upload.
@@ -439,7 +445,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 ```sh
 # Functions (push)
 cd cloud/functions && npm ci && npx tsc --noEmit && npx vitest run
-# API service (trial); the image builds from the repo root
+# API server; the image builds from the repo root (deploy: sh cloud/api/deploy.sh)
 cd cloud/api && dart pub get && dart analyze && dart test
 docker build -f cloud/api/Dockerfile -t bnp-api .
 # photos Worker (run from an uppercase D: path on Windows, or Vitest loads twice)

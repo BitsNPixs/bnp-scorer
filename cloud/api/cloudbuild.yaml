@@ -1,6 +1,5 @@
-# Builds the API image from the repo root (the engine package is outside
-# cloud/api): gcloud builds submit . --config cloud/api/cloudbuild.yaml
-#   --ignore-file cloud/api/.gcloudignore --region asia-south1
+# Builds the server image in Cloud Build. Run through deploy.sh, which
+# uploads a copy holding only the three folders the image needs.
 steps:
   - name: gcr.io/cloud-builders/docker
     args: [build, -f, cloud/api/Dockerfile, -t, $_IMAGE, .]

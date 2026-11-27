@@ -107,8 +107,9 @@ String highScoreText(HighScore? high) =>
 String bestBowlingText(BestBowling? best) =>
     best == null ? '—' : '${best.wickets}/${best.runs}';
 
-/// The message that goes with a shared scorecard.
-String shareText(MatchState state) {
+/// The message that goes with a shared scorecard. A published match also
+/// carries the [link] to its page on the website.
+String shareText(MatchState state, {String? link}) {
   final setup = state.setup;
   final best = playerOfTheMatch(state);
   return [
@@ -118,8 +119,23 @@ String shareText(MatchState state) {
     matchStatus(state),
     if (best != null) 'Player of the Match: ${playerName(setup, best)}',
     'Scored with BNP Scorer',
+    ?link,
   ].join('\n');
 }
+
+/// The website page that shows a published match (site/match.html).
+const matchPageAddress = 'https://bitsnpixs.github.io/bnp-scorer/match.html';
+
+/// The page for the published match [matchId]: anyone can open it in a
+/// browser, with or without the app.
+String matchPageLink(String matchId) => '$matchPageAddress?id=${Uri.encodeQueryComponent(matchId)}';
+
+/// A message that sends people to a published match's page, for WhatsApp.
+String matchLinkText(MatchState state, String link) => [
+      '\u{1F3CF} ${state.setup.teamA.name} v ${state.setup.teamB.name}',
+      matchStatus(state),
+      state.isCompleted ? 'Full scorecard: $link' : 'Follow it ball by ball: $link',
+    ].join('\n');
 
 /// What a match's followers are told about [moment], as a push's title and
 /// body. [state] is the match just after it.

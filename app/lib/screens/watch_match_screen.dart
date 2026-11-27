@@ -45,7 +45,7 @@ class WatchMatchScreen extends ConsumerWidget {
             FollowMatchButton(matchId: matchId, ownerUid: published.ownerUid, finished: state.isCompleted),
             IconButton(
               tooltip: 'Share',
-              onPressed: () => showShareScorecardSheet(context, state),
+              onPressed: () => showShareScorecardSheet(context, state, publishedMatchId: matchId),
               icon: const Icon(Icons.share_rounded),
             ),
           ],

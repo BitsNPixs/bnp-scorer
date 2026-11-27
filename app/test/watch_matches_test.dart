@@ -135,6 +135,13 @@ void main() {
     expect(find.byTooltip('Undo last action'), findsNothing);
     expect(find.byTooltip('Share'), findsOneWidget);
 
+    // A watcher can pass the match on as a link to its page.
+    await tester.tap(find.byTooltip('Share'));
+    await settle(tester);
+    expect(find.text('Share a link to the match'), findsOneWidget);
+    await tester.tapAt(const Offset(180, 40));
+    await settle(tester);
+
     // The scorer hits a six.
     await cloud.publish(_match([4, 6]), _asha);
     await settle(tester);

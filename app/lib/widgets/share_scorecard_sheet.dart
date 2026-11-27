@@ -14,19 +14,22 @@ import 'scoring_sheets.dart';
 
 const _imageScale = 3.0;
 
-Future<void> showShareScorecardSheet(BuildContext context, MatchState state) =>
+/// Shares [state] as a picture. A match that is published also offers its
+/// page on the website: pass its id as [publishedMatchId].
+Future<void> showShareScorecardSheet(BuildContext context, MatchState state, {String? publishedMatchId}) =>
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (_) => _ShareScorecardSheet(state: state),
+      builder: (_) => _ShareScorecardSheet(state: state, publishedMatchId: publishedMatchId),
     );
 
 class _ShareScorecardSheet extends ConsumerStatefulWidget {
-  const _ShareScorecardSheet({required this.state});
+  const _ShareScorecardSheet({required this.state, required this.publishedMatchId});
 
   final MatchState state;
+  final String? publishedMatchId;
 
   @override
   ConsumerState<_ShareScorecardSheet> createState() => _ShareScorecardSheetState();
@@ -43,7 +46,25 @@ class _ShareScorecardSheetState extends ConsumerState<_ShareScorecardSheet> {
       final boundary = _card.currentContext!.findRenderObject()! as RenderRepaintBoundary;
       final image = await boundary.toImage(pixelRatio: _imageScale);
       final data = await image.toByteData(format: ui.ImageByteFormat.png);
-      await files.shareImage(data!.buffer.asUint8List(), caption: shareText(widget.state));
+      await files.shareImage(data!.buffer.asUint8List(), caption: shareText(widget.state, link: _link));
+    } on Object catch (e) {
+      if (mounted) showMessage(context, 'Could not share: $e', isError: true);
+    }
+    if (mounted) setState(() => _sharing = false);
+  }
+
+  String? get _link => switch (widget.publishedMatchId) {
+        final id? => matchPageLink(id),
+        null => null,
+      };
+
+  Future<void> _shareLink(String link) async {
+    final setup = widget.state.setup;
+    setState(() => _sharing = true);
+    try {
+      await ref
+          .read(deviceFilesProvider)
+          .shareText(matchLinkText(widget.state, link), subject: '${setup.teamA.name} v ${setup.teamB.name}');
     } on Object catch (e) {
       if (mounted) showMessage(context, 'Could not share: $e', isError: true);
     }
@@ -63,6 +84,23 @@ class _ShareScorecardSheetState extends ConsumerState<_ShareScorecardSheet> {
               icon: const Icon(Icons.share_rounded),
               label: const Text('Share'),
             ),
+            if (_link case final link?) ...[
+              const SizedBox(height: 10),
+              OutlinedButton.icon(
+                onPressed: _sharing ? null : () => _shareLink(link),
+                icon: const Icon(Icons.link_rounded),
+                label: const Text('Share a link to the match'),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Anyone can open the link in a browser and follow every ball, without the app.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodySmall
+                    ?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+              ),
+            ],
           ],
         ),
       );

@@ -78,7 +78,12 @@ class _ScoringView extends ConsumerWidget {
         ),
         IconButton(
           tooltip: 'Share',
-          onPressed: () => showShareScorecardSheet(context, state),
+          // A match this scorer published has a page on the website.
+          onPressed: () => showShareScorecardSheet(
+            context,
+            state,
+            publishedMatchId: live.record.publishedBy == null ? null : live.record.id,
+          ),
           icon: const Icon(Icons.share_rounded),
         ),
         PopupMenuButton<_MenuAction>(

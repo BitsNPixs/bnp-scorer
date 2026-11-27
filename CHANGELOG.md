@@ -12,7 +12,15 @@
   `packages/match_view`, shared with the API, which sends it as `state`.
 
 ### Added
-- Website and API, stage 4 (pages built, not linked from anywhere yet):
+- Share a link to a match: the share sheet of a published match, while
+  scoring it or watching it, has "Share a link to the match", which sends
+  the teams, the state of play and the address of the match's page on the
+  website; the scorecard picture's caption ends with the same link. A match
+  that stays on the phone has no link.
+- Website and API, stage 4: the home page links to Matches (top bar, hero,
+  feature list, a new question, footer), and the privacy policy covers
+  published matches shown on the website.
+- Website and API, stage 4 (the pages):
   `site/matches.html` lists matches as Live now, Results and Stopped, and
   `site/match.html?id=…` shows one match as the app does: the score, who
   is batting and bowling, this over, each innings' scorecard and every

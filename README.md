@@ -489,6 +489,18 @@ changes what the app stores or sends: an internet permission, accounts, live
 scores or crash reporting. The pages use system fonts, so a visit loads nothing
 from another server.
 
+### Match pages
+
+`site/matches.html` and `site/match.html?id=<match id>` show published
+matches from the public API (README "API server"), laid out by
+`site/matches.js` and `site/matches.css`. They need no build step. Test
+their logic with `node --test site_tests`. To look at them with live,
+finished and stopped matches, write sample answers with
+`dart run tool/sample_views.dart <folder>` in `packages/match_view` and
+serve them in place of the API. The app links to a match's page from its
+share sheet (`matchPageLink` in `ui/format.dart`); the address is a
+contract with links already sent, so keep `match.html?id=` working.
+
 ## Fonts and offline first launch
 
 Inter and Barlow Condensed ship inside the app (`app/assets/google_fonts/`, with

@@ -37,12 +37,14 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match not finished and not saved for six hours is `stopped`, never live
   for ever: the API sends it as `state`, and the app shows STOPPED on
   match cards and the watch screen and leaves it out of the Live tile
-  (541 app tests; seen in a real-font render, not on a phone). **Stage 4,
-  the website's pages, is built and waits for the owner's look:**
-  `site/matches.html` and `site/match.html?id=…` read the API
+  (seen in a real-font render, not on a phone). **Stage 4 is done, not
+  pushed:** `site/matches.html` and `site/match.html?id=…` read the API
   (`site/matches.js`, `site/matches.css`, 17 Node tests in `site_tests/`),
-  rendered at 360 dp from sample matches; nothing links to them yet, and
-  the app's "share a match link" is still to do.
+  approved by the owner from renders at 360 dp; the home page and privacy
+  policy link and cover them; and a published match's share sheet has
+  "Share a link to the match" (545 app tests). Not seen in a phone's
+  browser or shared from a phone yet. Next: stage 5, the app reads the
+  stored copies.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -342,6 +344,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | Live indicator, status word (RESULT, STOPPED) | `LivePill`, `StatusTag` (`widgets/score_header.dart`) |
 | Coloured notice strip (failed save, free hit, eased rule) | `NoticeBanner` (`widgets/surface_panel.dart`) |
 | Big pad keys | `PadButton` (`widgets/score_pad.dart`) |
+| A published match's page on the website, and the message that shares it | `matchPageLink`, `matchPageAddress`, `matchLinkText`, `shareText(state, link:)` (`ui/format.dart`); `showShareScorecardSheet(..., publishedMatchId:)` |
 | Names, scores, figures, dismissal text, result line, rupees (`rupees`, Indian grouping) | `ui/format.dart` (the match wording comes from `packages/match_view`; add shared wording there) |
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | Is a match live, stopped or finished right now; the time in a widget | `matchNow`, `MatchNow`, `stoppedAfter` (`packages/match_view`); `nowOf`, `clockProvider` (`state/providers.dart`; override the clock in tests) |

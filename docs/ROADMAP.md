@@ -97,6 +97,25 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
+**Stage 4 (2026-11-27): pages built, waiting for the owner's look.**
+`site/matches.html` (Live now, Results, Stopped) and
+`site/match.html?id=…` (the score card with who is in the middle and this
+over, a tab per innings with batting, extras, total, yet to bat, bowling
+and fall of wickets, and an Overs tab) read the public API through
+`site/matches.js`, styled by `site/matches.css` in the app's night look. A
+live match is asked about every 10 seconds, a stopped one every minute, a
+finished one never again, and nothing while the tab is hidden. Names from
+the API are only ever set as text; logos only from the photos Worker. 17
+Node tests (`node --test site_tests`). Rendered at 360 dp and on a wide
+screen from sample matches played by the engine
+(`packages/match_view/tool/sample_views.dart`), and loaded against the
+live API from another origin (the real matches, "not found" and "no match
+chosen"). **Not done yet:** nothing links to the pages (the home page, the
+feature list), the privacy policy does not mention them, and the app has
+no "share a match link"; all wait for the owner's go on the look. Known
+limits: a link preview in WhatsApp shows the site's general card, not the
+match (static pages cannot change it); the pages need JavaScript.
+
 **Stage 3 (2026-11-27): deployed.** The public API is live at
 `https://bnp-api-482745302753.asia-south1.run.app` (README "API server",
 docs/ARCHITECTURE.md "Public API"): `GET /v1/matches` and

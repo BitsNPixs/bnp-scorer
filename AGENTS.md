@@ -37,8 +37,12 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   match not finished and not saved for six hours is `stopped`, never live
   for ever: the API sends it as `state`, and the app shows STOPPED on
   match cards and the watch screen and leaves it out of the Live tile
-  (541 app tests; seen in a real-font render, not on a phone). Next:
-  stage 4, the website's match page and list.
+  (541 app tests; seen in a real-font render, not on a phone). **Stage 4,
+  the website's pages, is built and waits for the owner's look:**
+  `site/matches.html` and `site/match.html?id=…` read the API
+  (`site/matches.js`, `site/matches.css`, 17 Node tests in `site_tests/`),
+  rendered at 360 dp from sample matches; nothing links to them yet, and
+  the app's "share a match link" is still to do.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state
@@ -342,6 +346,7 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 | A match as JSON for the API and website | `matchCard`, `matchView`, `stageOf`, `matchViewVersion` (`packages/match_view`) |
 | Is a match live, stopped or finished right now; the time in a widget | `matchNow`, `MatchNow`, `stoppedAfter` (`packages/match_view`); `nowOf`, `clockProvider` (`state/providers.dart`; override the clock in tests) |
 | The server's stored copies of a match | `copiesOf`, `Projector`, `MatchStore`, `FirestoreMatchStore`, `projectorHandler`, `cardsCollection`, `viewsCollection` (`cloud/api/lib`); `FakeMatchStore`, `matchDoc` in its tests |
+| The website's match pages | `site/matches.js` (helpers `sides`, `tabsOf`, `groupMatches`, `ago`, `trustedLogo`, `refreshMs`; `BnpMatches.initList`, `initMatch`), `site/matches.css`; sample API answers for previews: `dart run tool/sample_views.dart <folder>` in `packages/match_view` |
 | The public API over the copies | `apiHandler`, `MatchReads`, `FirestoreMatchReads`, `matchNow`, `MatchNow`, `stoppedAfter`, `saveTimeText`, `liveSeconds`, `finishedSeconds` (`cloud/api/lib`); `FakeReads` in its tests |
 | Snackbars / action results | `showMessage`, `reportResult` (`ui/feedback.dart`) |
 | Text field styling | `fieldDecoration` (`ui/inputs.dart`) |
@@ -457,6 +462,8 @@ cd cloud/api && dart pub get && dart analyze && dart test
 docker build -f cloud/api/Dockerfile -t bnp-api .
 # photos Worker (run from an uppercase D: path on Windows, or Vitest loads twice)
 cd cloud/photos-worker && npm ci && npx tsc --noEmit && npx vitest run && npx wrangler deploy --dry-run
+# website match pages (their logic; needs Node, no packages)
+node --test site_tests
 # engine
 cd packages/cricket_engine && dart pub get && dart analyze && dart test
 # match view (wording and the API's JSON)

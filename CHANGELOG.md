@@ -12,6 +12,12 @@
   `packages/match_view`, shared with the API, which sends it as `state`.
 
 ### Added
+- Website and API, stage 4 (pages built, not linked from anywhere yet):
+  `site/matches.html` lists matches as Live now, Results and Stopped, and
+  `site/match.html?id=…` shows one match as the app does: the score, who
+  is batting and bowling, this over, each innings' scorecard and every
+  over, refreshing by itself while the match is live. Both read the public
+  API. Tests: `node --test site_tests` (17).
 - Website and API, stage 3 (deployed 2026-11-27 at
   `https://bnp-api-482745302753.asia-south1.run.app`): a public, read-only API
   in `cloud/api`, `GET /v1/matches` (cards, newest first, `state=live` or

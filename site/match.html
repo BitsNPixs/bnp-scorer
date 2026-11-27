@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Match · BNP Scorer</title>
+  <meta name="description" content="A cricket match scored ball by ball with BNP Scorer: the live score, full scorecard and every over.">
+  <meta name="theme-color" content="#081008">
+  <link rel="icon" href="img/icon-64.png" type="image/png">
+  <link rel="apple-touch-icon" href="img/icon-512.png">
+  <meta property="og:title" content="Match · BNP Scorer">
+  <meta property="og:description" content="A cricket match scored ball by ball with BNP Scorer: the live score, full scorecard and every over.">
+  <meta property="og:image" content="https://bitsnpixs.github.io/bnp-scorer/img/share.png">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="matches.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="topbar">
+    <a class="brand" href="./"><img src="img/icon-64.png" width="64" height="64" alt=""> BNP Scorer</a>
+    <nav aria-label="Site">
+      <a href="matches.html">Matches</a>
+      <a class="get" href="./#beta">Get the app</a>
+    </nav>
+  </header>
+
+  <main>
+
+    <div id="page"><p class="loading">Loading the match…</p></div>
+    <noscript><p class="loading">This page needs JavaScript to show scores.</p></noscript>
+  </main>
+
+  <footer>
+    Scores come from scorers using <a href="./">BNP Scorer</a>, the free cricket scoring app ·
+    <a href="privacy.html">Privacy</a> · © 2026 <a href="https://bitsnpixs.com/">BitsNPixs</a>
+    Technologies Private Limited. All rights reserved.
+  </footer>
+</div>
+<script src="matches.js"></script>
+<script>BnpMatches.initMatch();</script>
+</body>
+</html>

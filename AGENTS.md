@@ -29,10 +29,10 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
   `matchView`); and `cloud/api` (23 tests), live as the private service
   `bnp-api-projector` with the trigger `bnp-api-projector-matches`, storing
   `matchCards/{id}` and `matchViews/{id}` on every save (README "API
-  server"). The rebuild stored all 5 published matches. **Open:** the owner
-  pastes `firestore.rules` (the copies are not publicly readable until
-  then), and a try from a phone with an undo and a deleted match. Next:
-  stage 3, the public API.
+  server"). The rebuild stored all 5 published matches, the rules are in
+  the console, and the owner tried it from the phone: balls, undos and a
+  deleted match were each followed by the copies. Next: stage 3, the
+  public API.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state

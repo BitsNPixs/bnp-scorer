@@ -108,9 +108,11 @@ rebuild stored all 5 published matches, twice (a first write and a
 replacement), and Firestore refuses a stale copy with FAILED_PRECONDITION
 and an existing one with ALREADY_EXISTS, both of which the store treats as
 "do it again". The trial is removed (service, trigger and `trialViews`).
-**Still to do:** the owner pastes `firestore.rules` (until then the copies
-are not publicly readable, which nothing needs yet), and a try from the
-phone: a few balls, an undo and a deleted match, then read the copies.
+The owner pasted `firestore.rules` (a public read of a card answers 200)
+and tried it from the phone the same day: 16 more saves were each stored
+(30 to 130 ms; the last about 90 ms after Firestore saved the ball), undos
+took the copy back from 29 events to 23, and deleting the match removed its
+card and view.
 Decided for stage 3: the public API will be a second service from the same
 image with a read-only account, so the internet never reaches the one
 that writes.

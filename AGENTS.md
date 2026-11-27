@@ -20,20 +20,19 @@ developer continuing **BNP Scorer**. Read this file fully before changing code.
 5. `CHANGELOG.md`: what changed and what is unverified.
 
 ## Current status (keep this section up to date)
-- **Website and API, stage 2 of 6: stored copies (2026-11-27), built, not
-  deployed.** Planned with the owner (docs/ROADMAP.md "Website and API"): a
-  Dart service on Cloud Run replays each saved match with `cricket_engine`
-  and stores ready-to-read copies that an API, the website and later an
-  admin page read. Built: `packages/match_view` (pure Dart, 10 tests: the
-  wording moved from `ui/format.dart`, re-exported there, and `matchCard` /
-  `matchView`); and `cloud/api` (23 tests), which stores `matchCards/{id}`
-  and `matchViews/{id}` on every save (README "API server"). **Next, with
-  the owner's yes:** `sh cloud/api/deploy.sh` and `rebuild.sh`, remove the
-  stage 0 trial (service `bnp-api-trial`, trigger `bnp-api-trial-matches`,
-  collection `trialViews`, still running in the project), paste
-  `firestore.rules`, and try it from a phone; the real Firestore commit is
-  unverified until then. The trial itself passed on 2026-11-27: 13 balls
-  from the owner's phone were each stored within 1.0 to 2.4 seconds.
+- **Website and API, stage 2 of 6: stored copies (2026-11-27), deployed.**
+  Planned with the owner (docs/ROADMAP.md "Website and API"): a Dart
+  service on Cloud Run replays each saved match with `cricket_engine` and
+  stores ready-to-read copies that an API, the website and later an admin
+  page read. Built: `packages/match_view` (pure Dart, 10 tests: the wording
+  moved from `ui/format.dart`, re-exported there, and `matchCard` /
+  `matchView`); and `cloud/api` (23 tests), live as the private service
+  `bnp-api-projector` with the trigger `bnp-api-projector-matches`, storing
+  `matchCards/{id}` and `matchViews/{id}` on every save (README "API
+  server"). The rebuild stored all 5 published matches. **Open:** the owner
+  pastes `firestore.rules` (the copies are not publicly readable until
+  then), and a try from a phone with an undo and a deleted match. Next:
+  stage 3, the public API.
 - **Notifications, stage 3 of 5: follow a live match (2026-11-26).** The
   engine's `momentOf` (`moments.dart`) finds the start, a wicket, a fifty or
   hundred, a five-for, the innings break and the result from the state

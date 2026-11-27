@@ -97,21 +97,23 @@ and list, and "share a match link" in the app; 5. the app reads the stored
 copies; 6. the admin page. The privacy policy and the site's feature list
 change with stage 4.
 
-**Stage 2 (2026-11-27): built, not deployed.** `cloud/api` is now the real
-service (README "API server", docs/ARCHITECTURE.md "Stored copies"): it
-stores `matchCards/{id}` and `matchViews/{id}` for every save, keeps the
-newest save when events arrive out of order or twice, removes the copies
-of a deleted match and keeps the last good ones of a match it cannot read.
-23 tests with an in-memory store; the image builds. `firestore.rules` opens
-the two collections to read. **Unverified until deployed:** the Firestore
-commit with its "copy unchanged" condition and how its refusals are told
-apart (`FirestoreMatchStore`), which no test here reaches. To do with the
-owner's yes: `sh cloud/api/deploy.sh`, `sh cloud/api/rebuild.sh`, remove
-the trial (service `bnp-api-trial`, trigger `bnp-api-trial-matches`,
-collection `trialViews`), paste the rules, then score a few balls and an
-undo and read the copies. Decided for stage 3: the public API will be a
-second service from the same image with a read-only account, so the
-internet never reaches the one that writes.
+**Stage 2 (2026-11-27): deployed.** `cloud/api` is the real service
+(README "API server", docs/ARCHITECTURE.md "Stored copies"): it stores
+`matchCards/{id}` and `matchViews/{id}` for every save, keeps the newest
+save when events arrive out of order or twice, removes the copies of a
+deleted match and keeps the last good ones of a match it cannot read. 23
+tests with an in-memory store. Live as the private Cloud Run service
+`bnp-api-projector` with the trigger `bnp-api-projector-matches`. The
+rebuild stored all 5 published matches, twice (a first write and a
+replacement), and Firestore refuses a stale copy with FAILED_PRECONDITION
+and an existing one with ALREADY_EXISTS, both of which the store treats as
+"do it again". The trial is removed (service, trigger and `trialViews`).
+**Still to do:** the owner pastes `firestore.rules` (until then the copies
+are not publicly readable, which nothing needs yet), and a try from the
+phone: a few balls, an undo and a deleted match, then read the copies.
+Decided for stage 3: the public API will be a second service from the same
+image with a read-only account, so the internet never reaches the one
+that writes.
 
 **Stage 1 (2026-11-27): done.** `packages/match_view` holds the wording
 moved out of the app's `ui/format.dart` (which re-exports it, so screens
@@ -135,8 +137,7 @@ The trigger's CloudEvent names the document in its `ce-document` header,
 so the protobuf body is never parsed. Cost is not measured yet (too little
 use to show on a bill). Build the image with `cloud/api/cloudbuild.yaml`
 from a copy holding only `packages/cricket_engine` and `cloud/api`.
-Remove the trial service, its trigger and `trialViews` when stage 2's
-real service replaces them.
+It was removed the same day, when stage 2's service replaced it.
 
 ## Phases
 **Phase 0: make v0.1 real (next)**

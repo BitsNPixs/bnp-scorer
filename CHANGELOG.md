@@ -3,7 +3,8 @@
 ## Unreleased
 
 ### Added
-- Website and API, stage 2 (nothing users can see; built, not deployed):
+- Website and API, stage 2 (nothing users can see; deployed 2026-11-27 as
+  the private Cloud Run service `bnp-api-projector`, the trial removed):
   the server in `cloud/api` stores a card (`matchCards/{id}`) and a full
   view (`matchViews/{id}`) of every published match each time it is saved,
   replayed by the same engine as the app. The newest save always wins, a
